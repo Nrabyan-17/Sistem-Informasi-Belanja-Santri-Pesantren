@@ -2,7 +2,7 @@ import MainLayout from '../components/layout/MainLayout';
 import FinancialSummaryCards from '../components/reports/FinancialSummaryCards';
 import ExportButtons from '../components/reports/ExportButtons';
 
-const FinancialReportPage = () => {
+const FinancialReportPage = ({ Layout = MainLayout }) => {
   const handleExportPDF = () => {
     console.log('Export PDF...');
     // TODO: Implementasi export PDF (jspdf / html2canvas)
@@ -14,7 +14,7 @@ const FinancialReportPage = () => {
   };
 
   return (
-    <MainLayout pageTitle="Laporan Keuangan">
+    <Layout pageTitle="Laporan Keuangan">
       <div className="report-header">
         <div className="report-filter">
           <select className="filter-select">
@@ -34,7 +34,7 @@ const FinancialReportPage = () => {
       <div className="report-table-placeholder">
         <p>📋 Tabel detail laporan arus kas akan ditampilkan di sini.</p>
       </div>
-    </MainLayout>
+    </Layout>
   );
 };
 

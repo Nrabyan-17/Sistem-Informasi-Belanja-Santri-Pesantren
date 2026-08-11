@@ -21,7 +21,7 @@ const DataTable = ({ columns = [], data = [], emptyText = 'Tidak ada data.' }) =
             data.map((row, idx) => (
               <tr key={idx}>
                 {columns.map((col) => (
-                  <td key={col.key}>{col.render ? col.render(row) : row[col.key]}</td>
+                  <td key={col.key}>{col.render ? col.render(row, idx) : row[col.key]}</td>
                 ))}
               </tr>
             ))

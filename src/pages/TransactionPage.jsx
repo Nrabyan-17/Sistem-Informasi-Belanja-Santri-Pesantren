@@ -8,17 +8,17 @@ const mockTransactions = [
   { no: 3, tanggal: '2026-08-06', namaSantri: 'Citra Dewi', kategori: 'Belanja', nominal: 12000, status: 'pending' },
 ];
 
-const TransactionPage = () => {
+const TransactionPage = ({ Layout = MainLayout }) => {
   const handleFilter = (filters) => {
     console.log('Filter:', filters);
     // TODO: Implementasi filter logic
   };
 
   return (
-    <MainLayout pageTitle="Manajemen Transaksi">
+    <Layout pageTitle="Manajemen Transaksi">
       <TransactionFilterBar onFilter={handleFilter} />
       <TransactionTable data={mockTransactions} />
-    </MainLayout>
+    </Layout>
   );
 };
 

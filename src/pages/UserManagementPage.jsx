@@ -2,20 +2,29 @@ import { useState } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import UserTable from '../components/users/UserTable';
 import UserModalForm from '../components/users/UserModalForm';
+import SaldoDetailModal from '../components/users/SaldoDetailModal';
 
 const mockSantri = [
-  { id: 1, nis: '123456', nama: 'Ahmad Fauzi', kelas: 'VII A', status: 'aktif', saldo: 50000 },
-  { id: 2, nis: '123457', nama: 'Budi Santoso', kelas: 'VIII B', status: 'aktif', saldo: 75000 },
-  { id: 3, nis: '123458', nama: 'Citra Dewi', kelas: 'IX A', status: 'nonaktif', saldo: 0 },
+  { id: 1, nis: '123456', nama: 'Ahmad Fauzi', kelas: 'VII A', noHp: '0812-3456-7890', status: 'aktif', saldo: 50000 },
+  { id: 2, nis: '123457', nama: 'Budi Santoso', kelas: 'VIII B', noHp: '0813-4567-8901', status: 'aktif', saldo: 75000 },
+  { id: 3, nis: '123458', nama: 'Citra Dewi', kelas: 'IX A', noHp: '0821-5678-9012', status: 'nonaktif', saldo: 0 },
 ];
 
-const UserManagementPage = () => {
+const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState({});
+
+  const [isSaldoModalOpen, setIsSaldoModalOpen] = useState(false);
+  const [selectedSantriSaldo, setSelectedSantriSaldo] = useState({});
 
   const handleEdit = (santri) => {
     setEditData(santri);
     setIsModalOpen(true);
+  };
+
+  const handleDetailSaldo = (santri) => {
+    setSelectedSantriSaldo(santri);
+    setIsSaldoModalOpen(true);
   };
 
   const handleDelete = (santri) => {
@@ -32,7 +41,7 @@ const UserManagementPage = () => {
   };
 
   return (
-    <MainLayout pageTitle="Manajemen Pengguna">
+    <Layout pageTitle="Manajemen Pengguna">
       <div className="page-actions">
         <div className="stat-badges">
           <span className="stat-badge">👥 50 Santri</span>
@@ -44,7 +53,14 @@ const UserManagementPage = () => {
         </button>
       </div>
 
-      <UserTable data={mockSantri} onEdit={handleEdit} onDelete={handleDelete} />
+      <UserTable
+        data={mockSantri}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onDetailSaldo={handleDetailSaldo}
+        showDelete={!isStaffVersion}
+        showPhone={isStaffVersion}
+      />
 
       <UserModalForm
         isOpen={isModalOpen}
@@ -52,7 +68,13 @@ const UserManagementPage = () => {
         onSubmit={handleSubmit}
         initialData={editData}
       />
-    </MainLayout>
+
+      <SaldoDetailModal
+        isOpen={isSaldoModalOpen}
+        onClose={() => setIsSaldoModalOpen(false)}
+        santri={selectedSantriSaldo}
+      />
+    </Layout>
   );
 };
 

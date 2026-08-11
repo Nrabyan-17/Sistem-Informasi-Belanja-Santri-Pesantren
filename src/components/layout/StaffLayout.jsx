@@ -2,17 +2,18 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-// Menu navigasi untuk Admin/Manajerial
-const adminMenuItems = [
-  { path: '',           label: 'Dashboard',    icon: '📊' },
-  { path: '/transaksi', label: 'Transaksi',    icon: '💸' },
-  { path: '/laporan',   label: 'Laporan',      icon: '📋' },
-  { path: '/pengguna',  label: 'Pengguna',     icon: '👥' },
+// Menu navigasi untuk Staff Rumah Koin
+const staffMenuItems = [
+  { path: '',           label: 'Dashboard',   icon: '📊' },
+  { path: '/transaksi', label: 'Transaksi',   icon: '💸' },
+  { path: '/laporan',   label: 'Laporan',     icon: '📋' },
+  { path: '/pengguna',  label: 'Pengguna',    icon: '👥' },
+  { path: '/upload-bni',label: 'Upload BNI',  icon: '📤' },
   { path: '/topup',     label: 'Top Up Saldo', icon: '💳' },
 ];
 
-// Layout Utama Admin: Sidebar + Header + Konten Halaman
-const MainLayout = ({ children, pageTitle }) => {
+// Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman
+const StaffLayout = ({ children, pageTitle }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -20,8 +21,8 @@ const MainLayout = ({ children, pageTitle }) => {
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((c) => !c)}
-        menuItems={adminMenuItems}
-        basePath="/admin"
+        menuItems={staffMenuItems}
+        basePath="/staff"
       />
       <div className="main-content">
         <Header pageTitle={pageTitle} />
@@ -31,4 +32,4 @@ const MainLayout = ({ children, pageTitle }) => {
   );
 };
 
-export default MainLayout;
+export default StaffLayout;

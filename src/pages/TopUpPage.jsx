@@ -7,7 +7,7 @@ const mockSantri = [
   { id: 2, nis: '123457', nama: 'Budi Santoso', saldo: 75000 },
 ];
 
-const TopUpPage = () => {
+const TopUpPage = ({ Layout = MainLayout }) => {
   const [searchNIS, setSearchNIS] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
 
@@ -23,7 +23,7 @@ const TopUpPage = () => {
   };
 
   return (
-    <MainLayout pageTitle="Pengisian Saldo Santri">
+    <Layout pageTitle="Pengisian Saldo Santri">
       <div className="topup-search">
         <input
           type="text"
@@ -40,7 +40,7 @@ const TopUpPage = () => {
       {selectedSantri && (
         <TopUpForm santri={selectedSantri} onSubmit={handleTopUp} />
       )}
-    </MainLayout>
+    </Layout>
   );
 };
 

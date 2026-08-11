@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import POSLayout from '../../components/layout/POSLayout';
+import StaffLayout from '../../components/layout/StaffLayout';
 import CustomerInfoCard from '../../components/pos/CustomerInfoCard';
 import OrderSummaryTable from '../../components/pos/OrderSummaryTable';
 import TotalBillCard from '../../components/pos/TotalBillCard';
@@ -16,12 +16,12 @@ const POSCheckoutPage = () => {
 
   const handleConfirm = () => {
     alert(`Pembayaran berhasil!\nMetode: ${paymentMethod === 'saldo' ? 'Saldo Santri' : 'Tunai'}\nTotal: Rp ${total.toLocaleString('id-ID')}`);
-    navigate('/');
+    navigate('/staff');
     // TODO: Implementasi API call pembayaran
   };
 
   return (
-    <POSLayout>
+    <StaffLayout pageTitle="Checkout">
       <div className="checkout-page">
         <div className="checkout-header">
           <h2 className="checkout-title">Konfirmasi Pembayaran</h2>
@@ -49,7 +49,7 @@ const POSCheckoutPage = () => {
           </div>
         </div>
       </div>
-    </POSLayout>
+    </StaffLayout>
   );
 };
 

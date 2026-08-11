@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import POSLayout from '../../components/layout/POSLayout';
+import StaffLayout from '../../components/layout/StaffLayout';
 
 const mockProducts = [
   { id: 1, nama: 'Nasi Goreng', harga: 5000, kategori: 'Makanan' },
@@ -24,7 +24,7 @@ const POSCatalogPage = () => {
   const total = cart.reduce((sum, item) => sum + item.harga * item.qty, 0);
 
   return (
-    <POSLayout>
+    <StaffLayout pageTitle="POS Kasir">
       <div className="pos-catalog">
         <h2>Pilih Menu / Produk</h2>
         <div className="product-grid">
@@ -41,14 +41,14 @@ const POSCatalogPage = () => {
             <span>{cart.length} item — Total: Rp {total.toLocaleString('id-ID')}</span>
             <button
               className="btn btn-primary"
-              onClick={() => navigate('/pos/checkout', { state: { cart, total } })}
+              onClick={() => navigate('/staff/checkout', { state: { cart, total } })}
             >
               Lanjut Checkout →
             </button>
           </div>
         )}
       </div>
-    </POSLayout>
+    </StaffLayout>
   );
 };
 

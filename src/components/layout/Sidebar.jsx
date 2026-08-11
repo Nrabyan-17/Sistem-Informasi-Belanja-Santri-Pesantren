@@ -1,17 +1,16 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import logoPesantren from '../../assets/logo-pesantren.png';
 
-// Sidebar Navigasi Utama Admin
-const menuItems = [
-  { path: '/',           label: 'Dashboard',    icon: '📊' },
-  { path: '/transaksi',  label: 'Transaksi',    icon: '💸' },
-  { path: '/laporan',    label: 'Laporan',      icon: '📋' },
-  { path: '/pengguna',   label: 'Pengguna',     icon: '👥' },
-  { path: '/topup',      label: 'Top Up Saldo', icon: '💳' },
-  { path: '/pos',        label: 'POS Kasir',    icon: '🛒' },
-];
+// Sidebar Navigasi — dipakai oleh AdminLayout & StaffLayout
+const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadge = null }) => {
+  const navigate = useNavigate();
 
-const Sidebar = ({ collapsed, onToggle }) => {
+  const handleLogout = () => {
+    if (confirm('Apakah Anda yakin ingin keluar?')) {
+      navigate('/');
+    }
+  };
+
   return (
     <>
       {/* Overlay untuk mobile */}
@@ -22,8 +21,11 @@ const Sidebar = ({ collapsed, onToggle }) => {
       <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
         {/* Logo + Burger Button */}
         <div className="sidebar-logo">
-          <span className="logo-icon">🪙</span>
-          <span className="logo-text">Sistem Manajemen Koin</span>
+          <img src={logoPesantren} alt="Logo Pesantren" className="logo-img" />
+          <div className="logo-text-wrapper">
+            <span className="logo-text">Sistem Manajemen Koin</span>
+            <span className="logo-subtitle">Pondok Pesantren Nazhatut Thullab</span>
+          </div>
           <button
             className="burger-btn"
             onClick={onToggle}
@@ -41,8 +43,8 @@ const Sidebar = ({ collapsed, onToggle }) => {
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
-              to={item.path}
-              end={item.path === '/'}
+              to={`${basePath}${item.path}`}
+              end={item.path === '' || item.path === '/'}
               className={({ isActive }) => `nav-item ${isActive ? 'nav-item--active' : ''}`}
               title={item.label}
             >
@@ -54,15 +56,16 @@ const Sidebar = ({ collapsed, onToggle }) => {
 
         {/* Footer Logout */}
         <div className="sidebar-footer">
+          {userBadge && (
+            <div className="sidebar-user-badge">
+              <div className="user-badge-name">{userBadge.name}</div>
+              <div className="user-badge-role">{userBadge.role}</div>
+            </div>
+          )}
           <button
             className="nav-item nav-item--logout"
             title="Keluar"
-            onClick={() => {
-              if (confirm('Apakah Anda yakin ingin keluar?')) {
-                console.log('Logout...');
-                // TODO: Implementasi logout
-              }
-            }}
+            onClick={handleLogout}
           >
             <span className="nav-icon">🚪</span>
             <span className="nav-label">Keluar</span>

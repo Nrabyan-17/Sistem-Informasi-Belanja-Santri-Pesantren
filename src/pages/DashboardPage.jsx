@@ -10,9 +10,9 @@ const mockRecent = [
   { namaSantri: 'Budi Santoso', nominal: 15000 },
 ];
 
-const DashboardPage = () => {
+const DashboardPage = ({ Layout = MainLayout }) => {
   return (
-    <MainLayout pageTitle="Dashboard Keuangan">
+    <Layout pageTitle="Dashboard Keuangan">
       <StatCards
         totalSaldo={mockStats.totalSaldo}
         totalPemasukan={mockStats.totalPemasukan}
@@ -22,7 +22,7 @@ const DashboardPage = () => {
         <SalesChart />
         <RecentTransactionsWidget transactions={mockRecent} />
       </div>
-    </MainLayout>
+    </Layout>
   );
 };
 
