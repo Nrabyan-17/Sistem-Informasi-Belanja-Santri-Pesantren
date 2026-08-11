@@ -1,27 +1,37 @@
 // DataTable: Tabel dengan header dan baris data
 const DataTable = ({ columns = [], data = [], emptyText = 'Tidak ada data.' }) => {
   return (
-    <div className="data-table-wrapper">
-      <table className="data-table">
-        <thead>
+    <div className="data-table-wrapper w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs transition-colors duration-200">
+      <table className="data-table w-full text-left border-collapse text-sm text-slate-700 dark:text-slate-200">
+        <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800">
           <tr>
             {columns.map((col) => (
-              <th key={col.key}>{col.label}</th>
+              <th
+                key={col.key}
+                className="px-5 py-3.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
+                {col.label}
+              </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} style={{ textAlign: 'center' }}>
+              <td
+                colSpan={columns.length}
+                className="px-5 py-8 text-center text-slate-400 dark:text-slate-500 font-medium"
+              >
                 {emptyText}
               </td>
             </tr>
           ) : (
             data.map((row, idx) => (
-              <tr key={idx}>
+              <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                 {columns.map((col) => (
-                  <td key={col.key}>{col.render ? col.render(row, idx) : row[col.key]}</td>
+                  <td key={col.key} className="px-5 py-4 whitespace-nowrap">
+                    {col.render ? col.render(row, idx) : row[col.key]}
+                  </td>
                 ))}
               </tr>
             ))

@@ -6,6 +6,7 @@
    ========================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 /* ── CSS Variables / Design Tokens ── */
 :root {
@@ -68,6 +69,50 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 350ms ease;
+}
+
+/* ── Dark Mode Overrides ── */
+html.dark,
+[data-theme="dark"] {
+  --page-bg: #0b1329;
+  --card-bg: #111c38;
+  --gray-50: #1e293b;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #94a3b8;
+  --gray-500: #cbd5e1;
+  --gray-600: #e2e8f0;
+  --gray-700: #f1f5f9;
+  --gray-800: #f8fafc;
+  --gray-900: #ffffff;
+
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0b1329;
+  color: #f1f5f9;
+}
+
+.dark .page-content,
+.dark .main-layout {
+  background-color: #0b1329;
+}
+
+.dark .card,
+.dark .stat-card,
+.dark .data-table-wrapper,
+.dark .wali-table-card,
+.dark .wali-va-card,
+.dark .bni-step-card,
+.dark .bni-dropzone,
+.dark .bni-results-card,
+.dark .user-modal-form,
+.dark .saldo-adjust-form {
+  background-color: #111c38;
+  border-color: #1e293b;
+  color: #f1f5f9;
 }
 
 /* ── Reset & Base ── */

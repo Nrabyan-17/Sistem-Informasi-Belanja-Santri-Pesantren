@@ -47,127 +47,156 @@ const WaliRiwayatPage = () => {
 
   return (
     <WaliLayout pageTitle="Riwayat Transaksi — Arus Kas Saldo">
-      <div className="wali-riwayat-page">
-        <div className="wali-header-subtitle">
+      <div className="wali-riwayat-page flex flex-col gap-6">
+        <div className="wali-header-subtitle text-sm text-slate-500 -mt-3 mb-1 font-medium">
           Pondok Pesantren Nazhatut Thullab
         </div>
 
         {/* Filter Bar & Export */}
-        <div className="wali-filter-card">
-          <div className="wali-filter-left">
-            <div className="wali-type-buttons">
+        <div className="wali-filter-card bg-white border border-slate-200 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+          <div className="wali-filter-left flex flex-wrap items-center gap-6">
+            <div className="wali-type-buttons flex gap-2">
               <button
-                className={`wali-type-btn ${filterType === 'semua' ? 'wali-type-btn--active' : ''}`}
+                className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  filterType === 'semua'
+                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
                 onClick={() => setFilterType('semua')}
               >
                 Semua
               </button>
               <button
-                className={`wali-type-btn ${filterType === 'masuk' ? 'wali-type-btn--active' : ''}`}
+                className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  filterType === 'masuk'
+                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
                 onClick={() => setFilterType('masuk')}
               >
                 + Masuk
               </button>
               <button
-                className={`wali-type-btn ${filterType === 'keluar' ? 'wali-type-btn--active' : ''}`}
+                className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  filterType === 'keluar'
+                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
                 onClick={() => setFilterType('keluar')}
               >
                 - Keluar
               </button>
             </div>
 
-            <div className="wali-date-inputs">
-              <div className="date-input-group">
-                <label>DARI TANGGAL</label>
+            <div className="wali-date-inputs flex items-center gap-3">
+              <div className="date-input-group flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">DARI TANGGAL</label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="filter-date"
+                  className="filter-date px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-emerald-600"
                 />
               </div>
-              <div className="date-input-group">
-                <label>SAMPAI TANGGAL</label>
+              <div className="date-input-group flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SAMPAI TANGGAL</label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="filter-date"
+                  className="filter-date px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-emerald-600"
                 />
               </div>
             </div>
           </div>
 
-          <button className="btn btn-export-excel" onClick={handleExportExcel}>
+          <button
+            className="btn btn-export-excel px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer"
+            onClick={handleExportExcel}
+          >
             📥 Ekspor .xlsx
           </button>
         </div>
 
         {/* 3 Summary Stat Cards */}
-        <div className="wali-summary-grid">
-          <div className="wali-summary-card">
-            <span className="summary-label">TOTAL TRANSAKSI</span>
-            <span className="summary-val">{mockWaliTransactions.length} entri</span>
+        <div className="wali-summary-grid grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="wali-summary-card bg-white border border-slate-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+            <span className="summary-label text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              TOTAL TRANSAKSI
+            </span>
+            <span className="summary-val text-xl font-extrabold text-slate-800">
+              {mockWaliTransactions.length} entri
+            </span>
           </div>
-          <div className="wali-summary-card wali-summary-card--green">
-            <span className="summary-label">TOTAL SALDO MASUK</span>
-            <span className="summary-val text-success">
+          <div className="wali-summary-card wali-summary-card--green bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+            <span className="summary-label text-[11px] font-bold tracking-wider text-emerald-800 uppercase">
+              TOTAL SALDO MASUK
+            </span>
+            <span className="summary-val text-xl font-extrabold text-emerald-600">
               Rp {totalMasuk.toLocaleString('id-ID')}
             </span>
           </div>
-          <div className="wali-summary-card wali-summary-card--orange">
-            <span className="summary-label">TOTAL KOIN DITARIK</span>
-            <span className="summary-val text-warning">
+          <div className="wali-summary-card wali-summary-card--orange bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+            <span className="summary-label text-[11px] font-bold tracking-wider text-amber-800 uppercase">
+              TOTAL KOIN DITARIK
+            </span>
+            <span className="summary-val text-xl font-extrabold text-amber-600">
               Rp {totalKeluar.toLocaleString('id-ID')}
             </span>
           </div>
         </div>
 
         {/* Data Table */}
-        <div className="wali-table-card">
-          <div className="wali-table-header">
-            <h3 className="wali-table-title">Daftar Arus Kas Saldo</h3>
-            <span className="wali-table-count">
+        <div className="wali-table-card bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col gap-5">
+          <div className="wali-table-header flex justify-between items-center">
+            <h3 className="wali-table-title text-base font-bold text-slate-800">Daftar Arus Kas Saldo</h3>
+            <span className="wali-table-count text-xs text-slate-400 font-medium">
               {filteredData.length} dari {mockWaliTransactions.length} transaksi
             </span>
           </div>
 
-          <div className="data-table-wrapper">
-            <table className="data-table">
-              <thead>
+          <div className="data-table-wrapper overflow-x-auto border border-slate-200 rounded-2xl">
+            <table className="data-table w-full text-left border-collapse text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
                 <tr>
-                  <th>#</th>
-                  <th>TANGGAL</th>
-                  <th>SANTRI / NIS</th>
-                  <th>KETERANGAN</th>
-                  <th>NOMINAL</th>
-                  <th>SALDO SETELAH</th>
-                  <th>STATUS</th>
+                  <th className="px-4 py-3">#</th>
+                  <th className="px-4 py-3">TANGGAL</th>
+                  <th className="px-4 py-3">SANTRI / NIS</th>
+                  <th className="px-4 py-3">KETERANGAN</th>
+                  <th className="px-4 py-3">NOMINAL</th>
+                  <th className="px-4 py-3">SALDO SETELAH</th>
+                  <th className="px-4 py-3">STATUS</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredData.map((item, idx) => (
-                  <tr key={item.id}>
-                    <td>{idx + 1}</td>
-                    <td>{item.tanggal}</td>
-                    <td>
-                      <div className="santri-cell">
-                        <strong>{item.nama}</strong>
-                        <span className="santri-nis">{item.nis}</span>
+                  <tr key={item.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3.5 text-xs text-slate-400 font-medium">{idx + 1}</td>
+                    <td className="px-4 py-3.5 text-xs font-medium whitespace-nowrap">{item.tanggal}</td>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <div className="santri-cell flex flex-col">
+                        <strong className="text-slate-800 font-bold">{item.nama}</strong>
+                        <span className="santri-nis text-xs text-slate-400">{item.nis}</span>
                       </div>
                     </td>
-                    <td>{item.ket}</td>
-                    <td className="nominal-cell">
-                      <strong className={item.nominal > 0 ? 'text-success' : 'text-danger'}>
+                    <td className="px-4 py-3.5 font-medium">{item.ket}</td>
+                    <td className="nominal-cell px-4 py-3.5 font-bold whitespace-nowrap">
+                      <span className={item.nominal > 0 ? 'text-emerald-600' : 'text-rose-600'}>
                         {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
-                      </strong>
+                      </span>
                     </td>
-                    <td>Rp {item.saldoAfter.toLocaleString('id-ID')}</td>
-                    <td>
+                    <td className="px-4 py-3.5 font-semibold text-slate-800 whitespace-nowrap">
+                      Rp {item.saldoAfter.toLocaleString('id-ID')}
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
                       {item.type === 'masuk' ? (
-                        <span className="badge badge--green">+ Masuk</span>
+                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold">
+                          + Masuk
+                        </span>
                       ) : (
-                        <span className="badge badge--orange">- Keluar</span>
+                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-xs font-semibold">
+                          - Keluar
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -176,11 +205,11 @@ const WaliRiwayatPage = () => {
             </table>
           </div>
 
-          <div className="wali-table-footer">
-            <div className="table-footer-left">
-              <span>Total masuk: <strong>Rp {totalMasuk.toLocaleString('id-ID')}</strong></span>
-              <span className="divider">•</span>
-              <span>Total keluar: <strong>Rp {totalKeluar.toLocaleString('id-ID')}</strong></span>
+          <div className="wali-table-footer flex flex-wrap justify-between items-center pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
+            <div className="table-footer-left flex items-center gap-3">
+              <span>Total masuk: <strong className="text-emerald-700">Rp {totalMasuk.toLocaleString('id-ID')}</strong></span>
+              <span className="divider text-slate-300">•</span>
+              <span>Total keluar: <strong className="text-amber-700">Rp {totalKeluar.toLocaleString('id-ID')}</strong></span>
             </div>
             <div className="table-footer-right">
               {filteredData.length} baris ditampilkan
