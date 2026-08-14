@@ -25,7 +25,11 @@ const StaffLayout = ({ children, pageTitle }) => {
         basePath="/staff"
       />
       <div className="main-content">
-        <Header pageTitle={pageTitle} />
+        <Header
+          pageTitle={pageTitle}
+          onToggleSidebar={() => setCollapsed((c) => !c)}
+          isSidebarCollapsed={collapsed}
+        />
         <main className="page-content">{children}</main>
       </div>
     </div>

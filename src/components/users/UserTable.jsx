@@ -7,6 +7,7 @@ const UserTable = ({
   activeCount = 6,
   nonactiveCount = 1,
   onEdit,
+  onDelete,
 }) => {
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -115,13 +116,24 @@ const UserTable = ({
                       {user.nis}
                     </td>
                     <td className="text-center">
-                      <button
-                        type="button"
-                        onClick={() => onEdit?.(user)}
-                        className="btn-edit-user"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex items-center justify-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => onEdit?.(user)}
+                          className="btn-edit-user cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        {onDelete && (
+                          <button
+                            type="button"
+                            onClick={() => onDelete?.(user)}
+                            className="btn-delete-user cursor-pointer"
+                          >
+                            Hapus
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

@@ -117,6 +117,111 @@ html.dark,
   color: #f1f5f9;
 }
 
+/* ── Dark Mode Sidebar ── */
+.dark .sidebar,
+html.dark .sidebar,
+[data-theme="dark"] .sidebar {
+  background-color: #0b1329 !important;
+  border-right-color: #1e2d4a !important;
+  color: #f8fafc !important;
+}
+
+.dark .sidebar-logo,
+html.dark .sidebar-logo,
+[data-theme="dark"] .sidebar-logo {
+  border-bottom-color: #1e2d4a !important;
+}
+
+.dark .logo-text,
+html.dark .logo-text,
+[data-theme="dark"] .logo-text {
+  color: #f8fafc !important;
+}
+
+.dark .logo-subtitle,
+html.dark .logo-subtitle,
+[data-theme="dark"] .logo-subtitle {
+  color: #94a3b8 !important;
+}
+
+.dark .burger-btn,
+html.dark .burger-btn,
+[data-theme="dark"] .burger-btn {
+  background-color: #1e2d4a !important;
+  border-color: #334155 !important;
+}
+
+.dark .burger-btn:hover,
+html.dark .burger-btn:hover,
+[data-theme="dark"] .burger-btn:hover {
+  background-color: #334155 !important;
+}
+
+.dark .burger-line,
+html.dark .burger-line,
+[data-theme="dark"] .burger-line {
+  background-color: #cbd5e1 !important;
+}
+
+.dark .nav-item,
+html.dark .nav-item,
+[data-theme="dark"] .nav-item {
+  color: #94a3b8 !important;
+}
+
+.dark .nav-item:hover,
+html.dark .nav-item:hover,
+[data-theme="dark"] .nav-item:hover {
+  background-color: #1e2d4a !important;
+  color: #f8fafc !important;
+}
+
+.dark .nav-item--active,
+html.dark .nav-item--active,
+[data-theme="dark"] .nav-item--active {
+  background-color: #0e5d26 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(14, 93, 38, 0.4) !important;
+}
+
+.dark .sidebar-footer,
+html.dark .sidebar-footer,
+[data-theme="dark"] .sidebar-footer {
+  border-top-color: #1e2d4a !important;
+}
+
+.dark .sidebar-user-badge,
+html.dark .sidebar-user-badge,
+[data-theme="dark"] .sidebar-user-badge {
+  background-color: rgba(14, 93, 38, 0.2) !important;
+  border-color: rgba(14, 93, 38, 0.4) !important;
+}
+
+.dark .user-badge-name,
+html.dark .user-badge-name,
+[data-theme="dark"] .user-badge-name {
+  color: #86efac !important;
+}
+
+.dark .user-badge-role,
+html.dark .user-badge-role,
+[data-theme="dark"] .user-badge-role {
+  color: #4ade80 !important;
+}
+
+.dark .nav-item--logout,
+html.dark .nav-item--logout,
+[data-theme="dark"] .nav-item--logout {
+  color: #f87171 !important;
+}
+
+.dark .nav-item--logout:hover,
+html.dark .nav-item--logout:hover,
+[data-theme="dark"] .nav-item--logout:hover {
+  background-color: rgba(225, 29, 72, 0.2) !important;
+  color: #fca5a5 !important;
+}
+
 /* ── Reset & Base ── */
 *,
 *::before,
@@ -200,22 +305,24 @@ img {
 }
 
 .login-logo-badge {
-  width: 72px;
-  height: 72px;
-  background-color: #0e5d26;
-  border-radius: 20px;
+  width: 90px;
+  height: 90px;
+  background-color: transparent !important;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 18px auto;
-  padding: 12px;
-  box-shadow: 0 6px 16px rgba(14, 93, 38, 0.2);
+  margin: 0 auto 14px auto;
+  padding: 0;
+  box-shadow: none !important;
 }
 
 .login-logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  mix-blend-multiply: multiply;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
 }
 
 .login-title {
@@ -905,25 +1012,92 @@ img {
 
 
 /* ========================================
-   DAILY SUMMARY BANNER — Green Component
+   DAILY SUMMARY BANNER — Gray KPI-Matching Card
    ======================================== */
 .daily-summary-banner {
-  background-color: #0e5d26;
+  background-color: #ffffff;
   border-radius: 16px;
   padding: 20px 28px;
-  color: #ffffff;
+  color: #0f172a;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 14px rgba(14, 93, 38, 0.15);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.dark .daily-summary-banner {
+.dark .daily-summary-banner,
+html.dark .daily-summary-banner,
+[data-theme="dark"] .daily-summary-banner {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+/* ========================================
+   STAFF WITHDRAWAL CARD
+   ======================================== */
+.staff-withdrawal-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 28px 28px 28px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .staff-withdrawal-card,
+html.dark .staff-withdrawal-card,
+[data-theme="dark"] .staff-withdrawal-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.staff-withdrawal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dark .staff-withdrawal-footer,
+html.dark .staff-withdrawal-footer,
+[data-theme="dark"] .staff-withdrawal-footer {
+  border-color: #334155 !important;
+}
+
+.btn-process-withdrawal {
+  height: 48px;
+  padding: 0 32px;
+  background-color: #0e5d26;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(14, 93, 38, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-process-withdrawal:hover {
   background-color: #0b471d;
+  transform: translateY(-1px);
 }
 
 .banner-date-wrapper {
@@ -935,9 +1109,15 @@ img {
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.01em;
-  color: #ffffff;
+  color: #0f172a;
   text-transform: uppercase;
   margin: 0;
+}
+
+.dark .banner-date,
+html.dark .banner-date,
+[data-theme="dark"] .banner-date {
+  color: #f8fafc !important;
 }
 
 .banner-metrics {
@@ -956,24 +1136,62 @@ img {
 .metric-label {
   font-size: 0.68rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.75);
+  color: #64748b;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
 
+.dark .metric-label,
+html.dark .metric-label,
+[data-theme="dark"] .metric-label {
+  color: #94a3b8 !important;
+}
+
 .metric-value {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   white-space: nowrap;
   line-height: 1.2;
+}
+
+.dark .metric-value,
+html.dark .metric-value,
+[data-theme="dark"] .metric-value {
+  color: #f8fafc !important;
+}
+
+.metric-value--masuk {
+  color: #0e5d26;
+}
+
+.dark .metric-value--masuk,
+html.dark .metric-value--masuk,
+[data-theme="dark"] .metric-value--masuk {
+  color: #4ade80 !important;
+}
+
+.metric-value--keluar {
+  color: #dc2626;
+}
+
+.dark .metric-value--keluar,
+html.dark .metric-value--keluar,
+[data-theme="dark"] .metric-value--keluar {
+  color: #f87171 !important;
 }
 
 .metric-divider {
   width: 1px;
   height: 34px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #e2e8f0;
+}
+
+.dark .metric-divider,
+html.dark .metric-divider,
+[data-theme="dark"] .metric-divider {
+  background-color: #334155 !important;
 }
 
 @media (max-width: 868px) {
@@ -2082,6 +2300,35 @@ img {
   background-color: #f0fdf4;
 }
 
+.btn-delete-user {
+  padding: 4px 14px;
+  background-color: #ffffff;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dark .btn-delete-user {
+  background-color: #0f172a;
+  border-color: #991b1b;
+  color: #f87171;
+}
+
+.btn-delete-user:hover {
+  border-color: #dc2626;
+  color: #ffffff;
+  background-color: #dc2626;
+}
+
+.dark .btn-delete-user:hover {
+  background-color: #b91c1c;
+  color: #ffffff;
+}
+
 .user-table-footer {
   margin-top: 20px;
   padding-top: 16px;
@@ -2313,11 +2560,17 @@ img {
 }
 
 .data-table tbody tr {
-  transition: background var(--transition-fast);
+  transition: background-color var(--transition-fast);
 }
 
 .data-table tbody tr:hover {
-  background: var(--primary-50);
+  background-color: #f1f5f9 !important;
+}
+
+.dark .data-table tbody tr:hover,
+html.dark .data-table tbody tr:hover,
+[data-theme="dark"] .data-table tbody tr:hover {
+  background-color: #1e293b !important;
 }
 
 .data-table tbody tr:last-child td {

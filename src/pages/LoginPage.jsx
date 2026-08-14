@@ -30,8 +30,8 @@ const LoginPage = () => {
       <div className="login-container max-w-md w-full flex flex-col items-center animate-fadeIn">
         {/* Header Branding */}
         <div className="login-header text-center mb-7">
-          <div className="login-logo-badge w-18 h-18 bg-emerald-900 rounded-2xl flex items-center justify-center mx-auto mb-4 p-3 shadow-lg shadow-emerald-900/20">
-            <img src={logoPesantren} alt="Logo Pesantren" className="login-logo-img w-full h-full object-contain" />
+          <div className="login-logo-badge w-24 h-24 flex items-center justify-center mx-auto mb-3">
+            <img src={logoPesantren} alt="Logo Pesantren" className="login-logo-img w-full h-full object-contain mix-blend-multiply" />
           </div>
           <h1 className="login-title text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Nazhatut Thullab</h1>
           <p className="login-subtitle text-sm text-slate-500 font-medium mt-1">Sistem Koin PP Nazhatut Thullab</p>

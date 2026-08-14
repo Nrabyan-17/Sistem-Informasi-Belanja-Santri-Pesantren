@@ -27,7 +27,7 @@ const DataTable = ({ columns = [], data = [], emptyText = 'Tidak ada data.' }) =
             </tr>
           ) : (
             data.map((row, idx) => (
-              <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <tr key={idx} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-colors">
                 {columns.map((col) => (
                   <td key={col.key} className="px-5 py-4 whitespace-nowrap">
                     {col.render ? col.render(row, idx) : row[col.key]}

@@ -25,7 +25,11 @@ const MainLayout = ({ children, pageTitle }) => {
         userBadge={{ name: 'Ustadzah Ina Wahdiah', role: 'Kabid BAK & Manajerial' }}
       />
       <div className="main-content">
-        <Header pageTitle={pageTitle} />
+        <Header
+          pageTitle={pageTitle}
+          onToggleSidebar={() => setCollapsed((c) => !c)}
+          isSidebarCollapsed={collapsed}
+        />
         <main className="page-content">{children}</main>
       </div>
     </div>

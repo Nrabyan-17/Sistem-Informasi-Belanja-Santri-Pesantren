@@ -26,7 +26,11 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
         userBadge={waliBadge}
       />
       <div className="main-content">
-        <Header pageTitle={pageTitle} />
+        <Header
+          pageTitle={pageTitle}
+          onToggleSidebar={() => setCollapsed((c) => !c)}
+          isSidebarCollapsed={collapsed}
+        />
         <main className="page-content">{children}</main>
       </div>
     </div>

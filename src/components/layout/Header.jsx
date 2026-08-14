@@ -1,10 +1,32 @@
 import ThemeToggle from '../common/ThemeToggle';
 
 // Header / Top Navbar Admin
-const Header = ({ pageTitle = 'Dashboard', headerDate = 'Sabtu, 1 Agustus 2026' }) => {
+const Header = ({
+  pageTitle = 'Dashboard',
+  headerDate = 'Sabtu, 1 Agustus 2026',
+  onToggleSidebar,
+  isSidebarCollapsed = false,
+}) => {
   return (
     <header className="header h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 sm:px-8 flex items-center justify-between shadow-xs sticky top-0 z-30 transition-colors duration-200">
-      <h1 className="header-title text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">{pageTitle}</h1>
+      <div className="header-left flex items-center gap-3">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            className="header-burger-btn p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
+            onClick={onToggleSidebar}
+            aria-label="Toggle Sidebar"
+            title={isSidebarCollapsed ? 'Buka Sidebar' : 'Tutup Sidebar'}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <h1 className="header-title text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+          {pageTitle}
+        </h1>
+      </div>
       <div className="header-actions flex items-center gap-3 sm:gap-4">
         {/* Teks Tanggal di Header */}
         {headerDate && (

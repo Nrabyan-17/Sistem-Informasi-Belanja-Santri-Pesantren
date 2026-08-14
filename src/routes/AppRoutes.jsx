@@ -36,7 +36,7 @@ const AppRoutes = () => {
 
       {/* Staff Rumah Koin Routes */}
       <Route path="/staff"            element={<DashboardPage Layout={StaffLayout} />} />
-      <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} />} />
+      <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} isStaffVersion={true} />} />
       <Route path="/staff/laporan"    element={<FinancialReportPage Layout={StaffLayout} />} />
       <Route path="/staff/pengguna"   element={<UserManagementPage Layout={StaffLayout} isStaffVersion={true} />} />
       <Route path="/staff/upload-bni" element={<UploadBNIPage Layout={StaffLayout} />} />
