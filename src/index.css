@@ -2118,7 +2118,7 @@ html.dark .metric-divider,
   border-radius: 10px;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
-  padding: 0 16px;
+  padding: 0 16px 0 44px !important;
   font-size: 0.88rem;
   color: #1e293b;
   outline: none;
@@ -2388,28 +2388,39 @@ html.dark .metric-divider,
 }
 
 .saldo-search-input {
-  width: 260px;
-  height: 40px;
-  border-radius: 10px;
+  width: 280px;
+  height: 42px;
+  border-radius: 12px;
   border: 1px solid #cbd5e1;
   background-color: #f8fafc;
-  padding: 0 16px;
+  padding: 0 16px 0 44px !important;
   font-size: 0.88rem;
   color: #1e293b;
   outline: none;
   transition: all 0.2s ease;
 }
 
-.dark .saldo-search-input {
-  background-color: #0f172a;
-  border-color: #334155;
-  color: #f8fafc;
+.dark .saldo-search-input,
+html.dark .saldo-search-input,
+[data-theme="dark"] .saldo-search-input {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
 }
 
 .saldo-search-input:focus {
   border-color: #0e5d26;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(14, 93, 38, 0.12);
+}
+
+.dark .saldo-search-input:focus,
+html.dark .saldo-search-input:focus,
+[data-theme="dark"] .saldo-search-input:focus {
+  background-color: #0f172a !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25) !important;
 }
 
 .btn-detail-saldo {
@@ -4652,5 +4663,545 @@ html.dark .data-table tbody tr:hover,
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* ========================================
+   STAFF WITHDRAWAL FORM INPUTS & BARS
+   ======================================== */
+.staff-withdrawal-card input,
+.staff-withdrawal-card select {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.staff-withdrawal-card input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.staff-withdrawal-card select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Dark Mode Overrides for Form Penarikan Koin / Saldo Santri */
+.dark .staff-withdrawal-card input,
+html.dark .staff-withdrawal-card input,
+[data-theme="dark"] .staff-withdrawal-card input,
+.dark .staff-withdrawal-card select,
+html.dark .staff-withdrawal-card select,
+[data-theme="dark"] .staff-withdrawal-card select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+.dark .staff-withdrawal-card input::placeholder,
+html.dark .staff-withdrawal-card input::placeholder,
+[data-theme="dark"] .staff-withdrawal-card input::placeholder {
+  color: #64748b !important;
+}
+
+.dark .staff-withdrawal-card select option,
+html.dark .staff-withdrawal-card select option,
+[data-theme="dark"] .staff-withdrawal-card select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark .staff-withdrawal-card .quick-amt-btn,
+html.dark .staff-withdrawal-card .quick-amt-btn,
+[data-theme="dark"] .staff-withdrawal-card .quick-amt-btn {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+.dark .staff-withdrawal-card .quick-amt-btn--active,
+html.dark .staff-withdrawal-card .quick-amt-btn--active,
+[data-theme="dark"] .staff-withdrawal-card .quick-amt-btn--active {
+  background-color: #0e5d26 !important;
+  color: #ffffff !important;
+  border-color: #0e5d26 !important;
+}
+
+/* ========================================
+   SANTRI PREVIEW BOX (INFO SANTRI TERPILIH)
+   ======================================== */
+.santri-preview-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 24px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.dark .santri-preview-box,
+html.dark .santri-preview-box,
+[data-theme="dark"] .santri-preview-box {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.santri-preview-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.dark .santri-preview-label,
+html.dark .santri-preview-label,
+[data-theme="dark"] .santri-preview-label {
+  color: #64748b !important;
+}
+
+.santri-preview-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.dark .santri-preview-name,
+html.dark .santri-preview-name,
+[data-theme="dark"] .santri-preview-name {
+  color: #f8fafc !important;
+}
+
+.santri-preview-nis {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.dark .santri-preview-nis,
+html.dark .santri-preview-nis,
+[data-theme="dark"] .santri-preview-nis {
+  color: #94a3b8 !important;
+}
+
+.santri-preview-saldo {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #059669;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Dark Mode Header Title White Font & Upload BNI Gray Hover */
+.dark .header-title,
+html.dark .header-title,
+[data-theme="dark"] .header-title {
+  color: #ffffff !important;
+}
+
+.dark .bni-header-subtitle,
+html.dark .bni-header-subtitle,
+[data-theme="dark"] .bni-header-subtitle {
+  color: #94a3b8 !important;
+}
+
+.dark .bni-step-card,
+html.dark .bni-step-card,
+[data-theme="dark"] .bni-step-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .bni-step-title,
+html.dark .bni-step-title,
+[data-theme="dark"] .bni-step-title {
+  color: #f8fafc !important;
+}
+
+.dark .bni-step-desc,
+html.dark .bni-step-desc,
+[data-theme="dark"] .bni-step-desc {
+  color: #94a3b8 !important;
+}
+
+.dark .bni-dropzone,
+html.dark .bni-dropzone,
+[data-theme="dark"] .bni-dropzone {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.bni-dropzone:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #0e5d26;
+}
+
+.dark .bni-dropzone:hover,
+html.dark .bni-dropzone:hover,
+[data-theme="dark"] .bni-dropzone:hover {
+  background-color: #334155 !important;
+  border-color: #22c55e !important;
+}
+
+.dark .bni-dropzone-title,
+html.dark .bni-dropzone-title,
+[data-theme="dark"] .bni-dropzone-title {
+  color: #f8fafc !important;
+}
+
+.dark .bni-dropzone-subtitle,
+html.dark .bni-dropzone-subtitle,
+[data-theme="dark"] .bni-dropzone-subtitle {
+  color: #94a3b8 !important;
+}
+
+.dark .bni-results-card,
+html.dark .bni-results-card,
+[data-theme="dark"] .bni-results-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .bni-results-title,
+html.dark .bni-results-title,
+[data-theme="dark"] .bni-results-title {
+  color: #f8fafc !important;
+}
+
+/* Global Dark Mode Input Focus Guard - Prevents search inputs from turning white on click in dark mode */
+.dark input:focus,
+html.dark input:focus,
+[data-theme="dark"] input:focus,
+.dark select:focus,
+html.dark select:focus,
+[data-theme="dark"] select:focus {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #22c55e !important;
+}
+
+/* ========================================
+   SUCCESS WITHDRAWAL MODAL POPUP STYLING
+   ======================================== */
+.success-modal-card {
+  width: 100%;
+  max-width: 520px !important;
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 32px 36px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dark .success-modal-card,
+html.dark .success-modal-card,
+[data-theme="dark"] .success-modal-card {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+
+.success-modal-details {
+  width: 100%;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 24px !important;
+  margin: 24px 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 14px !important;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.dark .success-modal-details,
+html.dark .success-modal-details,
+[data-theme="dark"] .success-modal-details {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.success-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.88rem;
+}
+
+.success-modal-label {
+  font-weight: 600;
+  color: #64748b;
+}
+
+.dark .success-modal-label,
+html.dark .success-modal-label,
+[data-theme="dark"] .success-modal-label {
+  color: #94a3b8 !important;
+}
+
+.success-modal-value {
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+
+.dark .success-modal-value,
+html.dark .success-modal-value,
+[data-theme="dark"] .success-modal-value {
+  color: #f8fafc !important;
+}
+
+.success-modal-divider {
+  width: 100%;
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.dark .success-modal-divider,
+html.dark .success-modal-divider,
+[data-theme="dark"] .success-modal-divider {
+  background-color: #334155 !important;
+}
+
+/* ========================================
+   MODAL POP-IN ANIMATION EFFECTS
+   ======================================== */
+@keyframes modalPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes badgeCheckBounce {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.18) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.modal-animate-pop {
+  animation: modalPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-badge-bounce {
+  animation: badgeCheckBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards;
+}
+
+/* ========================================
+   WALI SANTRI PORTAL DARK MODE OVERRIDES
+   ======================================== */
+.dark .wali-santri-banner,
+html.dark .wali-santri-banner,
+[data-theme="dark"] .wali-santri-banner {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  box-shadow: none !important;
+}
+
+.dark .wali-saldo-card,
+html.dark .wali-saldo-card,
+[data-theme="dark"] .wali-saldo-card {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark .wali-saldo-amount,
+html.dark .wali-saldo-amount,
+[data-theme="dark"] .wali-saldo-amount {
+  color: #ffffff !important;
+}
+
+.dark .wali-stat-box,
+html.dark .wali-stat-box,
+[data-theme="dark"] .wali-stat-box {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .wali-stat-label,
+html.dark .wali-stat-label,
+[data-theme="dark"] .wali-stat-label {
+  color: #94a3b8 !important;
+}
+
+.dark .wali-info-box,
+html.dark .wali-info-box,
+[data-theme="dark"] .wali-info-box {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .wali-info-text strong,
+html.dark .wali-info-text strong,
+[data-theme="dark"] .wali-info-text strong {
+  color: #ffffff !important;
+}
+
+.dark .wali-va-card,
+html.dark .wali-va-card,
+[data-theme="dark"] .wali-va-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .wali-va-title,
+html.dark .wali-va-title,
+[data-theme="dark"] .wali-va-title {
+  color: #f8fafc !important;
+}
+
+.dark .wali-bni-badge,
+html.dark .wali-bni-badge,
+[data-theme="dark"] .wali-bni-badge {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dark .wali-va-box,
+html.dark .wali-va-box,
+[data-theme="dark"] .wali-va-box {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.dark .wali-va-number,
+html.dark .wali-va-number,
+[data-theme="dark"] .wali-va-number {
+  color: #34d399 !important;
+}
+
+.dark .wali-va-details,
+html.dark .wali-va-details,
+[data-theme="dark"] .wali-va-details {
+  background-color: #0f172a !important;
+}
+
+.dark .detail-val,
+html.dark .detail-val,
+[data-theme="dark"] .detail-val {
+  color: #f8fafc !important;
+}
+
+.dark .wali-filter-card,
+html.dark .wali-filter-card,
+[data-theme="dark"] .wali-filter-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .wali-type-btn,
+html.dark .wali-type-btn,
+[data-theme="dark"] .wali-type-btn {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.dark .wali-type-btn:hover,
+html.dark .wali-type-btn:hover,
+[data-theme="dark"] .wali-type-btn:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dark .wali-type-btn--active,
+html.dark .wali-type-btn--active,
+[data-theme="dark"] .wali-type-btn--active {
+  background-color: #0e5d26 !important;
+  border-color: #0e5d26 !important;
+  color: #ffffff !important;
+}
+
+.dark .filter-date,
+html.dark .filter-date,
+[data-theme="dark"] .filter-date {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dark .wali-summary-card,
+html.dark .wali-summary-card,
+[data-theme="dark"] .wali-summary-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark .wali-summary-card .summary-val,
+html.dark .wali-summary-card .summary-val,
+[data-theme="dark"] .wali-summary-card .summary-val {
+  color: #ffffff !important;
+}
+
+.dark .wali-summary-card--green,
+html.dark .wali-summary-card--green,
+[data-theme="dark"] .wali-summary-card--green {
+  background-color: #1e293b !important;
+  border-color: #065f46 !important;
+}
+
+.dark .wali-summary-card--green .summary-label,
+html.dark .wali-summary-card--green .summary-label,
+[data-theme="dark"] .wali-summary-card--green .summary-label,
+.dark .wali-summary-card--green .summary-val,
+html.dark .wali-summary-card--green .summary-val,
+[data-theme="dark"] .wali-summary-card--green .summary-val {
+  color: #34d399 !important;
+}
+
+.dark .wali-summary-card--orange,
+html.dark .wali-summary-card--orange,
+[data-theme="dark"] .wali-summary-card--orange {
+  background-color: #1e293b !important;
+  border-color: #92400e !important;
+}
+
+.dark .wali-summary-card--orange .summary-label,
+html.dark .wali-summary-card--orange .summary-label,
+[data-theme="dark"] .wali-summary-card--orange .summary-label,
+.dark .wali-summary-card--orange .summary-val,
+html.dark .wali-summary-card--orange .summary-val,
+[data-theme="dark"] .wali-summary-card--orange .summary-val {
+  color: #fbbf24 !important;
+}
+
+.dark .wali-section-title,
+html.dark .wali-section-title,
+[data-theme="dark"] .wali-section-title,
+.dark .wali-table-title,
+html.dark .wali-table-title,
+[data-theme="dark"] .wali-table-title {
+  color: #ffffff !important;
 }

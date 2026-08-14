@@ -23,6 +23,7 @@ const StaffLayout = ({ children, pageTitle }) => {
         onToggle={() => setCollapsed((c) => !c)}
         menuItems={staffMenuItems}
         basePath="/staff"
+        userBadge={{ name: 'Ust. Miftahul Huda', role: 'Staff Rumah Koin' }}
       />
       <div className="main-content">
         <Header

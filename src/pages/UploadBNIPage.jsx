@@ -116,9 +116,9 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
 
         {/* Drag & Drop Upload Zone */}
         <div
-          className={`bni-dropzone border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center bg-white shadow-xs ${
-            isDragging ? 'bni-dropzone--dragging border-emerald-600 bg-emerald-50/50 scale-[1.005]' : 'border-slate-300 hover:border-emerald-600 hover:bg-emerald-50/30'
-          } ${file ? 'bni-dropzone--has-file border-emerald-500 bg-emerald-50/40' : ''}`}
+          className={`bni-dropzone border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center shadow-xs ${
+            isDragging ? 'bni-dropzone--dragging scale-[1.005]' : ''
+          } ${file ? 'bni-dropzone--has-file' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}

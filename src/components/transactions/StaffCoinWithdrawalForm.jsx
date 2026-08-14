@@ -99,24 +99,24 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               </select>
             </div>
 
-            {/* Info Card Santri Terpilih */}
-            <div className="santri-preview-box bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-4 sm:p-5 flex items-center justify-between">
+            {/* Info Card Santri Terpilih dengan Spacing & Gap Sangat Lega */}
+            <div className="santri-preview-box">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
+                <span className="santri-preview-label">
                   INFO SANTRI TERPILIH
                 </span>
-                <h3 className="text-base font-extrabold text-slate-800 dark:text-slate-100">
+                <h3 className="santri-preview-name">
                   {activeSantri.nama}
                 </h3>
-                <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="santri-preview-nis">
                   NIS: {activeSantri.nis}
                 </p>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
-                  Sisa Saldo
+                <span className="santri-preview-label">
+                  SISA SALDO
                 </span>
-                <span className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">
+                <span className="santri-preview-saldo">
                   Rp {formatRupiah(activeSantri.saldo)}
                 </span>
               </div>
@@ -135,9 +135,9 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     type="button"
                     key={amt}
                     onClick={() => setNominal(amt.toString())}
-                    className={`py-2.5 px-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`quick-amt-btn py-2.5 px-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                       nominal === amt.toString()
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        ? 'quick-amt-btn--active bg-[#0e5d26] text-white border-[#0e5d26] shadow-xs'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
@@ -185,37 +185,50 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         </div>
       </form>
 
-      {/* Pop-up Modal Sukses Penarikan */}
+      {/* Pop-up Modal Sukses Penarikan - Display Lega & Spacing Proporsional */}
       {isSuccessModal && lastTxData && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl text-center flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-3xl font-bold flex items-center justify-center mb-4">
+        <div className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
+          <div className="success-modal-card modal-animate-pop">
+            
+            {/* Green Checkmark Badge Icon */}
+            <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-7 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
               ✓
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
               Penarikan Koin Berhasil!
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-              Koin sebesar <strong className="text-emerald-700 dark:text-emerald-400">Rp {formatRupiah(lastTxData.nominal)}</strong> telah diserahkan kepada {lastTxData.namaSantri}.
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed px-2">
+              Koin sebesar <strong className="font-bold text-emerald-700 dark:text-emerald-400">Rp {formatRupiah(lastTxData.nominal)}</strong> telah diserahkan kepada <span className="font-bold text-slate-800 dark:text-slate-200">{lastTxData.namaSantri}</span>.
             </p>
-            <div className="w-full bg-slate-50 dark:bg-slate-800/80 rounded-xl p-4 my-5 text-xs space-y-2 text-left border border-slate-200/60 dark:border-slate-700/60">
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Santri:</span> <strong className="text-slate-800 dark:text-slate-200">{lastTxData.namaSantri} ({lastTxData.nis})</strong>
+
+            {/* Detail Summary Card dengan Padding & Row Gap Sangat Lega */}
+            <div className="success-modal-details">
+              <div className="success-modal-row">
+                <span className="success-modal-label">Santri:</span>
+                <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis})</strong>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Sisa Saldo:</span> <strong className="text-emerald-600 dark:text-emerald-400">Rp {formatRupiah(lastTxData.sisaSaldo)}</strong>
+              <div className="success-modal-divider"></div>
+              <div className="success-modal-row">
+                <span className="success-modal-label">Sisa Saldo:</span>
+                <strong className="success-modal-value text-emerald-600 dark:text-emerald-400 text-base font-extrabold">Rp {formatRupiah(lastTxData.sisaSaldo)}</strong>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Staff Kasir:</span> <span className="text-slate-700 dark:text-slate-300">{lastTxData.staff}</span>
+              <div className="success-modal-divider"></div>
+              <div className="success-modal-row">
+                <span className="success-modal-label">Staff Kasir:</span>
+                <span className="success-modal-value font-semibold">{lastTxData.staff}</span>
               </div>
             </div>
 
-            {/* Garis Pembatas Modal Pop-up */}
-            <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-5"></div>
+            {/* Garis Pembatas dengan Margin Pembatas */}
+            <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-6"></div>
 
+            {/* Button Selesai */}
             <button
+              type="button"
               onClick={() => setIsSuccessModal(false)}
-              className="w-full h-12 bg-[#0e5d26] hover:bg-[#0b471d] text-white font-extrabold rounded-xl text-sm shadow-md cursor-pointer flex items-center justify-center"
+              className="w-full h-13 py-3.5 bg-[#0e5d26] hover:bg-[#0b471d] text-white font-extrabold rounded-xl text-sm sm:text-base shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center active:scale-[0.99]"
             >
               Tutup &amp; Selesai
             </button>

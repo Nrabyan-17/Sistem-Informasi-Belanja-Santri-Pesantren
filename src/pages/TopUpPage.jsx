@@ -55,13 +55,27 @@ const TopUpPage = ({ Layout = MainLayout }) => {
               Klik baris tabel untuk melihat detail saldo, riwayat transaksi, dan menyesuaikan saldo.
             </p>
           </div>
-          <div className="saldo-search-wrapper">
+          <div className="saldo-search-wrapper relative flex items-center">
+            <svg
+              className="absolute left-3.5 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
             <input
               type="text"
               placeholder="Cari Nama atau NIS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="saldo-search-input"
+              className="saldo-search-input pl-10"
             />
           </div>
         </div>
