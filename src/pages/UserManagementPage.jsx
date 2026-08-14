@@ -1,78 +1,145 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
+import UserKpiCards from '../components/users/UserKpiCards';
+import UserFilterBar from '../components/users/UserFilterBar';
 import UserTable from '../components/users/UserTable';
 import UserModalForm from '../components/users/UserModalForm';
-import SaldoDetailModal from '../components/users/SaldoDetailModal';
+import { mockUsers } from '../data/mockUsers';
 
-const mockSantri = [
-  { id: 1, nis: '123456', nama: 'Ahmad Fauzi', kelas: 'VII A', noHp: '0812-3456-7890', status: 'aktif', saldo: 50000 },
-  { id: 2, nis: '123457', nama: 'Budi Santoso', kelas: 'VIII B', noHp: '0813-4567-8901', status: 'aktif', saldo: 75000 },
-  { id: 3, nis: '123458', nama: 'Citra Dewi', kelas: 'IX A', noHp: '0821-5678-9012', status: 'nonaktif', saldo: 0 },
-];
+const UserManagementPage = ({ Layout = MainLayout }) => {
+  const [users, setUsers] = useState(mockUsers);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('Semua Role');
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
 
-const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState({});
+  const [editUser, setEditUser] = useState(null);
 
-  const [isSaldoModalOpen, setIsSaldoModalOpen] = useState(false);
-  const [selectedSantriSaldo, setSelectedSantriSaldo] = useState({});
+  // Filter Users
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      // 1. Search Query (Nama, Username, atau NIS)
+      if (search.trim()) {
+        const query = search.toLowerCase();
+        const matchesName = u.nama.toLowerCase().includes(query);
+        const matchesUsername = u.username.toLowerCase().includes(query);
+        const matchesNis = u.nis ? u.nis.toLowerCase().includes(query) : false;
+        if (!matchesName && !matchesUsername && !matchesNis) return false;
+      }
 
-  const handleEdit = (santri) => {
-    setEditData(santri);
+      // 2. Role Filter
+      if (roleFilter !== 'Semua Role') {
+        if (u.role !== roleFilter) return false;
+      }
+
+      // 3. Status Filter
+      if (statusFilter !== 'Semua Status') {
+        if (u.status !== statusFilter) return false;
+      }
+
+      return true;
+    });
+  }, [users, search, roleFilter, statusFilter]);
+
+  // Compute KPI metrics dynamically
+  const kpiStats = useMemo(() => {
+    const totalPengguna = users.length;
+    const penggunaAktif = users.filter((u) => u.status === 'Aktif').length;
+    const totalWali = users.filter((u) => u.role === 'Wali Santri / Wali').length;
+    const totalStaffAdmin = users.filter(
+      (u) => u.role === 'Kabid BAK & Manajerial' || u.role === 'Staff Rumah Koin'
+    ).length;
+
+    return {
+      totalPengguna,
+      penggunaAktif,
+      totalWali,
+      totalStaffAdmin,
+    };
+  }, [users]);
+
+  // Open modal for new user
+  const handleAddUser = () => {
+    setEditUser(null);
     setIsModalOpen(true);
   };
 
-  const handleDetailSaldo = (santri) => {
-    setSelectedSantriSaldo(santri);
-    setIsSaldoModalOpen(true);
+  // Open modal for editing user
+  const handleEditUser = (user) => {
+    setEditUser(user);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (santri) => {
-    if (confirm(`Hapus santri ${santri.nama}?`)) {
-      console.log('Hapus:', santri);
-      // TODO: Implementasi delete
+  // Submit Handler for Modal Form
+  const handleSubmitForm = (formData) => {
+    if (editUser) {
+      // Edit existing user
+      setUsers(
+        users.map((u) => (u.id === editUser.id ? { ...u, ...formData } : u))
+      );
+    } else {
+      // Add new user
+      const newUser = {
+        id: Date.now(),
+        nama: formData.nama || 'Pengguna Baru',
+        username: formData.username || `user_${Date.now().toString().slice(-4)}`,
+        role: formData.role || 'Staff Rumah Koin',
+        status: 'Aktif',
+        loginTerakhir: 'Baru saja',
+        nis: formData.nis || '—',
+        email: formData.email || '',
+      };
+      setUsers([newUser, ...users]);
     }
-  };
-
-  const handleSubmit = (data) => {
-    console.log('Submit:', data);
     setIsModalOpen(false);
-    // TODO: Implementasi simpan data
   };
 
   return (
     <Layout pageTitle="Manajemen Pengguna">
-      <div className="page-actions">
-        <div className="stat-badges">
-          <span className="stat-badge">👥 50 Santri</span>
-          <span className="stat-badge stat-badge--green">✅ 48 Aktif</span>
-          <span className="stat-badge stat-badge--red">❌ 2 Non-Aktif</span>
-        </div>
-        <button className="btn btn-primary" onClick={() => { setEditData({}); setIsModalOpen(true); }}>
-          + Tambah Pengguna Baru
-        </button>
+      {/* Header Title & Subtitle */}
+      <div className="report-header-card mb-6">
+        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+          Manajemen Pengguna
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Kelola akun dan hak akses seluruh pengguna sistem
+        </p>
       </div>
 
-      <UserTable
-        data={mockSantri}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onDetailSaldo={handleDetailSaldo}
-        showDelete={!isStaffVersion}
-        showPhone={isStaffVersion}
+      {/* 4 KPI Summary Cards */}
+      <UserKpiCards
+        totalPengguna={kpiStats.totalPengguna}
+        penggunaAktif={kpiStats.penggunaAktif}
+        totalWali={kpiStats.totalWali}
+        totalStaffAdmin={kpiStats.totalStaffAdmin}
       />
 
+      {/* Filter Bar: Search, Role Dropdown, Status Dropdown, + Tambah Pengguna */}
+      <UserFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        role={roleFilter}
+        onRoleChange={setRoleFilter}
+        status={statusFilter}
+        onStatusChange={setStatusFilter}
+        onAddUser={handleAddUser}
+      />
+
+      {/* User Table Card */}
+      <UserTable
+        data={filteredUsers}
+        totalCount={users.length}
+        activeCount={kpiStats.penggunaAktif}
+        nonactiveCount={users.length - kpiStats.penggunaAktif}
+        onEdit={handleEditUser}
+      />
+
+      {/* User Modal Form */}
       <UserModalForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmit}
-        initialData={editData}
-      />
-
-      <SaldoDetailModal
-        isOpen={isSaldoModalOpen}
-        onClose={() => setIsSaldoModalOpen(false)}
-        santri={selectedSantriSaldo}
+        onSubmit={handleSubmitForm}
+        initialData={editUser || {}}
       />
     </Layout>
   );

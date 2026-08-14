@@ -1,11 +1,18 @@
 import ThemeToggle from '../common/ThemeToggle';
 
 // Header / Top Navbar Admin
-const Header = ({ pageTitle = 'Dashboard' }) => {
+const Header = ({ pageTitle = 'Dashboard', headerDate = 'Sabtu, 1 Agustus 2026' }) => {
   return (
     <header className="header h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 sm:px-8 flex items-center justify-between shadow-xs sticky top-0 z-30 transition-colors duration-200">
       <h1 className="header-title text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">{pageTitle}</h1>
       <div className="header-actions flex items-center gap-3 sm:gap-4">
+        {/* Teks Tanggal di Header */}
+        {headerDate && (
+          <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mr-1 hidden md:inline-block">
+            {headerDate}
+          </span>
+        )}
+
         {/* Theme Switcher Toggle */}
         <ThemeToggle />
 

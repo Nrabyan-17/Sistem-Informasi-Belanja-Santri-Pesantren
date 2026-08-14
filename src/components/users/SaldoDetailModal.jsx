@@ -41,51 +41,51 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
       title="Detail &amp; Penyesuaian Saldo"
       subtitle="Lihat info detail dan sesuaikan saldo untuk santri ini."
     >
-      <div className="saldo-modal-content flex flex-col gap-5">
+      <div className="saldo-modal-content flex flex-col gap-3.5">
         {/* Identitas Santri Card */}
-        <div className="saldo-identity-card bg-slate-50 border border-slate-200 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="saldo-identity-left flex items-center gap-4">
-            <div className="santri-avatar-circle w-12 h-12 rounded-full bg-emerald-600 text-white font-extrabold text-xl flex items-center justify-center shadow-xs">
+        <div className="saldo-identity-card bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5 sm:p-4 flex items-center justify-between gap-3">
+          <div className="saldo-identity-left flex items-center gap-3">
+            <div className="santri-avatar-circle w-10 h-10 rounded-full bg-emerald-600 text-white font-extrabold text-lg flex items-center justify-center shrink-0 shadow-2xs">
               {initialLetter}
             </div>
             <div>
-              <span className="identity-tag text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="identity-tag text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
                 IDENTITAS SANTRI
               </span>
-              <h3 className="identity-name text-lg font-extrabold text-slate-800 leading-tight">
+              <h3 className="identity-name text-base font-extrabold text-slate-800 dark:text-slate-100 leading-tight">
                 {santri.nama || 'Muhammad Rizki'}
               </h3>
-              <p className="identity-nis text-xs font-medium text-slate-500 mt-0.5">
+              <p className="identity-nis text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 NIS: {santri.nis || '2024003'}
               </p>
             </div>
           </div>
           <div className="saldo-identity-right text-right">
-            <span className="sisa-saldo-tag text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="sisa-saldo-tag text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
               Sisa Saldo Saat Ini
             </span>
-            <div className="sisa-saldo-val text-2xl font-extrabold text-emerald-600 mt-0.5">
+            <div className="sisa-saldo-val text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
               Rp {(currentSaldo || 15000).toLocaleString('id-ID')}
             </div>
           </div>
         </div>
 
         {/* Sesuaikan Saldo (Manual) */}
-        <form className="saldo-adjust-form bg-white border border-slate-200 rounded-2xl p-5 flex flex-col gap-4" onSubmit={handleConfirmAdjustment}>
-          <h4 className="section-title-sm text-sm font-bold text-slate-800">Sesuaikan Saldo (Manual)</h4>
+        <form className="saldo-adjust-form bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5 sm:p-4 flex flex-col gap-3" onSubmit={handleConfirmAdjustment}>
+          <h4 className="section-title-sm text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Sesuaikan Saldo (Manual)</h4>
 
-          <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="form-group-section flex flex-col gap-1.5">
-              <label className="form-section-label text-xs font-bold tracking-wider text-slate-500 uppercase">
+          <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="form-group-section flex flex-col gap-1">
+              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                 AKSI PENYESUAIAN
               </label>
               <div className="action-toggle-group flex gap-2">
                 <button
                   type="button"
-                  className={`action-toggle-btn flex-1 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`action-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                     actionType === 'tambah'
-                      ? 'action-toggle-btn--tambah bg-emerald-50 text-emerald-700 border-emerald-500 font-bold shadow-xs'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      ? 'action-toggle-btn--tambah bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-500 font-bold shadow-2xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                   onClick={() => setActionType('tambah')}
                 >
@@ -93,10 +93,10 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
                 </button>
                 <button
                   type="button"
-                  className={`action-toggle-btn flex-1 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`action-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                     actionType === 'kurangi'
-                      ? 'action-toggle-btn--kurangi bg-rose-50 text-rose-700 border-rose-500 font-bold shadow-xs'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      ? 'action-toggle-btn--kurangi bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-500 font-bold shadow-2xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                   onClick={() => setActionType('kurangi')}
                 >
@@ -105,13 +105,13 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
               </div>
             </div>
 
-            <div className="form-group-section flex flex-col gap-1.5">
-              <label className="form-section-label text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <div className="form-group-section flex flex-col gap-1">
+              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                 NOMINAL (RP)
               </label>
               <input
                 type="number"
-                className="form-control-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
+                className="form-control-input w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
                 placeholder="Misal: 25000"
                 value={nominal}
                 onChange={(e) => setNominal(e.target.value)}
@@ -120,13 +120,13 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
             </div>
           </div>
 
-          <div className="form-group-section flex flex-col gap-1.5">
-            <label className="form-section-label text-xs font-bold tracking-wider text-slate-500 uppercase">
+          <div className="form-group-section flex flex-col gap-1">
+            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
               KETERANGAN / ALASAN (WAJIB)
             </label>
             <input
               type="text"
-              className="form-control-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
+              className="form-control-input w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
               placeholder="Contoh: Koreksi kasir salah input..."
               value={keterangan}
               onChange={(e) => setKeterangan(e.target.value)}
@@ -134,10 +134,10 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
             />
           </div>
 
-          <div className="saldo-btn-wrapper flex justify-end mt-1">
+          <div className="saldo-btn-wrapper flex justify-end mt-0.5">
             <button
               type="submit"
-              className="btn btn-primary btn-confirm-adjust px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-sm shadow-md transition-all"
+              className="btn btn-primary btn-confirm-adjust px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-lg text-xs shadow-xs transition-all cursor-pointer"
             >
               Konfirmasi Penyesuaian
             </button>
@@ -145,24 +145,24 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
         </form>
 
         {/* Riwayat Transaksi Terakhir */}
-        <div className="saldo-history-section flex flex-col gap-3">
-          <h4 className="section-title-sm text-sm font-bold text-slate-800">Riwayat Transaksi Terakhir</h4>
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white">
-            <table className="mini-data-table w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200">
+        <div className="saldo-history-section flex flex-col gap-2">
+          <h4 className="section-title-sm text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Riwayat Transaksi Terakhir</h4>
+          <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-xl bg-white dark:bg-slate-900">
+            <table className="mini-data-table w-full text-left border-collapse text-[11px]">
+              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-4 py-2.5 font-bold text-slate-500 uppercase">TANGGAL</th>
-                  <th className="px-4 py-2.5 font-bold text-slate-500 uppercase">KETERANGAN</th>
-                  <th className="px-4 py-2.5 font-bold text-slate-500 uppercase text-right">NOMINAL</th>
+                  <th className="px-3 py-2 font-bold text-slate-500 dark:text-slate-400 uppercase">TANGGAL</th>
+                  <th className="px-3 py-2 font-bold text-slate-500 dark:text-slate-400 uppercase">KETERANGAN</th>
+                  <th className="px-3 py-2 font-bold text-slate-500 dark:text-slate-400 uppercase text-right">NOMINAL</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
                 {mockSantriHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
-                    <td className="px-4 py-3 font-medium">{item.keterangan}</td>
-                    <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
-                      <span className={item.nominal > 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                  <tr key={item.id} className="bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <td className="px-3 py-2 font-medium whitespace-nowrap bg-white dark:bg-slate-900">{item.tanggal}</td>
+                    <td className="px-3 py-2 font-medium bg-white dark:bg-slate-900">{item.keterangan}</td>
+                    <td className="px-3 py-2 text-right font-bold whitespace-nowrap bg-white dark:bg-slate-900">
+                      <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                         {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
                       </span>
                     </td>

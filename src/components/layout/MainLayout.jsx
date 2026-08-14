@@ -8,7 +8,7 @@ const adminMenuItems = [
   { path: '/transaksi', label: 'Transaksi',    icon: '💸' },
   { path: '/laporan',   label: 'Laporan',      icon: '📋' },
   { path: '/pengguna',  label: 'Pengguna',     icon: '👥' },
-  { path: '/topup',     label: 'Top Up Saldo', icon: '💳' },
+  { path: '/topup',     label: 'Cek Saldo',    icon: '💳' },
 ];
 
 // Layout Utama Admin: Sidebar + Header + Konten Halaman
@@ -22,6 +22,7 @@ const MainLayout = ({ children, pageTitle }) => {
         onToggle={() => setCollapsed((c) => !c)}
         menuItems={adminMenuItems}
         basePath="/admin"
+        userBadge={{ name: 'Ustadzah Ina Wahdiah', role: 'Kabid BAK & Manajerial' }}
       />
       <div className="main-content">
         <Header pageTitle={pageTitle} />

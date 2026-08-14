@@ -9,7 +9,7 @@ const staffMenuItems = [
   { path: '/laporan',   label: 'Laporan',     icon: '📋' },
   { path: '/pengguna',  label: 'Pengguna',    icon: '👥' },
   { path: '/upload-bni',label: 'Upload BNI',  icon: '📤' },
-  { path: '/topup',     label: 'Top Up Saldo', icon: '💳' },
+  { path: '/topup',     label: 'Cek Saldo',    icon: '💳' },
 ];
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman
