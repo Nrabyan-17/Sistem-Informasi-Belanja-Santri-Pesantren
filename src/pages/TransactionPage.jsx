@@ -72,7 +72,7 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
 
   // Export .xlsx
   const handleExportXLSX = () => {
-    const headers = ['No', 'Tanggal', 'NIS', 'Nama Santri', 'Kategori', 'Jenis', 'Nominal', 'Staff Kasir', 'Status'];
+    const headers = ['No', 'Tanggal', 'NIS', 'Nama Santri', 'Kategori', 'Jenis', 'Nominal', 'Staff', 'Status'];
     const rows = filteredData.map((item, idx) => [
       idx + 1,
       item.tanggal,

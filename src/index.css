@@ -1489,12 +1489,13 @@ html.dark .metric-divider,
   box-shadow: 0 1px 3px rgba(14, 93, 38, 0.2);
 }
 
-/* Export Button */
+/* Export Button (Dark Green) */
 .btn-export-excel {
   height: 42px;
   padding: 0 20px;
-  background-color: #0e5d26;
-  color: #ffffff;
+  background-color: #0e5d26 !important;
+  background: #0e5d26 !important;
+  color: #ffffff !important;
   border: none;
   border-radius: 10px;
   font-size: 0.88rem;
@@ -1504,13 +1505,19 @@ html.dark .metric-divider,
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(14, 93, 38, 0.15);
+  box-shadow: 0 2px 6px rgba(14, 93, 38, 0.2);
   white-space: nowrap;
 }
 
 .btn-export-excel:hover {
-  background-color: #0b471d;
-  box-shadow: 0 4px 10px rgba(14, 93, 38, 0.25);
+  background-color: #083e19 !important;
+  background: #083e19 !important;
+  box-shadow: 0 4px 12px rgba(14, 93, 38, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-export-excel:active {
+  transform: translateY(0);
 }
 
 /* KPI Cards Grid */
@@ -2749,12 +2756,12 @@ html.dark .data-table tbody tr:hover,
 }
 
 .btn-export-excel {
-  background: var(--primary-600);
-  color: #fff;
+  background: #0e5d26 !important;
+  color: #fff !important;
 }
 
 .btn-export-excel:hover {
-  background: var(--primary-700);
+  background: #083e19 !important;
 }
 
 .action-buttons {
@@ -5305,14 +5312,14 @@ html.dark .wali-table-title,
   border-radius: 12px !important;
   font-size: 0.85rem !important;
   font-weight: 600 !important;
-  color: #475569 !important;
+  color: #334155 !important;
   text-decoration: none !important;
   transition: all 0.2s ease !important;
   cursor: pointer !important;
 }
 
 .sidebar-subitem:hover {
-  background-color: #f1f5f9 !important;
+  background-color: #d1fae5 !important;
   color: #065f46 !important;
 }
 
@@ -5321,7 +5328,7 @@ html.dark .wali-table-title,
 }
 
 .dark .sidebar-subitem:hover {
-  background-color: #1e293b !important;
+  background-color: rgba(6, 95, 70, 0.4) !important;
   color: #34d399 !important;
 }
 
@@ -5332,8 +5339,18 @@ html.dark .wali-table-title,
   box-shadow: 0 2px 8px rgba(6, 95, 70, 0.25) !important;
 }
 
+.sidebar-subitem--active:hover {
+  background-color: #047857 !important;
+  color: #ffffff !important;
+}
+
 .dark .sidebar-subitem--active {
   background-color: #047857 !important;
+  color: #ffffff !important;
+}
+
+.dark .sidebar-subitem--active:hover {
+  background-color: #059669 !important;
   color: #ffffff !important;
 }
 

@@ -242,7 +242,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               </div>
               <div className="success-modal-divider"></div>
               <div className="success-modal-row">
-                <span className="success-modal-label">Staff Kasir:</span>
+                <span className="success-modal-label">Staff:</span>
                 <span className="success-modal-value font-semibold">{lastTxData.staff}</span>
               </div>
             </div>

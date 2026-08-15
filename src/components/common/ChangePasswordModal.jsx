@@ -88,10 +88,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </button>
           <button
             type="submit"
-            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer flex items-center justify-center"
           >
-            <span>🔐</span>
-            <span>Simpan Password Baru</span>
+            Simpan Password Baru
           </button>
         </div>
       </form>

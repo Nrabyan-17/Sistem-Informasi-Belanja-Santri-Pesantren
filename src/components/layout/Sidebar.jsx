@@ -78,7 +78,7 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
                   <button
                     type="button"
                     onClick={() => toggleDropdown(item.label)}
-                    className={`nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+                    className={`nav-item w-full flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
                       isChildActive || isParentActive
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-bold'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
@@ -87,67 +87,59 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
                       <span className="nav-icon text-lg flex items-center justify-center shrink-0">{item.icon}</span>
-                      <span className="nav-label truncate">{item.label}</span>
+                      {!collapsed && <span className="nav-label truncate">{item.label}</span>}
                     </div>
-                    <svg
-                      className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
-                        isOpen ? 'rotate-180 text-emerald-800 dark:text-emerald-400' : 'text-slate-400'
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                    </svg>
+                    {!collapsed && (
+                      <svg
+                        className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
+                          isOpen ? 'rotate-180 text-emerald-800 dark:text-emerald-400' : 'text-slate-400'
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
                   </button>
 
-                  {/* Sub-items Container dengan Animasi Buka & Tutup Halus */}
-                  <div className={`sidebar-submenu-wrapper ${isOpen ? 'sidebar-submenu-wrapper--open' : ''}`}>
-                    <div className="sidebar-submenu-inner">
-                      <div
-                        className="sidebar-submenu"
-                        style={{
-                          marginLeft: '28px',
-                          paddingLeft: '14px',
-                          marginTop: '10px',
-                          marginBottom: '8px',
-                          borderLeft: '2px solid rgba(16, 185, 129, 0.35)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '10px',
-                        }}
-                      >
-                        {item.subItems.map((sub) => (
-                          <NavLink
-                            key={sub.path}
-                            to={`${basePath}${sub.path}`}
-                            end={sub.path === ''}
-                            className={({ isActive }) =>
-                              `sidebar-subitem ${isActive ? 'sidebar-subitem--active' : ''}`
-                            }
-                            style={({ isActive }) => ({
-                              padding: '10px 14px',
-                              borderRadius: '12px',
-                              fontSize: '13.5px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              fontWeight: isActive ? 700 : 600,
-                              backgroundColor: isActive ? '#065f46' : 'transparent',
-                              color: isActive ? '#ffffff' : undefined,
-                              textDecoration: 'none',
-                            })}
-                            title={sub.label}
-                          >
-                            <span style={{ fontSize: '16px', flexShrink: 0 }}>{sub.icon}</span>
-                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {sub.label}
-                            </span>
-                          </NavLink>
-                        ))}
+                  {/* Sub-items Container dengan Animasi Buka & Tutup Halus (Hanya saat sidebar terbuka) */}
+                  {!collapsed && (
+                    <div className={`sidebar-submenu-wrapper ${isOpen ? 'sidebar-submenu-wrapper--open' : ''}`}>
+                      <div className="sidebar-submenu-inner">
+                        <div
+                          className="sidebar-submenu"
+                          style={{
+                            marginLeft: '28px',
+                            paddingLeft: '14px',
+                            marginTop: '10px',
+                            marginBottom: '8px',
+                            borderLeft: '2px solid rgba(16, 185, 129, 0.35)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                          }}
+                        >
+                          {item.subItems.map((sub) => (
+                            <NavLink
+                              key={sub.path}
+                              to={`${basePath}${sub.path}`}
+                              end={sub.path === ''}
+                              className={({ isActive }) =>
+                                `sidebar-subitem ${isActive ? 'sidebar-subitem--active' : ''}`
+                              }
+                              title={sub.label}
+                            >
+                              <span className="shrink-0 flex items-center justify-center">{sub.icon}</span>
+                              <span className="truncate">
+                                {sub.label}
+                              </span>
+                            </NavLink>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             }
