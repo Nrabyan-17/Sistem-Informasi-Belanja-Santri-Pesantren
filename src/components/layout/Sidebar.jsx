@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import logoPesantren from '../../assets/logo-pesantren.png';
 import LogoutModal from '../common/LogoutModal';
+import { IconLogout } from '../common/Icons';
 
 // Sidebar Navigasi — dipakai oleh AdminLayout, StaffLayout, & WaliLayout
 const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadge = null }) => {
@@ -186,7 +187,9 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
             title="Keluar"
             onClick={handleLogoutClick}
           >
-            <span className="nav-icon text-lg">🚪</span>
+            <span className="nav-icon flex items-center justify-center">
+              <IconLogout className="w-5 h-5" />
+            </span>
             <span className="nav-label">Keluar</span>
           </button>
         </div>

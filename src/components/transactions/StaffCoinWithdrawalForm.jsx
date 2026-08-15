@@ -9,6 +9,13 @@ const mockSantriOptions = [
   { nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 80000,  foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
 ];
 
+const getInitials = (name) => {
+  if (!name) return 'S';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+
 const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const [selectedNis, setSelectedNis] = useState('2024003');
   const [customNis, setCustomNis] = useState('');
@@ -22,7 +29,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     nis: customNis || '2024000',
     nama: 'Santri Terpilih',
     saldo: 100000,
-    foto: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256',
   };
 
   const quickAmounts = [5000, 10000, 20000, 50000, 100000];
@@ -45,7 +51,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       nis: activeSantri.nis,
       namaSantri: activeSantri.nama,
-      fotoSantri: activeSantri.foto,
       kategori: 'Penarikan Koin',
       jenis: 'Keluar',
       nominal: amount,
@@ -69,7 +74,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       <div className="card-header border-b border-slate-100 dark:border-slate-800 pb-5 mb-8 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <span>🪙</span> Form Penarikan Koin / Saldo Santri
+            Form Penarikan Koin / Saldo Santri
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Proses penarikan koin tunai santri dan potong saldo secara otomatis
@@ -101,20 +106,14 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               </select>
             </div>
 
-            {/* Info Card Santri Terpilih dengan Foto Santri */}
+            {/* Info Card Santri Terpilih dengan Inisial Santri */}
             <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-4">
               <div className="flex items-center gap-3.5">
-                {/* Foto Profil Santri */}
+                {/* Inisial Profil Santri */}
                 <div className="relative shrink-0">
-                  <img
-                    src={activeSantri.foto}
-                    alt={activeSantri.nama}
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(activeSantri.nama)}&background=0e5d26&color=fff&bold=true`;
-                    }}
-                  />
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40">
+                    {getInitials(activeSantri.nama)}
+                  </div>
                   <span
                     className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-2xs"
                     title="Santri Aktif"
@@ -202,7 +201,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         {/* Action Button Row dengan Border Top & Spacing Lega */}
         <div className="staff-withdrawal-footer">
           <button type="submit" className="btn-process-withdrawal">
-            <span>⚡ Proses Penarikan Koin</span>
+            <span>Proses Penarikan Koin</span>
           </button>
         </div>
       </form>
@@ -230,15 +229,9 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               <div className="success-modal-row items-center">
                 <span className="success-modal-label">Santri:</span>
                 <div className="flex items-center gap-2">
-                  <img
-                    src={lastTxData.fotoSantri || activeSantri.foto}
-                    alt={lastTxData.namaSantri}
-                    className="w-7 h-7 rounded-full object-cover border border-emerald-500/40 shrink-0"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(lastTxData.namaSantri)}&background=0e5d26&color=fff&bold=true`;
-                    }}
-                  />
+                  <div className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                    {getInitials(lastTxData.namaSantri)}
+                  </div>
                   <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis})</strong>
                 </div>
               </div>

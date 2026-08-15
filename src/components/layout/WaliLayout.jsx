@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { IconWallet, IconReport } from '../common/Icons';
 
-// Menu navigasi untuk Portal Wali Santri
+// Menu navigasi untuk Portal Wali Santri dengan Ikon SVG Profesional
 const waliMenuItems = [
-  { path: '',         label: 'Saldo & Pembayaran', icon: '💳' },
-  { path: '/riwayat', label: 'Riwayat Transaksi',  icon: '📋' },
+  { path: '',         label: 'Saldo & Pembayaran', icon: <IconWallet /> },
+  { path: '/riwayat', label: 'Riwayat Transaksi',  icon: <IconReport /> },
 ];
 
 const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {

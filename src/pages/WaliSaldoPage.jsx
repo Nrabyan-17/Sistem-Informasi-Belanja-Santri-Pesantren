@@ -100,7 +100,7 @@ const WaliSaldoPage = () => {
                 className="wali-copy-btn w-full py-4 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-base sm:text-lg shadow-md shadow-emerald-900/10 transition-all cursor-pointer"
                 onClick={handleCopyVA}
               >
-                {copied ? '✅ VA BNI Disalin!' : '📋 Salin Nomor VA BNI'}
+                {copied ? 'Nomor VA Berhasil Disalin!' : 'Salin Nomor VA BNI'}
               </button>
             </div>
           </div>

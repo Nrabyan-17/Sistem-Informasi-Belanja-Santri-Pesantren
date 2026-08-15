@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ChangePasswordModal from '../common/ChangePasswordModal';
+import { IconKey } from '../common/Icons';
 
 // Header / Top Navbar Admin & Staff
 const Header = ({
@@ -47,7 +48,7 @@ const Header = ({
             className="btn-header-change-password"
             title="Ganti Password Akun"
           >
-            <span>🔑</span>
+            <IconKey className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Ganti Password</span>
           </button>
         </div>

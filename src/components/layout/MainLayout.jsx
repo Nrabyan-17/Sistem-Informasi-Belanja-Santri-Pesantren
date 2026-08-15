@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import {
+  IconDashboard,
+  IconTransaction,
+  IconWallet,
+  IconUsers,
+  IconAdmin,
+  IconCoin,
+  IconReport,
+} from '../common/Icons';
 
-// Menu navigasi untuk Admin/Manajerial
+// Menu navigasi untuk Admin/Manajerial dengan Ikon SVG Profesional
 const adminMenuItems = [
-  { path: '',           label: 'Dashboard',           icon: '📊' },
-  { path: '/transaksi', label: 'Transaksi',           icon: '💸' },
-  { path: '/topup',     label: 'Cek Saldo',           icon: '💳' },
+  { path: '',           label: 'Dashboard',           icon: <IconDashboard /> },
+  { path: '/transaksi', label: 'Transaksi',           icon: <IconTransaction /> },
+  { path: '/topup',     label: 'Cek Saldo',           icon: <IconWallet /> },
   {
     path: '/pengguna',
     label: 'Manajemen Akun',
-    icon: '👥',
+    icon: <IconUsers />,
     subItems: [
-      { path: '/pengguna/admin',      label: 'Admin / Manajerial', icon: '👤' },
-      { path: '/pengguna/staff-koin', label: 'Staff Rumah Koin',   icon: '🪙' },
+      { path: '/pengguna/admin',      label: 'Admin / Manajerial', icon: <IconAdmin className="w-4 h-4" /> },
+      { path: '/pengguna/staff-koin', label: 'Staff Rumah Koin',   icon: <IconCoin className="w-4 h-4" /> },
     ],
   },
-  { path: '/laporan',   label: 'Laporan',             icon: '📋' },
+  { path: '/laporan',   label: 'Laporan',             icon: <IconReport /> },
 ];
 
 // Layout Utama Admin: Sidebar + Header + Konten Halaman
