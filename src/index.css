@@ -50,7 +50,7 @@
   /* Layout */
   --sidebar-width: 260px;
   --header-height: 64px;
-  --page-bg: #f0f5f1;
+  --page-bg: #ffffff;
   --card-bg: #ffffff;
   --card-radius: 12px;
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -928,7 +928,43 @@ img {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 28px;
+}
+
+.btn-header-change-password {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px !important;
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-header-change-password:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.dark .btn-header-change-password {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+.dark .btn-header-change-password:hover {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
 }
 
 .header-notif {
@@ -1046,7 +1082,7 @@ html.dark .daily-summary-banner,
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 24px 28px 28px 28px;
+  padding: 32px 36px 36px 36px;
   margin-bottom: 32px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
@@ -3830,8 +3866,9 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-header-subtitle {
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #475569;
   margin-top: -12px;
   margin-bottom: 8px;
 }
@@ -3880,7 +3917,7 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-santri-name {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0;
@@ -3888,8 +3925,9 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-santri-nis {
-  font-size: 0.86rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
   margin: 4px 0 0 0;
 }
 
@@ -3903,15 +3941,15 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-saldo-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #475569;
   text-transform: uppercase;
 }
 
 .wali-saldo-amount {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 800;
   color: #1e293b;
   margin: 6px 0;
@@ -3919,8 +3957,9 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-saldo-updated {
-  font-size: 0.78rem;
-  color: #94a3b8;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #64748b;
 }
 
 /* Statistik Section */
@@ -3931,9 +3970,9 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -3962,13 +4001,13 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-stat-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #64748b;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #475569;
 }
 
 .wali-stat-val {
-  font-size: 1.3rem;
+  font-size: 1.65rem;
   font-weight: 800;
 }
 
@@ -3982,12 +4021,12 @@ html.dark .data-table tbody tr:hover,
   gap: 14px;
   align-items: flex-start;
   color: #1e293b;
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .wali-info-icon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
 }
 
@@ -4010,17 +4049,18 @@ html.dark .data-table tbody tr:hover,
 }
 
 .wali-va-title {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f172a;
   margin: 0;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .wali-va-subtitle {
-  font-size: 0.82rem;
-  color: #64748b;
-  margin: 4px 0 0 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #475569;
+  margin: 6px 0 0 0;
 }
 
 .wali-bni-badge {
@@ -4028,43 +4068,43 @@ html.dark .data-table tbody tr:hover,
   border: 1px solid #cbd5e1;
   color: #0f172a;
   font-weight: 800;
-  font-size: 0.78rem;
-  padding: 4px 12px;
-  border-radius: 8px;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 10px;
 }
 
 .wali-va-box {
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
-  padding: 20px;
+  padding: 22px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .wali-va-box-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #475569;
   text-transform: uppercase;
 }
 
 .wali-va-number {
-  font-size: 1.65rem;
+  font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   color: #0e5d26;
   font-family: monospace;
-  margin: 6px 0;
+  margin: 8px 0;
 }
 
 .wali-va-an {
-  font-size: 0.82rem;
-  color: #64748b;
-  font-weight: 500;
+  font-size: 0.98rem;
+  color: #334155;
+  font-weight: 700;
 }
 
 .wali-va-details {
@@ -4648,22 +4688,20 @@ html.dark .data-table tbody tr:hover,
   }
 }
 
-/* Custom Scrollbar for Modal Body */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+/* Hide Scrollbar Globally & for Custom Scrollbar Containers */
+*::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 9999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.6);
+*,
+.custom-scrollbar,
+.no-scrollbar {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
 }
 
 /* ========================================
@@ -5205,3 +5243,97 @@ html.dark .wali-table-title,
 [data-theme="dark"] .wali-table-title {
   color: #ffffff !important;
 }
+
+/* ========================================
+   DROPDOWN SUBMENU ANIMATION
+   ======================================== */
+@keyframes dropdownSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-slide-down {
+  animation: dropdownSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Sidebar Submenu Smooth Collapse / Expand Animation ── */
+.sidebar-submenu-wrapper {
+  display: grid !important;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden !important;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease !important;
+}
+
+.sidebar-submenu-wrapper--open {
+  grid-template-rows: 1fr !important;
+  opacity: 1 !important;
+}
+
+.sidebar-submenu-inner {
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+/* ── Sidebar Submenu & Subitem Dedicated Rules ── */
+.sidebar-submenu {
+  margin-left: 28px !important;
+  padding-left: 14px !important;
+  margin-top: 10px !important;
+  margin-bottom: 8px !important;
+  border-left: 2px solid #a7f3d0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.dark .sidebar-submenu {
+  border-left-color: #065f46 !important;
+}
+
+.sidebar-subitem {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+.sidebar-subitem:hover {
+  background-color: #f1f5f9 !important;
+  color: #065f46 !important;
+}
+
+.dark .sidebar-subitem {
+  color: #cbd5e1 !important;
+}
+
+.dark .sidebar-subitem:hover {
+  background-color: #1e293b !important;
+  color: #34d399 !important;
+}
+
+.sidebar-subitem--active {
+  background-color: #065f46 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(6, 95, 70, 0.25) !important;
+}
+
+.dark .sidebar-subitem--active {
+  background-color: #047857 !important;
+  color: #ffffff !important;
+}
+

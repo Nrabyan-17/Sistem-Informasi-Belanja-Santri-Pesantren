@@ -2,14 +2,13 @@ import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-// Menu navigasi untuk Staff Rumah Koin
+// Menu navigasi untuk Staff Rumah Koin (Tanpa Manajemen Pengguna)
 const staffMenuItems = [
   { path: '',           label: 'Dashboard',   icon: '📊' },
   { path: '/transaksi', label: 'Transaksi',   icon: '💸' },
-  { path: '/laporan',   label: 'Laporan',     icon: '📋' },
-  { path: '/pengguna',  label: 'Pengguna',    icon: '👥' },
+  { path: '/topup',     label: 'Cek Saldo',   icon: '💳' },
   { path: '/upload-bni',label: 'Upload BNI',  icon: '📤' },
-  { path: '/topup',     label: 'Cek Saldo',    icon: '💳' },
+  { path: '/laporan',   label: 'Laporan',     icon: '📋' },
 ];
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman

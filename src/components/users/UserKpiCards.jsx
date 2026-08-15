@@ -1,12 +1,61 @@
 import React from 'react';
 
-// Kartu Ringkasan KPI Pengguna: TOTAL PENGGUNA, PENGGUNA AKTIF, WALI SANTRI / WALI, STAFF & ADMIN
+// Kartu Ringkasan KPI Pengguna — Adaptif berdasarkan kategori (All / Admin / Staff)
 const UserKpiCards = ({
+  category = 'all',
   totalPengguna = 7,
   penggunaAktif = 6,
   totalWali = 4,
   totalStaffAdmin = 3,
 }) => {
+  if (category === 'admin') {
+    const nonAktif = totalPengguna - penggunaAktif;
+    return (
+      <div className="user-kpi-grid">
+        <div className="user-kpi-card user-kpi-card--total">
+          <span className="user-kpi-label">TOTAL ADMIN / MANAJERIAL</span>
+          <h3 className="user-kpi-value">{totalPengguna} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--aktif">
+          <span className="user-kpi-label user-kpi-label--aktif">ADMIN AKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--aktif">{penggunaAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--keluar">
+          <span className="user-kpi-label user-kpi-label--keluar">ADMIN NONAKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--keluar">{nonAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--staff">
+          <span className="user-kpi-label user-kpi-label--staff">LEVEL HAK AKSES</span>
+          <h3 className="user-kpi-value user-kpi-value--staff">Manajerial / BAK</h3>
+        </div>
+      </div>
+    );
+  }
+
+  if (category === 'staff-koin') {
+    const nonAktif = totalPengguna - penggunaAktif;
+    return (
+      <div className="user-kpi-grid">
+        <div className="user-kpi-card user-kpi-card--total">
+          <span className="user-kpi-label">TOTAL STAFF RUMAH KOIN</span>
+          <h3 className="user-kpi-value">{totalPengguna} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--aktif">
+          <span className="user-kpi-label user-kpi-label--aktif">STAFF AKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--aktif">{penggunaAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--keluar">
+          <span className="user-kpi-label user-kpi-label--keluar">STAFF NONAKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--keluar">{nonAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--staff">
+          <span className="user-kpi-label user-kpi-label--staff">PENUGASAN UTAMA</span>
+          <h3 className="user-kpi-value user-kpi-value--staff">Loket Rumah Koin</h3>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="user-kpi-grid">
       {/* Total Pengguna */}

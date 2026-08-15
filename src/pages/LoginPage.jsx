@@ -7,20 +7,20 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [username, setUsername] = useState('');
+  const [noHp, setNoHp] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (login) {
-      login({ username, role: 'admin' });
+      login({ noHp, role: 'admin' });
     }
     navigate('/admin');
   };
 
   const handleQuickLogin = (role, targetPath) => {
     if (login) {
-      login({ username: role, role: role === 'Staff Rumah Koin' ? 'staff' : 'admin' });
+      login({ noHp: '081234567890', role: role === 'Staff Rumah Koin' ? 'staff' : 'admin' });
     }
     navigate(targetPath);
   };
@@ -40,15 +40,15 @@ const LoginPage = () => {
         {/* Form Card */}
         <div className="login-card bg-white w-full rounded-3xl p-7 sm:p-9 border border-slate-200 shadow-xl">
           <form onSubmit={handleSubmit} className="login-form flex flex-col gap-5">
-            {/* Username Input */}
+            {/* Nomor Handphone Input */}
             <div className="login-form-group flex flex-col gap-2">
-              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">USERNAME</label>
+              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">NOMOR HANDPHONE</label>
               <input
-                type="text"
+                type="tel"
                 className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="Masukkan username..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Masukkan nomor handphone..."
+                value={noHp}
+                onChange={(e) => setNoHp(e.target.value)}
                 required
               />
             </div>

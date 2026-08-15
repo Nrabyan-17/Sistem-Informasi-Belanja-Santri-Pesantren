@@ -58,37 +58,6 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       }
     >
       <form className="user-form-modal flex flex-col gap-3.5" onSubmit={handleSubmit}>
-        {/* PERAN & HAK AKSES */}
-        <div className="form-group-section flex flex-col gap-1">
-          <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-            PERAN &amp; HAK AKSES
-          </label>
-          <div className="role-selector-grid grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {roleOptions.map((item) => {
-              const isSelected = role === item.id;
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={`role-option-card flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all cursor-pointer text-left text-xs font-semibold ${
-                    isSelected ? 'shadow-2xs scale-[1.01]' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
-                  style={{
-                    borderColor: isSelected ? item.color : 'rgba(226, 232, 240, 0.8)',
-                    backgroundColor: isSelected ? item.bg : 'transparent',
-                  }}
-                  onClick={() => setRole(item.id)}
-                >
-                  <span className="role-option-dot text-[10px]" style={{ color: item.color }}>
-                    ●
-                  </span>
-                  <span className="role-option-text flex-1 text-slate-800 dark:text-slate-200">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* NAMA LENGKAP */}
         <div className="form-group-section flex flex-col gap-1">
           <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
@@ -104,33 +73,19 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           />
         </div>
 
-        {/* USERNAME & NO TELEPHONE Grid */}
-        <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="form-group-section flex flex-col gap-1">
-            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              USERNAME
-            </label>
-            <input
-              type="text"
-              className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-              placeholder="ahmad.fauzi"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group-section flex flex-col gap-1">
-            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              NO TELEPHONE
-            </label>
-            <input
-              type="tel"
-              className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-              placeholder="+6281268799981"
-              value={noHp}
-              onChange={(e) => setNoHp(e.target.value)}
-            />
-          </div>
+        {/* NO TELEPHONE / WA */}
+        <div className="form-group-section flex flex-col gap-1">
+          <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+            NO. TELEPHONE / WA
+          </label>
+          <input
+            type="tel"
+            className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+            placeholder="Contoh: 081234567890"
+            value={noHp}
+            onChange={(e) => setNoHp(e.target.value)}
+            required
+          />
         </div>
 
         {/* TAUTAN NIS SANTRI (jika role wali atau santri) */}
@@ -149,53 +104,70 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </div>
         )}
 
-        {/* STATUS AKUN & KEAMANAN SANDI */}
-        <div className={isEdit ? 'form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3' : 'form-group-section flex flex-col gap-1'}>
+        {/* MASUKKAN PASSWORD (Tampil Saat Tambah Pengguna Baru) */}
+        {!isEdit && (
           <div className="form-group-section flex flex-col gap-1">
             <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              STATUS AKUN
+              MASUKKAN PASSWORD
             </label>
-            <div className="status-toggle-group flex gap-2">
-              <button
-                type="button"
-                className={`status-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                  status === 'aktif'
-                    ? 'status-toggle-btn--active bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-                onClick={() => setStatus('aktif')}
-              >
-                Aktif
-              </button>
-              <button
-                type="button"
-                className={`status-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                  status === 'nonaktif'
-                    ? 'status-toggle-btn--inactive bg-rose-600 text-white border-rose-600 shadow-2xs'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-                onClick={() => setStatus('nonaktif')}
-              >
-                Nonaktif
-              </button>
-            </div>
+            <input
+              type="password"
+              className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              placeholder="Masukkan password awal untuk login..."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
+        )}
 
-          {isEdit && (
+        {/* STATUS AKUN & KEAMANAN SANDI (Hanya Tampil Saat Edit / Ubah Profil) */}
+        {isEdit && (
+          <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="form-group-section flex flex-col gap-1">
               <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                KEAMANAN SANDI
+                STATUS AKUN
+              </label>
+              <div className="status-toggle-group flex gap-2">
+                <button
+                  type="button"
+                  className={`status-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                    status === 'aktif'
+                      ? 'status-toggle-btn--active bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}
+                  onClick={() => setStatus('aktif')}
+                >
+                  Aktif
+                </button>
+                <button
+                  type="button"
+                  className={`status-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                    status === 'nonaktif'
+                      ? 'status-toggle-btn--inactive bg-rose-600 text-white border-rose-600 shadow-2xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}
+                  onClick={() => setStatus('nonaktif')}
+                >
+                  Nonaktif
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group-section flex flex-col gap-1">
+              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                GANTI PASSWORD
               </label>
               <input
                 type="password"
                 className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-                placeholder="Password baru..."
+                placeholder="Kosongkan jika tidak diubah..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className="modal-actions-footer flex justify-end gap-2.5 pt-3 mt-1 border-t border-slate-100 dark:border-slate-800">
@@ -210,7 +182,7 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
             type="submit"
             className="btn btn-primary btn-save px-5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-xs transition-all cursor-pointer"
           >
-            Simpan Perubahan
+            {isEdit ? 'Simpan Perubahan' : 'Tambah Pengguna'}
           </button>
         </div>
       </form>

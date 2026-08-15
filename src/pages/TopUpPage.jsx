@@ -52,7 +52,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
           <div>
             <h3 className="saldo-card-title">Daftar Identitas &amp; Saldo Santri</h3>
             <p className="saldo-card-subtitle">
-              Klik baris tabel untuk melihat detail saldo, riwayat transaksi, dan menyesuaikan saldo.
+              Klik baris tabel untuk melihat detail saldo dan riwayat transaksi santri.
             </p>
           </div>
           <div className="saldo-search-wrapper relative flex items-center">

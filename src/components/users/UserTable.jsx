@@ -6,6 +6,7 @@ const UserTable = ({
   totalCount = 7,
   activeCount = 6,
   nonactiveCount = 1,
+  onViewDetail,
   onEdit,
   onDelete,
 }) => {
@@ -31,7 +32,7 @@ const UserTable = ({
     <div className="user-table-card">
       <div className="user-table-header">
         <h3 className="user-table-title">Daftar Pengguna Sistem</h3>
-        <p className="user-table-subtitle">{data.length} pengguna ditampilkan</p>
+        <p className="user-table-subtitle">{data.length} pengguna ditampilkan &middot; Klik nama pengguna untuk lihat detail</p>
       </div>
 
       <div className="user-table-wrapper overflow-x-auto">
@@ -65,7 +66,7 @@ const UserTable = ({
               data.map((user) => {
                 const isChecked = selectedIds.includes(user.id);
                 return (
-                  <tr key={user.id} className="user-table-row">
+                  <tr key={user.id} className="user-table-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="text-center">
                       <input
                         type="checkbox"
@@ -74,14 +75,19 @@ const UserTable = ({
                         className="user-checkbox"
                       />
                     </td>
-                    <td>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                          {user.nama}
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">
-                          @{user.username}
-                        </span>
+                    <td onClick={() => onViewDetail?.(user)} className="cursor-pointer group py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:text-white transition-all shadow-2xs">
+                          {(user.nama || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                            {user.nama}
+                          </span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
+                            {user.noHp || user.telepon || '—'}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td>

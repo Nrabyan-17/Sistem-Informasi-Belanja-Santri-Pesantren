@@ -109,13 +109,6 @@ const WaliRiwayatPage = () => {
               </div>
             </div>
           </div>
-
-          <button
-            className="btn btn-export-excel px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer"
-            onClick={handleExportExcel}
-          >
-            📥 Ekspor .xlsx
-          </button>
         </div>
 
         {/* 3 Summary Stat Cards */}
@@ -205,12 +198,7 @@ const WaliRiwayatPage = () => {
             </table>
           </div>
 
-          <div className="wali-table-footer flex flex-wrap justify-between items-center pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-            <div className="table-footer-left flex items-center gap-3">
-              <span>Total masuk: <strong className="text-emerald-700">Rp {totalMasuk.toLocaleString('id-ID')}</strong></span>
-              <span className="divider text-slate-300">•</span>
-              <span>Total keluar: <strong className="text-amber-700">Rp {totalKeluar.toLocaleString('id-ID')}</strong></span>
-            </div>
+          <div className="wali-table-footer flex justify-end items-center pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
             <div className="table-footer-right">
               {filteredData.length} baris ditampilkan
             </div>

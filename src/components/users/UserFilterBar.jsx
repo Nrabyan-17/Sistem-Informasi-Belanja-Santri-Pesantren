@@ -9,6 +9,8 @@ const UserFilterBar = ({
   status = 'Semua Status',
   onStatusChange,
   onAddUser,
+  addButtonLabel = '+ Tambah Pengguna',
+  hideRoleFilter = false,
 }) => {
   return (
     <div className="user-filter-card">
@@ -31,26 +33,28 @@ const UserFilterBar = ({
           </svg>
           <input
             type="text"
-            placeholder="Cari nama, username, atau NIS..."
+            placeholder="Cari nama, No. HP, atau NIS..."
             value={search}
             onChange={(e) => onSearchChange?.(e.target.value)}
             className="user-search-input pl-10"
           />
         </div>
 
-        {/* Role Dropdown */}
-        <div className="user-select-field">
-          <select
-            value={role}
-            onChange={(e) => onRoleChange?.(e.target.value)}
-            className="user-filter-select"
-          >
-            <option value="Semua Role">Semua Role</option>
-            <option value="Kabid BAK & Manajerial">Kabid BAK &amp; Manajerial</option>
-            <option value="Staff Rumah Koin">Staff Rumah Koin</option>
-            <option value="Wali Santri / Wali">Wali Santri / Wali</option>
-          </select>
-        </div>
+        {/* Role Dropdown (Sembunyikan jika sedang di sub-menu khusus Admin atau Staff) */}
+        {!hideRoleFilter && (
+          <div className="user-select-field">
+            <select
+              value={role}
+              onChange={(e) => onRoleChange?.(e.target.value)}
+              className="user-filter-select"
+            >
+              <option value="Semua Role">Semua Role</option>
+              <option value="Kabid BAK & Manajerial">Kabid BAK &amp; Manajerial</option>
+              <option value="Staff Rumah Koin">Staff Rumah Koin</option>
+              <option value="Wali Santri / Wali">Wali Santri / Wali</option>
+            </select>
+          </div>
+        )}
 
         {/* Status Dropdown */}
         <div className="user-select-field">
@@ -65,15 +69,18 @@ const UserFilterBar = ({
           </select>
         </div>
 
-        {/* Tombol + Tambah Pengguna */}
-        <button
-          type="button"
-          onClick={onAddUser}
-          className="btn-add-user"
-        >
-          <span className="text-lg leading-none mr-1.5">+</span>
-          Tambah Pengguna
-        </button>
+        {/* Button Tambah Pengguna */}
+        {onAddUser && (
+          <div className="user-add-field">
+            <button
+              type="button"
+              onClick={onAddUser}
+              className="btn-add-user flex items-center justify-center gap-1.5"
+            >
+              <span>{addButtonLabel}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

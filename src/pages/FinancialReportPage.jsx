@@ -5,12 +5,12 @@ import ExportButtons from '../components/reports/ExportButtons';
 import MonthlyReportTable from '../components/reports/MonthlyReportTable';
 
 const mockMonthlyData = [
-  { periode: 'Agustus 2025', totalMasuk: 1225000, totalKeluar: 90000, net: 1135000, jmlTrx: 12, status: 'Berjalan' },
-  { periode: 'Juli 2025',    totalMasuk: 3110000, totalKeluar: 480000, net: 2630000, jmlTrx: 87, status: 'Selesai' },
-  { periode: 'Juni 2025',    totalMasuk: 2840000, totalKeluar: 510000, net: 2330000, jmlTrx: 79, status: 'Selesai' },
-  { periode: 'Mei 2025',     totalMasuk: 3450000, totalKeluar: 600000, net: 2850000, jmlTrx: 95, status: 'Selesai' },
-  { periode: 'April 2025',   totalMasuk: 2620000, totalKeluar: 390000, net: 2230000, jmlTrx: 63, status: 'Selesai' },
-  { periode: 'Maret 2025',   totalMasuk: 2980000, totalKeluar: 450000, net: 2530000, jmlTrx: 72, status: 'Selesai' },
+  { periode: 'Agustus 2025', totalMasuk: 1225000, totalKeluar: 90000, net: 1135000, jmlTrx: 12, staff: 'Ust. Miftahul Huda', status: 'Berjalan' },
+  { periode: 'Juli 2025',    totalMasuk: 3110000, totalKeluar: 480000, net: 2630000, jmlTrx: 87, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
+  { periode: 'Juni 2025',    totalMasuk: 2840000, totalKeluar: 510000, net: 2330000, jmlTrx: 79, staff: 'Ust. Miftahul Huda', status: 'Selesai' },
+  { periode: 'Mei 2025',     totalMasuk: 3450000, totalKeluar: 600000, net: 2850000, jmlTrx: 95, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
+  { periode: 'April 2025',   totalMasuk: 2620000, totalKeluar: 390000, net: 2230000, jmlTrx: 63, staff: 'Ust. Miftahul Huda', status: 'Selesai' },
+  { periode: 'Maret 2025',   totalMasuk: 2980000, totalKeluar: 450000, net: 2530000, jmlTrx: 72, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
 ];
 
 const FinancialReportPage = ({ Layout = MainLayout }) => {
@@ -31,13 +31,14 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
 
   // Export Excel Handler
   const handleExportExcel = () => {
-    const headers = ['Periode', 'Total Masuk', 'Total Keluar', 'Net', 'Jml Trx', 'Status'];
+    const headers = ['Periode', 'Total Masuk', 'Total Keluar', 'Selisih Dana', 'Jumlah Transaksi', 'Staff Petugas', 'Status'];
     const rows = mockMonthlyData.map((d) => [
       d.periode,
       d.totalMasuk,
       d.totalKeluar,
       d.net,
       d.jmlTrx,
+      `"${d.staff || 'Ust. Miftahul Huda'}"`,
       d.status,
     ]);
 
@@ -83,6 +84,7 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
         totalMasuk={activeMonthReport.totalMasuk}
         totalKeluar={activeMonthReport.totalKeluar}
         netBulanIni={activeMonthReport.net}
+        selectedMonth={selectedMonth}
       />
 
       {/* Tabel Rekap Laporan Bulanan */}

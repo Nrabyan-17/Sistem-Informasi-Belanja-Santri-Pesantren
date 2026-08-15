@@ -26,8 +26,9 @@ const MonthlyReportTable = ({
               <th className="text-left">PERIODE</th>
               <th className="text-left">TOTAL MASUK</th>
               <th className="text-left">TOTAL KELUAR</th>
-              <th className="text-left">NET</th>
-              <th className="text-left">JML TRX</th>
+              <th className="text-left">SELISIH DANA</th>
+              <th className="text-left">JUMLAH TRANSAKSI</th>
+              <th className="text-left">STAFF PETUGAS</th>
               <th className="text-left">STATUS</th>
               <th className="text-center">AKSI</th>
             </tr>
@@ -53,8 +54,11 @@ const MonthlyReportTable = ({
                   <td className="font-bold text-emerald-800 dark:text-emerald-300">
                     Rp {formatRupiah(row.net)}
                   </td>
-                  <td className="text-slate-600 dark:text-slate-400">
-                    {row.jmlTrx} trx
+                  <td className="text-slate-600 dark:text-slate-400 font-semibold">
+                    {row.jmlTrx} transaksi
+                  </td>
+                  <td className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                    {row.staff || 'Ust. Miftahul Huda'}
                   </td>
                   <td>
                     <span

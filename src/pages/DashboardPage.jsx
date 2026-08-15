@@ -27,7 +27,7 @@ const DashboardPage = ({ Layout = MainLayout }) => {
         totalPemasukan={mockStats.totalPemasukan}
         totalTransaksi={mockStats.totalTransaksi}
       />
-      <div className="dashboard-grid">
+      <div className="flex flex-col gap-6">
         <SalesChart />
         <RecentTransactionsWidget transactions={mockRecent} />
       </div>

@@ -72,7 +72,7 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
 
   // Export .xlsx
   const handleExportXLSX = () => {
-    const headers = ['No', 'Tanggal', 'NIS', 'Nama Santri', 'Kategori', 'Jenis', 'Nominal', 'Status'];
+    const headers = ['No', 'Tanggal', 'NIS', 'Nama Santri', 'Kategori', 'Jenis', 'Nominal', 'Staff Kasir', 'Status'];
     const rows = filteredData.map((item, idx) => [
       idx + 1,
       item.tanggal,
@@ -81,6 +81,7 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
       item.kategori,
       item.jenis || (item.kategori === 'Top Up' ? 'Masuk' : 'Keluar'),
       item.nominal,
+      `"${item.staff || 'Ust. Miftahul Huda'}"`,
       item.status,
     ]);
 

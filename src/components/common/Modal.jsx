@@ -4,11 +4,11 @@ const Modal = ({ isOpen, onClose, title, subtitle, children }) => {
 
   return (
     <div
-      className="modal-overlay fixed inset-0 z-50 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn"
+      className="modal-overlay fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fadeIn"
       onClick={onClose}
     >
       <div
-        className="modal-content bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-5 max-w-lg w-full max-h-[85vh] flex flex-col border border-slate-100 dark:border-slate-800 shadow-2xl relative my-auto animate-scaleUp text-slate-800 dark:text-slate-100 transition-colors duration-200"
+        className="modal-content modal-animate-pop bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[85vh] flex flex-col border border-slate-200 dark:border-slate-800 shadow-2xl relative my-auto text-slate-800 dark:text-slate-100 transition-colors duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Fixed at Top */}
@@ -27,7 +27,7 @@ const Modal = ({ isOpen, onClose, title, subtitle, children }) => {
         </div>
 
         {/* Body - Scrollable inside if content is tall */}
-        <div className="modal-body flex-1 overflow-y-auto pr-1 text-sm custom-scrollbar">{children}</div>
+        <div className="modal-body flex-1 overflow-y-auto text-sm custom-scrollbar">{children}</div>
       </div>
     </div>
   );

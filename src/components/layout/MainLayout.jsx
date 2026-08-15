@@ -4,11 +4,19 @@ import Header from './Header';
 
 // Menu navigasi untuk Admin/Manajerial
 const adminMenuItems = [
-  { path: '',           label: 'Dashboard',    icon: '📊' },
-  { path: '/transaksi', label: 'Transaksi',    icon: '💸' },
-  { path: '/laporan',   label: 'Laporan',      icon: '📋' },
-  { path: '/pengguna',  label: 'Pengguna',     icon: '👥' },
-  { path: '/topup',     label: 'Cek Saldo',    icon: '💳' },
+  { path: '',           label: 'Dashboard',           icon: '📊' },
+  { path: '/transaksi', label: 'Transaksi',           icon: '💸' },
+  { path: '/topup',     label: 'Cek Saldo',           icon: '💳' },
+  {
+    path: '/pengguna',
+    label: 'Manajemen Akun',
+    icon: '👥',
+    subItems: [
+      { path: '/pengguna/admin',      label: 'Admin / Manajerial', icon: '👤' },
+      { path: '/pengguna/staff-koin', label: 'Staff Rumah Koin',   icon: '🪙' },
+    ],
+  },
+  { path: '/laporan',   label: 'Laporan',             icon: '📋' },
 ];
 
 // Layout Utama Admin: Sidebar + Header + Konten Halaman

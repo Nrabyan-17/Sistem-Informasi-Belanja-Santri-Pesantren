@@ -1,12 +1,38 @@
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import logoPesantren from '../../assets/logo-pesantren.png';
 import LogoutModal from '../common/LogoutModal';
 
 // Sidebar Navigasi — dipakai oleh AdminLayout, StaffLayout, & WaliLayout
 const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadge = null }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState({});
+
+  // Auto-expand dropdown jika URL yang sedang aktif adalah sub-item atau parent
+  useEffect(() => {
+    const initialOpen = {};
+    menuItems.forEach((item) => {
+      if (item.subItems) {
+        const isChildActive = item.subItems.some((sub) =>
+          location.pathname.startsWith(`${basePath}${sub.path}`)
+        );
+        const isParentActive = location.pathname.startsWith(`${basePath}${item.path}`);
+        if (isChildActive || isParentActive) {
+          initialOpen[item.label] = true;
+        }
+      }
+    });
+    setOpenDropdowns((prev) => ({ ...prev, ...initialOpen }));
+  }, [location.pathname, menuItems, basePath]);
+
+  const toggleDropdown = (label) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
@@ -36,24 +62,115 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
 
         {/* Nav Menu */}
         <nav className="sidebar-nav p-4 flex-1 space-y-1.5 overflow-y-auto">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={`${basePath}${item.path}`}
-              end={item.path === '' || item.path === '/'}
-              className={({ isActive }) =>
-                `nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
-                  isActive
-                    ? 'nav-item--active bg-emerald-800 dark:bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`
-              }
-              title={item.label}
-            >
-              <span className="nav-icon text-lg flex items-center justify-center">{item.icon}</span>
-              <span className="nav-label truncate">{item.label}</span>
-            </NavLink>
-          ))}
+          {menuItems.map((item) => {
+            // Jika menu memiliki subItems (Dropdown Menu)
+            if (item.subItems && item.subItems.length > 0) {
+              const isChildActive = item.subItems.some((sub) =>
+                location.pathname.startsWith(`${basePath}${sub.path}`)
+              );
+              const isParentActive = location.pathname === `${basePath}${item.path}`;
+              const isOpen = Boolean(openDropdowns[item.label]);
+
+              return (
+                <div key={item.label} className="space-y-1">
+                  {/* Parent Dropdown Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleDropdown(item.label)}
+                    className={`nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
+                      isChildActive || isParentActive
+                        ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                    title={item.label}
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <span className="nav-icon text-lg flex items-center justify-center shrink-0">{item.icon}</span>
+                      <span className="nav-label truncate">{item.label}</span>
+                    </div>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
+                        isOpen ? 'rotate-180 text-emerald-800 dark:text-emerald-400' : 'text-slate-400'
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Sub-items Container dengan Animasi Buka & Tutup Halus */}
+                  <div className={`sidebar-submenu-wrapper ${isOpen ? 'sidebar-submenu-wrapper--open' : ''}`}>
+                    <div className="sidebar-submenu-inner">
+                      <div
+                        className="sidebar-submenu"
+                        style={{
+                          marginLeft: '28px',
+                          paddingLeft: '14px',
+                          marginTop: '10px',
+                          marginBottom: '8px',
+                          borderLeft: '2px solid rgba(16, 185, 129, 0.35)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
+                        }}
+                      >
+                        {item.subItems.map((sub) => (
+                          <NavLink
+                            key={sub.path}
+                            to={`${basePath}${sub.path}`}
+                            end={sub.path === ''}
+                            className={({ isActive }) =>
+                              `sidebar-subitem ${isActive ? 'sidebar-subitem--active' : ''}`
+                            }
+                            style={({ isActive }) => ({
+                              padding: '10px 14px',
+                              borderRadius: '12px',
+                              fontSize: '13.5px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              fontWeight: isActive ? 700 : 600,
+                              backgroundColor: isActive ? '#065f46' : 'transparent',
+                              color: isActive ? '#ffffff' : undefined,
+                              textDecoration: 'none',
+                            })}
+                            title={sub.label}
+                          >
+                            <span style={{ fontSize: '16px', flexShrink: 0 }}>{sub.icon}</span>
+                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {sub.label}
+                            </span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // Menu Biasa tanpa subItems
+            return (
+              <NavLink
+                key={item.path}
+                to={`${basePath}${item.path}`}
+                end={item.path === '' || item.path === '/'}
+                className={({ isActive }) =>
+                  `nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                    isActive
+                      ? 'nav-item--active bg-emerald-800 dark:bg-emerald-700 text-white shadow-md shadow-emerald-900/10'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`
+                }
+                title={item.label}
+              >
+                <span className="nav-icon text-lg flex items-center justify-center">{item.icon}</span>
+                <span className="nav-label truncate">{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* Footer Logout */}

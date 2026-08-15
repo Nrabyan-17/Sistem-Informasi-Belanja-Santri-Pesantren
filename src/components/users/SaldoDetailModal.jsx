@@ -8,40 +8,17 @@ const mockSantriHistory = [
 ];
 
 const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
-  const [actionType, setActionType] = useState('tambah'); // 'tambah' | 'kurangi'
-  const [nominal, setNominal] = useState('');
-  const [keterangan, setKeterangan] = useState('');
-  const [currentSaldo, setCurrentSaldo] = useState(santri.saldo || 15000);
-
+  const currentSaldo = santri.saldo || 15000;
   const initialLetter = (santri.nama || 'Muhammad Rizki').charAt(0).toUpperCase();
-
-  const handleConfirmAdjustment = (e) => {
-    e.preventDefault();
-    const amount = parseInt(nominal || '0', 10);
-    if (amount <= 0) {
-      alert('Masukkan nominal penyesuaian yang valid.');
-      return;
-    }
-    if (!keterangan.trim()) {
-      alert('Keterangan / alasan wajib diisi.');
-      return;
-    }
-
-    const newSaldo = actionType === 'tambah' ? currentSaldo + amount : currentSaldo - amount;
-    setCurrentSaldo(newSaldo);
-    alert(`✅ Penyesuaian saldo berhasil!\nSaldo ${santri.nama || 'Muhammad Rizki'} sekarang: Rp ${newSaldo.toLocaleString('id-ID')}`);
-    setNominal('');
-    setKeterangan('');
-  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Detail &amp; Penyesuaian Saldo"
-      subtitle="Lihat info detail dan sesuaikan saldo untuk santri ini."
+      title="Detail Saldo Santri"
+      subtitle="Lihat info detail identitas dan riwayat transaksi saldo santri ini."
     >
-      <div className="saldo-modal-content flex flex-col gap-3.5">
+      <div className="saldo-modal-content flex flex-col gap-4">
         {/* Identitas Santri Card */}
         <div className="saldo-identity-card bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5 sm:p-4 flex items-center justify-between gap-3">
           <div className="saldo-identity-left flex items-center gap-3">
@@ -69,80 +46,6 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {} }) => {
             </div>
           </div>
         </div>
-
-        {/* Sesuaikan Saldo (Manual) */}
-        <form className="saldo-adjust-form bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5 sm:p-4 flex flex-col gap-3" onSubmit={handleConfirmAdjustment}>
-          <h4 className="section-title-sm text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Sesuaikan Saldo (Manual)</h4>
-
-          <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="form-group-section flex flex-col gap-1">
-              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                AKSI PENYESUAIAN
-              </label>
-              <div className="action-toggle-group flex gap-2">
-                <button
-                  type="button"
-                  className={`action-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                    actionType === 'tambah'
-                      ? 'action-toggle-btn--tambah bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-500 font-bold shadow-2xs'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  }`}
-                  onClick={() => setActionType('tambah')}
-                >
-                  + Tambah
-                </button>
-                <button
-                  type="button"
-                  className={`action-toggle-btn flex-1 py-1.5 px-3 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                    actionType === 'kurangi'
-                      ? 'action-toggle-btn--kurangi bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-500 font-bold shadow-2xs'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  }`}
-                  onClick={() => setActionType('kurangi')}
-                >
-                  - Kurangi
-                </button>
-              </div>
-            </div>
-
-            <div className="form-group-section flex flex-col gap-1">
-              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                NOMINAL (RP)
-              </label>
-              <input
-                type="number"
-                className="form-control-input w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-                placeholder="Misal: 25000"
-                value={nominal}
-                onChange={(e) => setNominal(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group-section flex flex-col gap-1">
-            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              KETERANGAN / ALASAN (WAJIB)
-            </label>
-            <input
-              type="text"
-              className="form-control-input w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-              placeholder="Contoh: Koreksi kasir salah input..."
-              value={keterangan}
-              onChange={(e) => setKeterangan(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="saldo-btn-wrapper flex justify-end mt-0.5">
-            <button
-              type="submit"
-              className="btn btn-primary btn-confirm-adjust px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-lg text-xs shadow-xs transition-all cursor-pointer"
-            >
-              Konfirmasi Penyesuaian
-            </button>
-          </div>
-        </form>
 
         {/* Riwayat Transaksi Terakhir */}
         <div className="saldo-history-section flex flex-col gap-2">
