@@ -10,7 +10,23 @@ const waliMenuItems = [
 ];
 
 const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggle = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const waliBadge = {
     name: 'Bpk. Mahmud Fauzi',
@@ -21,7 +37,7 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
     <div className={`main-layout ${collapsed ? 'main-layout--collapsed' : ''}`}>
       <Sidebar
         collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+        onToggle={handleToggle}
         menuItems={waliMenuItems}
         basePath="/wali"
         userBadge={waliBadge}
@@ -29,7 +45,7 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
       <div className="main-content">
         <Header
           pageTitle={pageTitle}
-          onToggleSidebar={() => setCollapsed((c) => !c)}
+          onToggleSidebar={handleToggle}
           isSidebarCollapsed={collapsed}
         />
         <main className="page-content">{children}</main>

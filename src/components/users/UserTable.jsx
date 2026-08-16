@@ -51,14 +51,13 @@ const UserTable = ({
               <th className="text-left">ROLE</th>
               <th className="text-left">STATUS</th>
               <th className="text-left">LOGIN TERAKHIR</th>
-              <th className="text-left">SANTRI / NIS</th>
               <th className="text-center">AKSI</th>
             </tr>
           </thead>
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-8 text-slate-400 font-medium">
+                <td colSpan="6" className="text-center py-8 text-slate-400 font-medium">
                   Tidak ada pengguna yang sesuai filter.
                 </td>
               </tr>
@@ -117,9 +116,6 @@ const UserTable = ({
                     </td>
                     <td className="text-slate-600 dark:text-slate-400 text-sm font-medium">
                       {user.loginTerakhir}
-                    </td>
-                    <td className="text-slate-400 font-mono text-sm">
-                      {user.nis}
                     </td>
                     <td className="text-center">
                       <div className="flex items-center justify-center gap-2.5">

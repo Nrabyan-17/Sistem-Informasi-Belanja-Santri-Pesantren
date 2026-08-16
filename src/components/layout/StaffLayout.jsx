@@ -20,13 +20,29 @@ const staffMenuItems = [
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman
 const StaffLayout = ({ children, pageTitle }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggle = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   return (
     <div className={`main-layout ${collapsed ? 'main-layout--collapsed' : ''}`}>
       <Sidebar
         collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+        onToggle={handleToggle}
         menuItems={staffMenuItems}
         basePath="/staff"
         userBadge={{ name: 'Ust. Miftahul Huda', role: 'Staff Rumah Koin' }}
@@ -34,7 +50,7 @@ const StaffLayout = ({ children, pageTitle }) => {
       <div className="main-content">
         <Header
           pageTitle={pageTitle}
-          onToggleSidebar={() => setCollapsed((c) => !c)}
+          onToggleSidebar={handleToggle}
           isSidebarCollapsed={collapsed}
         />
         <main className="page-content">{children}</main>

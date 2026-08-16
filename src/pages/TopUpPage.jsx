@@ -13,7 +13,7 @@ const mockSantriList = [
 ];
 
 const TopUpPage = ({ Layout = MainLayout }) => {
-  const [santriList] = useState(mockSantriList);
+  const [santriList, setSantriList] = useState(mockSantriList);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,6 +30,13 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   const handleOpenDetail = (santri) => {
     setSelectedSantri(santri);
     setIsModalOpen(true);
+  };
+
+  const handleUpdatePhoto = (santriId, newPhoto) => {
+    setSantriList((prev) =>
+      prev.map((s) => (s.id === santriId ? { ...s, foto: newPhoto } : s))
+    );
+    setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, foto: newPhoto } : prev));
   };
 
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
@@ -52,7 +59,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
           <div>
             <h3 className="saldo-card-title">Daftar Identitas &amp; Saldo Santri</h3>
             <p className="saldo-card-subtitle">
-              Klik baris tabel untuk melihat detail saldo dan riwayat transaksi santri.
+              Klik baris tabel untuk melihat detail saldo, kelola pasfoto, dan riwayat transaksi santri.
             </p>
           </div>
           <div className="saldo-search-wrapper relative flex items-center">
@@ -103,12 +110,27 @@ const TopUpPage = ({ Layout = MainLayout }) => {
                   <tr
                     key={santri.id}
                     onClick={() => handleOpenDetail(santri)}
-                    className="user-table-row cursor-pointer"
+                    className="user-table-row cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors"
                   >
                     <td className="text-slate-400 font-medium">{idx + 1}</td>
-                    <td className="font-mono text-slate-500">{santri.nis}</td>
-                    <td className="font-bold text-slate-900 dark:text-slate-100">
-                      {santri.nama}
+                    <td className="font-mono text-slate-500 font-semibold">{santri.nis}</td>
+                    <td className="py-3">
+                      <div className="flex items-center gap-3">
+                        {santri.foto ? (
+                          <img
+                            src={santri.foto}
+                            alt={santri.nama}
+                            className="w-9 h-9 rounded-xl object-cover border border-emerald-600/40 shadow-2xs shrink-0"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {(santri.nama || 'S').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                          {santri.nama}
+                        </span>
+                      </div>
                     </td>
                     <td className="font-bold text-emerald-700 dark:text-emerald-400">
                       Rp {formatRupiah(santri.saldo)}
@@ -119,7 +141,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
                         onClick={() => handleOpenDetail(santri)}
                         className="btn-detail-saldo"
                       >
-                        Detail
+                        Detail &amp; Foto
                       </button>
                     </td>
                   </tr>
@@ -130,12 +152,13 @@ const TopUpPage = ({ Layout = MainLayout }) => {
         </div>
       </div>
 
-      {/* Saldo Detail & Adjustment Modal */}
+      {/* Saldo Detail & Photo Management Modal */}
       {selectedSantri && (
         <SaldoDetailModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           santri={selectedSantri}
+          onUpdatePhoto={handleUpdatePhoto}
         />
       )}
     </Layout>

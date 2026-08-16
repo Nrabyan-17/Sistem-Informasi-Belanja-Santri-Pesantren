@@ -9,10 +9,8 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
   const navigate = useNavigate();
   const location = useLocation();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState({});
-
-  // Auto-expand dropdown jika URL yang sedang aktif adalah sub-item atau parent
-  useEffect(() => {
+  // Inisialisasi status dropdown langsung sejak render pertama agar tidak ada glitch animasi
+  const [openDropdowns, setOpenDropdowns] = useState(() => {
     const initialOpen = {};
     menuItems.forEach((item) => {
       if (item.subItems) {
@@ -25,7 +23,28 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
         }
       }
     });
-    setOpenDropdowns((prev) => ({ ...prev, ...initialOpen }));
+    return initialOpen;
+  });
+
+  // Auto-sync status dropdown dengan rute aktif saat berpindah rute
+  useEffect(() => {
+    setOpenDropdowns((prev) => {
+      const nextState = { ...prev };
+      menuItems.forEach((item) => {
+        if (item.subItems) {
+          const isChildActive = item.subItems.some((sub) =>
+            location.pathname.startsWith(`${basePath}${sub.path}`)
+          );
+          const isParentActive = location.pathname.startsWith(`${basePath}${item.path}`);
+          if (isChildActive || isParentActive) {
+            nextState[item.label] = true;
+          } else {
+            nextState[item.label] = false;
+          }
+        }
+      });
+      return nextState;
+    });
   }, [location.pathname, menuItems, basePath]);
 
   const toggleDropdown = (label) => {
@@ -150,6 +169,7 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
                 key={item.path}
                 to={`${basePath}${item.path}`}
                 end={item.path === '' || item.path === '/'}
+                onClick={() => setOpenDropdowns({})}
                 className={({ isActive }) =>
                   `nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                     isActive

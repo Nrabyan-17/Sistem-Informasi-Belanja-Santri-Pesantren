@@ -2058,6 +2058,18 @@ html.dark .metric-divider,
   border-color: rgba(37, 99, 235, 0.3);
 }
 
+.user-kpi-card--keluar,
+.user-kpi-card--nonaktif {
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.dark .user-kpi-card--keluar,
+.dark .user-kpi-card--nonaktif {
+  background-color: rgba(225, 29, 72, 0.15);
+  border-color: rgba(225, 29, 72, 0.35);
+}
+
 .user-kpi-label {
   font-size: 0.68rem;
   font-weight: 700;
@@ -2089,6 +2101,16 @@ html.dark .metric-divider,
 
 .dark .user-kpi-label--staff {
   color: #60a5fa;
+}
+
+.user-kpi-label--keluar,
+.user-kpi-label--nonaktif {
+  color: #e11d48;
+}
+
+.dark .user-kpi-label--keluar,
+.dark .user-kpi-label--nonaktif {
+  color: #fb7185;
 }
 
 .user-kpi-value {
@@ -2126,6 +2148,16 @@ html.dark .metric-divider,
 
 .dark .user-kpi-value--staff {
   color: #60a5fa;
+}
+
+.user-kpi-value--keluar,
+.user-kpi-value--nonaktif {
+  color: #be123c;
+}
+
+.dark .user-kpi-value--keluar,
+.dark .user-kpi-value--nonaktif {
+  color: #f43f5e;
 }
 
 /* User Filter Bar */
@@ -4521,66 +4553,139 @@ html.dark .data-table tbody tr:hover,
 }
 
 .saldo-identity-card {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 20px !important;
+  padding: 24px 28px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 24px !important;
+  min-height: 125px !important;
+  width: 100% !important;
+}
+
+.dark .saldo-identity-card {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
 }
 
 .saldo-identity-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  flex: 1 !important;
 }
 
 .santri-avatar-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: #16a34a;
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 18px !important;
+  background-color: #0e5d26 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 1.6rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(14, 93, 38, 0.25) !important;
 }
 
 .identity-tag,
 .sisa-saldo-tag {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  color: #94a3b8 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
 }
 
 .identity-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 2px 0;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  margin: 3px 0 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.dark .identity-name {
+  color: #f8fafc !important;
 }
 
 .identity-nis {
-  font-size: 0.82rem;
-  color: #64748b;
-  margin: 0;
+  font-size: 0.85rem !important;
+  color: #64748b !important;
+  margin: 0 0 12px 0 !important;
+}
+
+.dark .identity-nis {
+  color: #94a3b8 !important;
+}
+
+.saldo-photo-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+}
+
+.btn-upload-photo {
+  height: 34px !important;
+  padding: 0 14px !important;
+  background-color: #0e5d26 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 6px rgba(14, 93, 38, 0.2) !important;
+}
+
+.btn-upload-photo:hover {
+  background-color: #083e19 !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-delete-photo {
+  height: 34px !important;
+  padding: 0 12px !important;
+  background-color: #fff1f2 !important;
+  color: #be123c !important;
+  border: 1px solid #fecdd3 !important;
+  border-radius: 10px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-delete-photo:hover {
+  background-color: #ffe4e6 !important;
 }
 
 .saldo-identity-right {
-  text-align: right;
+  text-align: right !important;
+  shrink: 0 !important;
 }
 
 .sisa-saldo-val {
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #16a34a;
-  margin-top: 4px;
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+  color: #0e5d26 !important;
+  margin-top: 4px !important;
+}
+
+.dark .sisa-saldo-val {
+  color: #4ade80 !important;
 }
 
 .saldo-adjust-form {
