@@ -56,6 +56,30 @@ const UserKpiCards = ({
     );
   }
 
+  if (category === 'wali') {
+    const nonAktif = totalPengguna - penggunaAktif;
+    return (
+      <div className="user-kpi-grid">
+        <div className="user-kpi-card user-kpi-card--total">
+          <span className="user-kpi-label">TOTAL WALI SANTRI</span>
+          <h3 className="user-kpi-value">{totalPengguna} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--aktif">
+          <span className="user-kpi-label user-kpi-label--aktif">WALI AKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--aktif">{penggunaAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--keluar">
+          <span className="user-kpi-label user-kpi-label--keluar">WALI NONAKTIF</span>
+          <h3 className="user-kpi-value user-kpi-value--keluar">{nonAktif} akun</h3>
+        </div>
+        <div className="user-kpi-card user-kpi-card--wali">
+          <span className="user-kpi-label user-kpi-label--wali">TAUTAN NIS SANTRI</span>
+          <h3 className="user-kpi-value user-kpi-value--wali">Terhubung NIS</h3>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="user-kpi-grid">
       {/* Total Pengguna */}

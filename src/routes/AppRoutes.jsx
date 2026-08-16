@@ -34,6 +34,7 @@ const AppRoutes = () => {
       <Route path="/admin/pengguna"            element={<UserManagementPage category="all" />} />
       <Route path="/admin/pengguna/admin"      element={<UserManagementPage category="admin" />} />
       <Route path="/admin/pengguna/staff-koin" element={<UserManagementPage category="staff-koin" />} />
+      <Route path="/admin/pengguna/wali"       element={<UserManagementPage category="wali" />} />
       <Route path="/admin/topup"               element={<TopUpPage />} />
 
       {/* Staff Rumah Koin Routes */}

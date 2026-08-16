@@ -30,6 +30,9 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     if (category === 'staff-koin') {
       return users.filter((u) => u.role === 'Staff Rumah Koin');
     }
+    if (category === 'wali') {
+      return users.filter((u) => u.role === 'Wali Santri / Wali');
+    }
     return users;
   }, [users, category]);
 
@@ -87,6 +90,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     let presetRole = 'staff';
     if (category === 'admin') presetRole = 'kabid';
     if (category === 'staff-koin') presetRole = 'staff';
+    if (category === 'wali') presetRole = 'wali';
 
     setEditUser({ role: presetRole });
     setIsModalOpen(true);
@@ -157,6 +161,14 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         subtitle: 'Kelola akun petugas loket dan staf operasional koin santri',
         addBtn: '+ Tambah Staff Koin',
         pageTitle: 'Akun Staff Rumah Koin',
+      };
+    }
+    if (category === 'wali') {
+      return {
+        title: 'Manajemen Akun — Wali Santri',
+        subtitle: 'Kelola akun wali santri, akses pemantauan saldo, dan tautan NIS santri',
+        addBtn: '+ Tambah Wali Santri',
+        pageTitle: 'Akun Wali Santri',
       };
     }
     return {
