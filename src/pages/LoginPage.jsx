@@ -89,8 +89,8 @@ const LoginPage = () => {
 
           {/* Quick Login Section */}
           <div className="login-quick-section mt-7 pt-6 border-t border-slate-100 flex flex-col gap-3 text-center">
-            <span className="login-quick-label text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              LOGIN CEPAT (PROTOTIPE)
+            <span className="login-quick-label text-xs font-bold text-slate-500">
+              Ingin login sebagai apa?
             </span>
             <div className="login-quick-grid grid grid-cols-2 gap-2.5">
               <button

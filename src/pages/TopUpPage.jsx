@@ -141,7 +141,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
                         onClick={() => handleOpenDetail(santri)}
                         className="btn-detail-saldo"
                       >
-                        Detail &amp; Foto
+                        Detail
                       </button>
                     </td>
                   </tr>
