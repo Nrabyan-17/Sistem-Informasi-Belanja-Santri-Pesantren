@@ -107,14 +107,38 @@ const UserDetailModal = ({ isOpen, onClose, user = {}, onEdit }) => {
             </span>
           </div>
 
+          {/* Santri Terhubung — tampil jika ada */}
+          {user.santri && user.santri !== '—' && (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                Santri Terhubung
+              </span>
+              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                {user.santri}
+              </span>
+            </div>
+          )}
+
           {/* NIS Santri — tampil jika ada */}
           {user.nis && user.nis !== '—' && (
             <div className="flex flex-col gap-1.5">
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                NIS Santri Terhubung
+                NIS Santri
               </span>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 font-mono">
+              <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400 font-mono">
                 {user.nis}
+              </span>
+            </div>
+          )}
+
+          {/* No VA BNI — tampil jika ada */}
+          {user.noVa && user.noVa !== '—' && (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                No. Virtual Account BNI
+              </span>
+              <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 w-fit">
+                {user.noVa}
               </span>
             </div>
           )}

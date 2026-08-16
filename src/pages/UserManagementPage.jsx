@@ -217,6 +217,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
       {/* User Table Card */}
       <UserTable
+        category={category}
         data={filteredUsers}
         totalCount={categoryBaseUsers.length}
         activeCount={kpiStats.penggunaAktif}

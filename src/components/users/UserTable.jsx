@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 // Tabel Daftar Pengguna Sistem
 const UserTable = ({
+  category = 'all',
   data = [],
   totalCount = 7,
   activeCount = 6,
@@ -11,6 +12,8 @@ const UserTable = ({
   onDelete,
 }) => {
   const [selectedIds, setSelectedIds] = useState([]);
+
+  const isWaliCategory = category === 'wali';
 
   const toggleSelectAll = () => {
     if (selectedIds.length === data.length) {
@@ -31,8 +34,12 @@ const UserTable = ({
   return (
     <div className="user-table-card">
       <div className="user-table-header">
-        <h3 className="user-table-title">Daftar Pengguna Sistem</h3>
-        <p className="user-table-subtitle">{data.length} pengguna ditampilkan &middot; Klik nama pengguna untuk lihat detail</p>
+        <h3 className="user-table-title">
+          {isWaliCategory ? 'Daftar Akun Wali Santri' : 'Daftar Pengguna Sistem'}
+        </h3>
+        <p className="user-table-subtitle">
+          {data.length} {isWaliCategory ? 'akun wali santri' : 'pengguna'} ditampilkan &middot; Klik nama untuk lihat detail
+        </p>
       </div>
 
       <div className="user-table-wrapper overflow-x-auto">
@@ -47,8 +54,15 @@ const UserTable = ({
                   className="user-checkbox"
                 />
               </th>
-              <th className="text-left">PENGGUNA</th>
-              <th className="text-left">ROLE</th>
+              <th className="text-left">{isWaliCategory ? 'WALI SANTRI' : 'PENGGUNA'}</th>
+              {isWaliCategory ? (
+                <>
+                  <th className="text-left">SANTRI TERHUBUNG / NIS</th>
+                  <th className="text-left">NO. VA BNI</th>
+                </>
+              ) : (
+                <th className="text-left">ROLE</th>
+              )}
               <th className="text-left">STATUS</th>
               <th className="text-left">LOGIN TERAKHIR</th>
               <th className="text-center">AKSI</th>
@@ -57,8 +71,8 @@ const UserTable = ({
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan="6" className="text-center py-8 text-slate-400 font-medium">
-                  Tidak ada pengguna yang sesuai filter.
+                <td colSpan={isWaliCategory ? 7 : 6} className="text-center py-8 text-slate-400 font-medium">
+                  Tidak ada {isWaliCategory ? 'wali santri' : 'pengguna'} yang sesuai filter.
                 </td>
               </tr>
             ) : (
@@ -89,19 +103,39 @@ const UserTable = ({
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                          user.role === 'Kabid BAK & Manajerial'
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                            : user.role === 'Staff Rumah Koin'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                            : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
-                        }`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
+                    {isWaliCategory ? (
+                      <>
+                        <td className="py-3">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                              {user.santri || '—'}
+                            </span>
+                            <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                              NIS: {user.nis || '—'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3">
+                          <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 inline-block">
+                            {user.noVa || '—'}
+                          </span>
+                        </td>
+                      </>
+                    ) : (
+                      <td>
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                            user.role === 'Kabid BAK & Manajerial'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                              : user.role === 'Staff Rumah Koin'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                              : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+                    )}
                     <td>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
