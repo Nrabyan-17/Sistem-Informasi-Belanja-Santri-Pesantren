@@ -7,20 +7,20 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [username, setUsername] = useState('');
+  const [noHp, setNoHp] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (login) {
-      login({ username, role: 'admin' });
+      login({ noHp, role: 'admin' });
     }
     navigate('/admin');
   };
 
   const handleQuickLogin = (role, targetPath) => {
     if (login) {
-      login({ username: role, role: role === 'Staff Rumah Koin' ? 'staff' : 'admin' });
+      login({ noHp: '081234567890', role: role === 'Staff Rumah Koin' ? 'staff' : 'admin' });
     }
     navigate(targetPath);
   };
@@ -30,8 +30,8 @@ const LoginPage = () => {
       <div className="login-container max-w-md w-full flex flex-col items-center animate-fadeIn">
         {/* Header Branding */}
         <div className="login-header text-center mb-7">
-          <div className="login-logo-badge w-18 h-18 bg-emerald-900 rounded-2xl flex items-center justify-center mx-auto mb-4 p-3 shadow-lg shadow-emerald-900/20">
-            <img src={logoPesantren} alt="Logo Pesantren" className="login-logo-img w-full h-full object-contain" />
+          <div className="login-logo-badge w-24 h-24 flex items-center justify-center mx-auto mb-3">
+            <img src={logoPesantren} alt="Logo Pesantren" className="login-logo-img w-full h-full object-contain mix-blend-multiply" />
           </div>
           <h1 className="login-title text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Nazhatut Thullab</h1>
           <p className="login-subtitle text-sm text-slate-500 font-medium mt-1">Sistem Koin PP Nazhatut Thullab</p>
@@ -40,15 +40,15 @@ const LoginPage = () => {
         {/* Form Card */}
         <div className="login-card bg-white w-full rounded-3xl p-7 sm:p-9 border border-slate-200 shadow-xl">
           <form onSubmit={handleSubmit} className="login-form flex flex-col gap-5">
-            {/* Username Input */}
+            {/* Nomor Handphone Input */}
             <div className="login-form-group flex flex-col gap-2">
-              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">USERNAME</label>
+              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">NOMOR HANDPHONE</label>
               <input
-                type="text"
+                type="tel"
                 className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="Masukkan username..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Masukkan nomor handphone..."
+                value={noHp}
+                onChange={(e) => setNoHp(e.target.value)}
                 required
               />
             </div>
@@ -89,8 +89,8 @@ const LoginPage = () => {
 
           {/* Quick Login Section */}
           <div className="login-quick-section mt-7 pt-6 border-t border-slate-100 flex flex-col gap-3 text-center">
-            <span className="login-quick-label text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-              LOGIN CEPAT (PROTOTIPE)
+            <span className="login-quick-label text-xs font-bold text-slate-500">
+              Ingin login sebagai apa?
             </span>
             <div className="login-quick-grid grid grid-cols-2 gap-2.5">
               <button

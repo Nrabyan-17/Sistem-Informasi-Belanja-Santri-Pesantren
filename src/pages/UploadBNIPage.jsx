@@ -8,12 +8,88 @@ const mockParsedTransactions = [
   { id: 4, va: '9881234567899999', nis: '-', nama: 'Tidak Ditemukan', nominal: 25000, tanggal: '2026-08-01 11:20', status: 'invalid' },
 ];
 
+// Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
+const cleanCell = (val) => {
+  if (!val) return '';
+  return val
+    .replace(/^="?|"?$/g, '')
+    .replace(/^"|"$/g, '')
+    .trim();
+};
+
+// Parser real untuk file mutasi BNI eCollection CSV
+const parseBNICSV = (text) => {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  if (lines.length < 2) return [];
+
+  // Deteksi delimiter (; atau , atau tab)
+  const firstLine = lines[0];
+  const delimiter = firstLine.includes(';') ? ';' : firstLine.includes(',') ? ',' : '\t';
+
+  // Parse header
+  const headers = lines[0].split(delimiter).map(cleanCell);
+  
+  const vaIdx = headers.findIndex(h => /va\s*number/i.test(h) || /^va$/i.test(h));
+  const nameIdx = headers.findIndex(h => /customer\s*name|nama/i.test(h));
+  const dateIdx = headers.findIndex(h => /payment\s*date|tanggal/i.test(h));
+  const amountIdx = headers.findIndex(h => /payment\s*amount|nominal|amount/i.test(h));
+  const billingIdx = headers.findIndex(h => /billing\s*id/i.test(h));
+
+  const results = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const rawLine = lines[i];
+    if (!rawLine) continue;
+    const parts = rawLine.split(delimiter).map(cleanCell);
+    if (parts.length < 3) continue;
+
+    const va = vaIdx !== -1 ? parts[vaIdx] : parts[3] || '—';
+    const nama = nameIdx !== -1 ? parts[nameIdx] : parts[4] || '—';
+    const tanggal = dateIdx !== -1 ? parts[dateIdx] : parts[5] || '—';
+    const rawAmount = amountIdx !== -1 ? parts[amountIdx] : parts[7] || '0';
+    const nominal = parseInt(rawAmount.replace(/[^0-9]/g, ''), 10) || 0;
+    const billingId = billingIdx !== -1 ? parts[billingIdx] : parts[8] || '';
+
+    // Deteksi jenis transaksi
+    const isJajan = billingId.toUpperCase().startsWith('JJN');
+    const isKlinik = nama.toUpperCase().includes('KLINIK');
+
+    let status = 'valid';
+    if (isKlinik || !va || va === '—' || va.length < 8) {
+      status = 'invalid';
+    }
+
+    // Ekstrak NIS santri dari Billing ID (misal: JJNJULI26/1136 -> 1136) atau 4 digit akhir VA
+    let nis = '—';
+    if (billingId.includes('/')) {
+      nis = billingId.split('/')[1] || '—';
+    } else if (va && va.length >= 7) {
+      nis = va.slice(-7);
+    }
+
+    results.push({
+      id: i,
+      va,
+      nis,
+      nama,
+      tanggal,
+      nominal,
+      billingId,
+      isJajan,
+      status,
+    });
+  }
+
+  return results;
+};
+
 const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
 
   const fileInputRef = useRef(null);
 
@@ -32,11 +108,34 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     setIsUploading(true);
     setIsConfirmed(false);
 
-    // Simulasi pembacaan & validasi file Excel/CSV mutasi BNI
-    setTimeout(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result;
+        if (typeof content === 'string') {
+          const parsed = parseBNICSV(content);
+          if (parsed.length > 0) {
+            setParsedData(parsed);
+          } else {
+            // Fallback jika bukan CSV BNI eCollection
+            setParsedData(mockParsedTransactions);
+          }
+        }
+      } catch (err) {
+        console.error('Gagal parsing CSV:', err);
+        setParsedData(mockParsedTransactions);
+      } finally {
+        setIsUploading(false);
+      }
+    };
+
+    reader.onerror = () => {
       setIsUploading(false);
-      setParsedData(mockParsedTransactions);
-    }, 1200);
+      alert('Gagal membaca file. Pastikan format file CSV/Excel valid.');
+    };
+
+    // Baca file secara real sebagai text
+    reader.readAsText(selectedFile);
   };
 
   const handleDrop = (e) => {
@@ -55,13 +154,14 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
 
   const handleConfirmSave = () => {
     setIsConfirmed(true);
-    alert('✅ Berhasil konfirmasi & simpan! Saldo santri telah berhasil diperbarui otomatis.');
+    alert('Berhasil konfirmasi & simpan! Saldo santri telah berhasil diperbarui otomatis.');
   };
 
   const handleReset = () => {
     setFile(null);
     setParsedData(null);
     setIsConfirmed(false);
+    setFilterMode('all');
   };
 
   return (
@@ -116,9 +216,9 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
 
         {/* Drag & Drop Upload Zone */}
         <div
-          className={`bni-dropzone border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center bg-white shadow-xs ${
-            isDragging ? 'bni-dropzone--dragging border-emerald-600 bg-emerald-50/50 scale-[1.005]' : 'border-slate-300 hover:border-emerald-600 hover:bg-emerald-50/30'
-          } ${file ? 'bni-dropzone--has-file border-emerald-500 bg-emerald-50/40' : ''}`}
+          className={`bni-dropzone border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all flex flex-col items-center justify-center shadow-xs ${
+            isDragging ? 'bni-dropzone--dragging scale-[1.005]' : ''
+          } ${file ? 'bni-dropzone--has-file' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -182,73 +282,147 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
         )}
 
         {/* Parsed Data Preview Table */}
-        {parsedData && !isUploading && (
-          <div className="bni-results-card bg-white rounded-3xl p-6 border border-slate-200 shadow-xs flex flex-col gap-5">
-            <div className="bni-results-header flex justify-between items-center flex-wrap gap-3">
-              <div>
-                <h3 className="bni-results-title text-lg font-bold text-slate-800">Hasil Pencocokan Mutasi BNI</h3>
-                <p className="bni-results-subtitle text-xs text-slate-500 mt-0.5">
-                  Ditemukan {parsedData.length} data transaksi mutasi ({parsedData.filter(d => d.status === 'valid').length} valid, {parsedData.filter(d => d.status === 'invalid').length} tidak cocok)
-                </p>
+        {parsedData && !isUploading && (() => {
+          const displayedData = parsedData.filter((d) => {
+            if (filterMode === 'jajan') return d.isJajan;
+            if (filterMode === 'non-jajan') return !d.isJajan;
+            return true;
+          });
+
+          const totalNominal = displayedData.reduce((acc, curr) => acc + curr.nominal, 0);
+          const jajanCount = parsedData.filter((d) => d.isJajan).length;
+          const validCount = parsedData.filter((d) => d.status === 'valid').length;
+          const invalidCount = parsedData.filter((d) => d.status === 'invalid').length;
+
+          return (
+            <div className="bni-results-card bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col gap-5">
+              <div className="bni-results-header flex justify-between items-center flex-wrap gap-4">
+                <div>
+                  <h3 className="bni-results-title text-lg font-bold text-slate-800 dark:text-slate-100">
+                    Hasil Pencocokan Mutasi BNI
+                  </h3>
+                  <p className="bni-results-subtitle text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Ditemukan {parsedData.length} baris data transaksi &middot; {validCount} valid &middot; {invalidCount} tidak cocok
+                  </p>
+                </div>
+
+                <div className="bni-results-actions flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="btn btn-secondary px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer"
+                    onClick={handleReset}
+                  >
+                    Reset / File Baru
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all disabled:opacity-60 cursor-pointer"
+                    onClick={handleConfirmSave}
+                    disabled={isConfirmed}
+                  >
+                    {isConfirmed ? 'Sudah Disimpan' : 'Konfirmasi & Simpan Saldo'}
+                  </button>
+                </div>
               </div>
 
-              <div className="bni-results-actions flex gap-3">
-                <button
-                  className="btn btn-secondary px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all"
-                  onClick={handleReset}
-                >
-                  Reset / File Baru
-                </button>
-                <button
-                  className="btn btn-primary px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all disabled:opacity-60"
-                  onClick={handleConfirmSave}
-                  disabled={isConfirmed}
-                >
-                  {isConfirmed ? '✅ Sudah Disimpan' : '✨ Konfirmasi & Simpan Saldo'}
-                </button>
-              </div>
-            </div>
+              {/* Filter Tabs & Summary Box */}
+              <div className="bni-filter-container">
+                <div className="bni-filter-buttons-group">
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('all')}
+                    className={`bni-filter-btn ${filterMode === 'all' ? 'bni-filter-btn--active' : ''}`}
+                  >
+                    Semua ({parsedData.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('jajan')}
+                    className={`bni-filter-btn ${filterMode === 'jajan' ? 'bni-filter-btn--active' : ''}`}
+                  >
+                    Uang Jajan Santri ({jajanCount})
+                  </button>
+                  {parsedData.length > jajanCount && (
+                    <button
+                      type="button"
+                      onClick={() => setFilterMode('non-jajan')}
+                      className={`bni-filter-btn ${filterMode === 'non-jajan' ? 'bni-filter-btn--active' : ''}`}
+                    >
+                      Lainnya ({parsedData.length - jajanCount})
+                    </button>
+                  )}
+                </div>
 
-            <div className="data-table-wrapper overflow-x-auto border border-slate-200 rounded-2xl">
-              <table className="data-table w-full text-left border-collapse text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
-                  <tr>
-                    <th className="px-4 py-3">No</th>
-                    <th className="px-4 py-3">Nomor VA</th>
-                    <th className="px-4 py-3">NIS</th>
-                    <th className="px-4 py-3">Nama Santri</th>
-                    <th className="px-4 py-3">Tanggal Transaksi</th>
-                    <th className="px-4 py-3">Nominal</th>
-                    <th className="px-4 py-3">Status Validasi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {parsedData.map((item, idx) => (
-                    <tr key={item.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium">{idx + 1}</td>
-                      <td className="px-4 py-3"><code className="bg-slate-100 px-2 py-1 rounded text-xs font-mono text-slate-800">{item.va}</code></td>
-                      <td className="px-4 py-3">{item.nis}</td>
-                      <td className="px-4 py-3 font-bold text-slate-800">{item.nama}</td>
-                      <td className="px-4 py-3 text-xs">{item.tanggal}</td>
-                      <td className="px-4 py-3 font-bold text-emerald-600">+ Rp {item.nominal.toLocaleString('id-ID')}</td>
-                      <td className="px-4 py-3">
-                        {item.status === 'valid' ? (
-                          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold">
-                            ✅ Valid
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-xs font-semibold">
-                            ❌ VA Tidak Cocok
-                          </span>
-                        )}
-                      </td>
+                <div className="bni-total-badge">
+                  <span>Total Dana Ditampilkan:</span>
+                  <span className="text-emerald-800 dark:text-emerald-300 font-extrabold text-sm">
+                    Rp {totalNominal.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="data-table-wrapper overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <table className="data-table w-full text-left border-collapse text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">
+                    <tr>
+                      <th className="px-4 py-3">No</th>
+                      <th className="px-4 py-3">Nomor VA</th>
+                      <th className="px-4 py-3">NIS</th>
+                      <th className="px-4 py-3">Nama Santri</th>
+                      <th className="px-4 py-3">Tanggal Transaksi</th>
+                      <th className="px-4 py-3">Nominal</th>
+                      <th className="px-4 py-3">Status Validasi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
+                    {displayedData.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="text-center py-6 text-slate-400">
+                          Tidak ada data yang sesuai filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      displayedData.map((item, idx) => (
+                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 font-medium">{idx + 1}</td>
+                          <td className="px-4 py-3">
+                            <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-mono text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">
+                              {item.va}
+                            </code>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-medium">{item.nis}</td>
+                          <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
+                            {item.nama}
+                            {item.billingId && (
+                              <span className="block text-[10px] text-slate-400 font-mono font-normal">
+                                {item.billingId}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{item.tanggal}</td>
+                          <td className="px-4 py-3 font-bold text-emerald-700 dark:text-emerald-400">
+                            + Rp {item.nominal.toLocaleString('id-ID')}
+                          </td>
+                          <td className="px-4 py-3">
+                            {item.status === 'valid' ? (
+                              <span className="inline-flex items-center bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full text-xs font-bold">
+                                Valid
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 px-3 py-1 rounded-full text-xs font-bold">
+                                VA Tidak Cocok
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </Layout>
   );

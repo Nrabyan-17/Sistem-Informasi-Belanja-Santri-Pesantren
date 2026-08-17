@@ -5,7 +5,12 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   // Mode yang dipilih: 'light' | 'dark' | 'system'
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('app-theme') || 'system';
+    const saved = localStorage.getItem('app-theme');
+    if (!saved || saved === 'dark' || saved === 'system') {
+      localStorage.setItem('app-theme', 'light');
+      return 'light';
+    }
+    return saved;
   });
 
   const [systemIsDark, setSystemIsDark] = useState(() => {

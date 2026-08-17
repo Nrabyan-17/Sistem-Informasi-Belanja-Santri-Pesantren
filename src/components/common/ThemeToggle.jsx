@@ -1,72 +1,68 @@
-import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const ThemeToggle = () => {
   const { theme, setTheme, effectiveTheme } = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Urutan siklus tema: light -> dark -> system -> light
+  const themeCycle = ['light', 'dark', 'system'];
 
-  const options = [
-    { id: 'light',  label: 'Terang', icon: '☀️' },
-    { id: 'dark',   label: 'Gelap',  icon: '🌙' },
-    { id: 'system', label: 'Sistem', icon: '💻' },
-  ];
+  const cycleTheme = () => {
+    const currentIndex = themeCycle.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themeCycle.length;
+    setTheme(themeCycle[nextIndex]);
+  };
 
-  const currentOption = options.find((o) => o.id === theme) || options[2];
+  const isDark = effectiveTheme === 'dark';
+
+  const getThemeInfo = () => {
+    switch (theme) {
+      case 'light':
+        return {
+          tooltip: 'Tema: Terang (Klik untuk Gelap)',
+          icon: (
+            <svg className="w-5 h-5 text-amber-500 transition-transform duration-300 group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          ),
+        };
+      case 'dark':
+        return {
+          tooltip: 'Tema: Gelap (Klik untuk Sistem)',
+          icon: (
+            <svg className="w-5 h-5 text-indigo-400 transition-transform duration-300 group-hover:-rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          ),
+        };
+      case 'system':
+      default:
+        return {
+          tooltip: `Tema: Sistem (${isDark ? 'Gelap' : 'Terang'}) (Klik untuk Terang)`,
+          icon: (
+            <svg className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'} transition-transform duration-300 group-hover:scale-110`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          ),
+        };
+    }
+  };
+
+  const current = getThemeInfo();
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        type="button"
-        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-        onClick={() => setIsOpen((prev) => !prev)}
-        title="Ubah Tema Tampilan"
-      >
-        <span className="text-sm">{currentOption.icon}</span>
-        <span className="hidden sm:inline-block">{currentOption.label}</span>
-        <span className="text-[10px] opacity-60">▼</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 p-1.5 flex flex-col gap-1 animate-fadeIn">
-          {options.map((opt) => {
-            const isActive = theme === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                className={`flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-                onClick={() => {
-                  setTheme(opt.id);
-                  setIsOpen(false);
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{opt.icon}</span>
-                  <span>{opt.label}</span>
-                </div>
-                {isActive && <span className="text-emerald-600 dark:text-emerald-400 text-xs">✓</span>}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <button
+      type="button"
+      className={`group relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer shadow-2xs hover:scale-105 active:scale-95 ${
+        isDark
+          ? 'bg-slate-800 border-slate-700/80 text-slate-200 hover:bg-slate-700/80'
+          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+      }`}
+      onClick={cycleTheme}
+      title={current.tooltip}
+      aria-label={current.tooltip}
+    >
+      {current.icon}
+    </button>
   );
 };
 

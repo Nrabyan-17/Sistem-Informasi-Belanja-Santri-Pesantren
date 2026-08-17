@@ -28,17 +28,19 @@ const AppRoutes = () => {
       <Route path="/" element={<LoginPage />} />
 
       {/* Admin / Manajerial Routes */}
-      <Route path="/admin"            element={<DashboardPage />} />
-      <Route path="/admin/transaksi"  element={<TransactionPage />} />
-      <Route path="/admin/laporan"    element={<FinancialReportPage />} />
-      <Route path="/admin/pengguna"   element={<UserManagementPage />} />
-      <Route path="/admin/topup"      element={<TopUpPage />} />
+      <Route path="/admin"                     element={<DashboardPage />} />
+      <Route path="/admin/transaksi"           element={<TransactionPage />} />
+      <Route path="/admin/laporan"             element={<FinancialReportPage />} />
+      <Route path="/admin/pengguna"            element={<UserManagementPage category="all" />} />
+      <Route path="/admin/pengguna/admin"      element={<UserManagementPage category="admin" />} />
+      <Route path="/admin/pengguna/staff-koin" element={<UserManagementPage category="staff-koin" />} />
+      <Route path="/admin/pengguna/wali"       element={<UserManagementPage category="wali" />} />
+      <Route path="/admin/topup"               element={<TopUpPage />} />
 
       {/* Staff Rumah Koin Routes */}
       <Route path="/staff"            element={<DashboardPage Layout={StaffLayout} />} />
-      <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} />} />
+      <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} isStaffVersion={true} />} />
       <Route path="/staff/laporan"    element={<FinancialReportPage Layout={StaffLayout} />} />
-      <Route path="/staff/pengguna"   element={<UserManagementPage Layout={StaffLayout} isStaffVersion={true} />} />
       <Route path="/staff/upload-bni" element={<UploadBNIPage Layout={StaffLayout} />} />
       <Route path="/staff/topup"      element={<TopUpPage Layout={StaffLayout} />} />
 

@@ -53,14 +53,14 @@ const WaliRiwayatPage = () => {
         </div>
 
         {/* Filter Bar & Export */}
-        <div className="wali-filter-card bg-white border border-slate-200 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
+        <div className="wali-filter-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
           <div className="wali-filter-left flex flex-wrap items-center gap-6">
             <div className="wali-type-buttons flex gap-2">
               <button
                 className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                   filterType === 'semua'
-                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'wali-type-btn--active bg-emerald-800 dark:bg-emerald-700 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
                 onClick={() => setFilterType('semua')}
               >
@@ -69,8 +69,8 @@ const WaliRiwayatPage = () => {
               <button
                 className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                   filterType === 'masuk'
-                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'wali-type-btn--active bg-emerald-800 dark:bg-emerald-700 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
                 onClick={() => setFilterType('masuk')}
               >
@@ -79,8 +79,8 @@ const WaliRiwayatPage = () => {
               <button
                 className={`wali-type-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                   filterType === 'keluar'
-                    ? 'wali-type-btn--active bg-emerald-800 text-white border-emerald-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'wali-type-btn--active bg-emerald-800 dark:bg-emerald-700 text-white border-emerald-800 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
                 onClick={() => setFilterType('keluar')}
               >
@@ -95,7 +95,7 @@ const WaliRiwayatPage = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="filter-date px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-emerald-600"
+                  className="filter-date px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-700 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
                 />
               </div>
               <div className="date-input-group flex flex-col gap-1">
@@ -104,52 +104,45 @@ const WaliRiwayatPage = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="filter-date px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-emerald-600"
+                  className="filter-date px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-700 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
                 />
               </div>
             </div>
           </div>
-
-          <button
-            className="btn btn-export-excel px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer"
-            onClick={handleExportExcel}
-          >
-            📥 Ekspor .xlsx
-          </button>
         </div>
 
         {/* 3 Summary Stat Cards */}
         <div className="wali-summary-grid grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="wali-summary-card bg-white border border-slate-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+          <div className="wali-summary-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
             <span className="summary-label text-[11px] font-bold tracking-wider text-slate-400 uppercase">
               TOTAL TRANSAKSI
             </span>
-            <span className="summary-val text-xl font-extrabold text-slate-800">
+            <span className="summary-val text-xl font-extrabold text-slate-800 dark:text-slate-100">
               {mockWaliTransactions.length} entri
             </span>
           </div>
-          <div className="wali-summary-card wali-summary-card--green bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
-            <span className="summary-label text-[11px] font-bold tracking-wider text-emerald-800 uppercase">
+          <div className="wali-summary-card wali-summary-card--green bg-emerald-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+            <span className="summary-label text-[11px] font-bold tracking-wider text-emerald-800 dark:text-emerald-400 uppercase">
               TOTAL SALDO MASUK
             </span>
-            <span className="summary-val text-xl font-extrabold text-emerald-600">
+            <span className="summary-val text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
               Rp {totalMasuk.toLocaleString('id-ID')}
             </span>
           </div>
-          <div className="wali-summary-card wali-summary-card--orange bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
-            <span className="summary-label text-[11px] font-bold tracking-wider text-amber-800 uppercase">
+          <div className="wali-summary-card wali-summary-card--orange bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
+            <span className="summary-label text-[11px] font-bold tracking-wider text-amber-800 dark:text-amber-400 uppercase">
               TOTAL KOIN DITARIK
             </span>
-            <span className="summary-val text-xl font-extrabold text-amber-600">
+            <span className="summary-val text-xl font-extrabold text-amber-600 dark:text-amber-400">
               Rp {totalKeluar.toLocaleString('id-ID')}
             </span>
           </div>
         </div>
 
         {/* Data Table */}
-        <div className="wali-table-card bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col gap-5">
+        <div className="wali-table-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-xs flex flex-col gap-5">
           <div className="wali-table-header flex justify-between items-center">
-            <h3 className="wali-table-title text-base font-bold text-slate-800">Daftar Arus Kas Saldo</h3>
+            <h3 className="wali-table-title text-base font-bold text-slate-800 dark:text-slate-100">Daftar Arus Kas Saldo</h3>
             <span className="wali-table-count text-xs text-slate-400 font-medium">
               {filteredData.length} dari {mockWaliTransactions.length} transaksi
             </span>
@@ -205,12 +198,7 @@ const WaliRiwayatPage = () => {
             </table>
           </div>
 
-          <div className="wali-table-footer flex flex-wrap justify-between items-center pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
-            <div className="table-footer-left flex items-center gap-3">
-              <span>Total masuk: <strong className="text-emerald-700">Rp {totalMasuk.toLocaleString('id-ID')}</strong></span>
-              <span className="divider text-slate-300">•</span>
-              <span>Total keluar: <strong className="text-amber-700">Rp {totalKeluar.toLocaleString('id-ID')}</strong></span>
-            </div>
+          <div className="wali-table-footer flex justify-end items-center pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium">
             <div className="table-footer-right">
               {filteredData.length} baris ditampilkan
             </div>
