@@ -1,15 +1,13 @@
 import React from 'react';
 
-// Filter Bar Data Santri: Search, Kelas Dropdown, Status Dropdown, Tombol Tambah
+// Filter Bar Data Santri: Search, Status Dropdown, Tombol Tambah & Import
 const SantriFilterBar = ({
   search = '',
   onSearchChange,
-  kelas = 'Semua Kelas',
-  onKelasChange,
   status = 'Semua Status',
   onStatusChange,
   onAddSantri,
-  kelasOptions = [],
+  onImportSantri,
 }) => {
   return (
     <div className="user-filter-card">
@@ -39,22 +37,6 @@ const SantriFilterBar = ({
           />
         </div>
 
-        {/* Kelas Dropdown */}
-        <div className="user-select-field">
-          <select
-            value={kelas}
-            onChange={(e) => onKelasChange?.(e.target.value)}
-            className="user-filter-select"
-          >
-            <option value="Semua Kelas">Semua Kelas</option>
-            {kelasOptions.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Status Dropdown */}
         <div className="user-select-field">
           <select
@@ -67,6 +49,22 @@ const SantriFilterBar = ({
             <option value="nonaktif">Nonaktif</option>
           </select>
         </div>
+
+        {/* Button Import Santri (Batch) */}
+        {onImportSantri && (
+          <div className="user-add-field">
+            <button
+              type="button"
+              onClick={onImportSantri}
+              className="btn-import-user flex items-center justify-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>Import Batch</span>
+            </button>
+          </div>
+        )}
 
         {/* Button Tambah Santri */}
         {onAddSantri && (

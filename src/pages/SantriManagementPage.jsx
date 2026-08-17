@@ -1,16 +1,46 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SantriKpiCards from '../components/santri/SantriKpiCards';
 import SantriFilterBar from '../components/santri/SantriFilterBar';
 import SantriTable from '../components/santri/SantriTable';
 import SantriModalForm from '../components/santri/SantriModalForm';
 import SantriDetailModal from '../components/santri/SantriDetailModal';
-import { mockSantri } from '../data/mockSantri';
+import { santriApi } from '../utils/api';
+
+// API → bentuk yang dibaca komponen santri
+const apiToUi = (s) => ({
+  id: s.id,
+  nis: s.nis,
+  nama: s.nama,
+  jenisKelamin: s.jenis_kelamin || '',
+  tglLahir: s.tanggal_lahir || '',
+  vaJajan: s.va_jajan || '',
+  vaTagihan: s.va_pembayaran || '',
+  status: s.status || 'aktif',
+  saldo: s.saldo || 0,
+  foto: s.foto_url || null,
+});
+
+// Form (UI) → payload API (snake_case); update via method spoofing _method=PUT
+const uiToFormData = (f, isEdit) => {
+  const fd = new FormData();
+  fd.append('nis', f.nis);
+  fd.append('nama', f.nama);
+  fd.append('jenis_kelamin', f.jenisKelamin);
+  if (f.tglLahir) fd.append('tanggal_lahir', f.tglLahir);
+  if (f.vaJajan) fd.append('va_jajan', f.vaJajan);
+  if (f.vaTagihan) fd.append('va_pembayaran', f.vaTagihan);
+  fd.append('status', f.status);
+  if (f.foto instanceof File) fd.append('foto', f.foto);
+  if (isEdit) fd.append('_method', 'PUT');
+  return fd;
+};
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
-  const [santriList, setSantriList] = useState(mockSantri);
+  const [santriList, setSantriList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,11 +52,21 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Daftar kelas unik dari data santri
-  const kelasOptions = useMemo(() => {
-    const kelasSet = new Set(santriList.map((s) => s.kelas));
-    return Array.from(kelasSet).sort();
-  }, [santriList]);
+  const importFileRef = useRef(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importReport, setImportReport] = useState(null);
+  const [importError, setImportError] = useState('');
+
+  const fetchSantri = () => {
+    setLoading(true);
+    santriApi
+      .list({ per_page: 100 })
+      .then((res) => setSantriList((res.data || []).map(apiToUi)))
+      .catch((e) => setError(e.message || 'Gagal memuat data santri.'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(fetchSantri, []);
 
   // Filter data santri
   const filteredSantri = useMemo(() => {
@@ -36,23 +76,17 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         const query = search.toLowerCase();
         const matchesNama = s.nama.toLowerCase().includes(query);
         const matchesNis = s.nis.toLowerCase().includes(query);
-        const matchesWali = s.namaWali ? s.namaWali.toLowerCase().includes(query) : false;
-        if (!matchesNama && !matchesNis && !matchesWali) return false;
+        if (!matchesNama && !matchesNis) return false;
       }
 
-      // 2. Filter Kelas
-      if (kelasFilter !== 'Semua Kelas') {
-        if (s.kelas !== kelasFilter) return false;
-      }
-
-      // 3. Filter Status
+      // 2. Filter Status
       if (statusFilter !== 'Semua Status') {
         if (s.status !== statusFilter) return false;
       }
 
       return true;
     });
-  }, [santriList, search, kelasFilter, statusFilter]);
+  }, [santriList, search, statusFilter]);
 
   // KPI metrics
   const kpiStats = useMemo(() => {
@@ -87,52 +121,109 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     setIsDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setError('');
+    try {
+      await santriApi.destroy(deleteTarget.id);
       setIsDeleteOpen(false);
       setDeleteTarget(null);
+      fetchSantri();
+    } catch (e) {
+      setError(e.message || 'Gagal menghapus data santri.');
+      setIsDeleteOpen(false);
     }
   };
 
   // Submit Form
-  const handleSubmitForm = (formData) => {
-    if (editSantri && editSantri.id) {
-      // Edit existing
-      setSantriList(
-        santriList.map((s) => (s.id === editSantri.id ? { ...s, ...formData } : s))
-      );
-    } else {
-      // Add new
-      const newSantri = {
-        id: Date.now(),
-        nis: formData.nis || '',
-        nama: formData.nama || 'Santri Baru',
-        kelas: formData.kelas || 'VII A',
-        tglLahir: formData.tglLahir || '',
-        namaWali: formData.namaWali || '',
-        noHpWali: formData.noHpWali || '',
-        vaJajan: formData.vaJajan || '',
-        vaTagihan: formData.vaTagihan || '',
-        status: 'aktif',
-        saldo: 0,
-      };
-      setSantriList([newSantri, ...santriList]);
+  const handleSubmitForm = async (formData) => {
+    setError('');
+    try {
+      const isEdit = Boolean(editSantri?.id);
+      const fd = uiToFormData(formData, isEdit);
+      if (isEdit) await santriApi.update(editSantri.id, fd);
+      else await santriApi.store(fd);
+      setIsModalOpen(false);
+      fetchSantri();
+    } catch (e) {
+      setError(e.message || 'Gagal menyimpan data santri.');
     }
-    setIsModalOpen(false);
+  };
+
+  // Import Batch (xlsx)
+  const handleImportClick = () => importFileRef.current?.click();
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    setIsImporting(true);
+    setImportError('');
+    setImportReport(null);
+    try {
+      const report = await santriApi.import(fd);
+      setImportReport(report);
+      fetchSantri();
+    } catch (err) {
+      setImportError(err.message || 'Gagal mengimpor data santri.');
+    } finally {
+      setIsImporting(false);
+      if (importFileRef.current) importFileRef.current.value = '';
+    }
   };
 
   return (
     <Layout pageTitle="Data Santri">
+      {/* Hidden file input untuk import batch */}
+      <input
+        ref={importFileRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        className="hidden"
+        onChange={handleImportFile}
+      />
+
       {/* Header Title & Subtitle */}
       <div className="report-header-card mb-6">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
           Manajemen Data Santri
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          Kelola data identitas, kelas, wali, dan akun virtual seluruh santri pesantren
+          Kelola data identitas, saldo, dan akun virtual seluruh santri pesantren
         </p>
       </div>
+
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
+
+      {importError && (
+        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+          {importError}
+        </div>
+      )}
+
+      {importReport && (
+        <div className="mb-6 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900 rounded-2xl text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          Import selesai: diproses {importReport.diproses ?? 0}, ditambah {importReport.ditambah ?? 0},
+          diupdate {importReport.diupdate ?? 0}, error {importReport.error ?? 0}.
+        </div>
+      )}
+
+      {isImporting && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Mengimpor data santri...
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Memuat data santri...
+        </div>
+      )}
 
       {/* KPI Cards */}
       <SantriKpiCards
@@ -146,12 +237,10 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       <SantriFilterBar
         search={search}
         onSearchChange={setSearch}
-        kelas={kelasFilter}
-        onKelasChange={setKelasFilter}
         status={statusFilter}
         onStatusChange={setStatusFilter}
         onAddSantri={handleAddSantri}
-        kelasOptions={kelasOptions}
+        onImportSantri={handleImportClick}
       />
 
       {/* Tabel Data Santri */}

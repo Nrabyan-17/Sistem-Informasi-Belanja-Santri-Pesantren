@@ -27,7 +27,7 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       setUsername(initialData.username || '');
       setNoHp(initialData.noHp || '');
       setNis(initialData.nis || '');
-      setStatus(initialData.status || 'aktif');
+      setStatus(String(initialData.status || 'aktif').toLowerCase());
       setPassword('');
     }
   }, [isOpen, initialData, isEdit]);

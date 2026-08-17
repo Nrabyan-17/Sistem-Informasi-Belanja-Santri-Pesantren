@@ -1,13 +1,6 @@
-import React, { useState } from 'react';
-
-// Form Penarikan Koin / Saldo khusus Staff Rumah Koin
-const mockSantriOptions = [
-  { nis: '2024003', nama: 'Muhammad Rizki',  saldo: 150000, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024007', nama: 'Zainab Mustafa',   saldo: 95000,  foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024006', nama: 'Nurul Hidayah',   saldo: 120000, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 200000, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 80000,  foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-];
+import { useState, useEffect } from 'react';
+import { santriApi, penarikanApi } from '../../utils/api';
+import { usePopup } from '../../context/PopupContext';
 
 const getInitials = (name) => {
   if (!name) return 'S';
@@ -17,54 +10,70 @@ const getInitials = (name) => {
 };
 
 const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
-  const [selectedNis, setSelectedNis] = useState('2024003');
-  const [customNis, setCustomNis] = useState('');
+  const { showPopup } = usePopup();
+  const [santriOptions, setSantriOptions] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
   const [nominal, setNominal] = useState('');
   const [keterangan, setKeterangan] = useState('Penarikan Koin (Rumah Koin)');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccessModal, setIsSuccessModal] = useState(false);
   const [lastTxData, setLastTxData] = useState(null);
 
-  // Find santri object based on selected NIS
-  const activeSantri = mockSantriOptions.find((s) => s.nis === selectedNis) || {
-    nis: customNis || '2024000',
-    nama: 'Santri Terpilih',
-    saldo: 100000,
-  };
+  useEffect(() => {
+    santriApi
+      .list({ per_page: 100, status: 'aktif' })
+      .then((res) => {
+        const list = (res.data || []).map((s) => ({
+          id: s.id,
+          nis: s.nis,
+          nama: s.nama,
+          saldo: s.saldo || 0,
+        }));
+        setSantriOptions(list);
+        if (list.length) setSelectedId(String(list[0].id));
+      })
+      .catch((e) => showPopup('Gagal Memuat Data', 'Gagal memuat data santri: ' + e.message, 'error'));
+  }, [showPopup]);
+
+  const activeSantri = santriOptions.find((s) => String(s.id) === selectedId) || null;
 
   const quickAmounts = [5000, 10000, 20000, 50000, 100000];
 
-  const handleProcessWithdrawal = (e) => {
+  const handleProcessWithdrawal = async (e) => {
     e.preventDefault();
+    if (!activeSantri) {
+      showPopup('Peringatan', 'Pilih santri terlebih dahulu.', 'info');
+      return;
+    }
     const amount = parseInt(nominal || '0', 10);
     if (amount <= 0) {
-      alert('Masukkan nominal penarikan koin yang valid.');
+      showPopup('Peringatan', 'Masukkan nominal penarikan koin yang valid.', 'info');
       return;
     }
     if (amount > activeSantri.saldo) {
-      alert(`Saldo tidak mencukupi! Sisa saldo ${activeSantri.nama} hanya Rp ${activeSantri.saldo.toLocaleString('id-ID')}`);
+      showPopup('Saldo Tidak Cukup', `Saldo tidak mencukupi! Sisa saldo ${activeSantri.nama} hanya Rp ${activeSantri.saldo.toLocaleString('id-ID')}`, 'error');
       return;
     }
 
-    const txData = {
-      id: Date.now(),
-      tanggal: new Date().toISOString().slice(0, 10),
-      waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      nis: activeSantri.nis,
-      namaSantri: activeSantri.nama,
-      kategori: 'Penarikan Koin',
-      jenis: 'Keluar',
-      nominal: amount,
-      sisaSaldo: activeSantri.saldo - amount,
-      staff: 'Ust. Miftahul Huda',
-      status: 'sukses',
-    };
-
-    setLastTxData(txData);
-    setIsSuccessModal(true);
-    onWithdrawalSuccess?.(txData);
-
-    // Reset form
-    setNominal('');
+    setIsProcessing(true);
+    try {
+      const res = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
+      const t = res.transaction;
+      setLastTxData({
+        nominal: amount,
+        nis: t.santri?.nis || activeSantri.nis,
+        namaSantri: t.santri?.nama || activeSantri.nama,
+        sisaSaldo: t.saldo_setelah ?? activeSantri.saldo - amount,
+        staff: t.created_by?.name || '—',
+      });
+      setIsSuccessModal(true);
+      onWithdrawalSuccess?.(res);
+      setNominal('');
+    } catch (err) {
+      showPopup('Penarikan Gagal', err.message || 'Penarikan gagal diproses.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
@@ -94,12 +103,13 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                 Pilih Santri (NIS / Nama)
               </label>
               <select
-                value={selectedNis}
-                onChange={(e) => setSelectedNis(e.target.value)}
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
                 className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 cursor-pointer"
               >
-                {mockSantriOptions.map((s) => (
-                  <option key={s.nis} value={s.nis}>
+                {santriOptions.length === 0 && <option value="">Memuat santri...</option>}
+                {santriOptions.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
                     {s.nis} - {s.nama} (Saldo: Rp {formatRupiah(s.saldo)})
                   </option>
                 ))}
@@ -112,7 +122,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                 {/* Inisial Profil Santri */}
                 <div className="relative shrink-0">
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40">
-                    {getInitials(activeSantri.nama)}
+                    {getInitials(activeSantri?.nama)}
                   </div>
                   <span
                     className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-2xs"
@@ -125,10 +135,10 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     INFO SANTRI TERPILIH
                   </span>
                   <h3 className="santri-preview-name font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-snug">
-                    {activeSantri.nama}
+                    {activeSantri?.nama || 'Memuat...'}
                   </h3>
                   <p className="santri-preview-nis text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
-                    NIS: {activeSantri.nis}
+                    NIS: {activeSantri?.nis || '—'}
                   </p>
                 </div>
               </div>
@@ -138,7 +148,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                   SISA SALDO
                 </span>
                 <span className="santri-preview-saldo text-emerald-600 dark:text-emerald-400 font-extrabold text-base sm:text-lg">
-                  Rp {formatRupiah(activeSantri.saldo)}
+                  Rp {formatRupiah(activeSantri?.saldo ?? 0)}
                 </span>
               </div>
             </div>
@@ -200,8 +210,8 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
         {/* Action Button Row dengan Border Top & Spacing Lega */}
         <div className="staff-withdrawal-footer">
-          <button type="submit" className="btn-process-withdrawal">
-            <span>Proses Penarikan Koin</span>
+          <button type="submit" className="btn-process-withdrawal" disabled={isProcessing}>
+            <span>{isProcessing ? 'Memproses...' : 'Proses Penarikan Koin'}</span>
           </button>
         </div>
       </form>

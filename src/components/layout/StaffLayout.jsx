@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useAuth, buildUserBadge } from '../../context/AuthContext';
 import {
   IconDashboard,
   IconTransaction,
@@ -20,6 +21,7 @@ const staffMenuItems = [
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman
 const StaffLayout = ({ children, pageTitle }) => {
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('sidebar_collapsed') === 'true';
@@ -45,7 +47,7 @@ const StaffLayout = ({ children, pageTitle }) => {
         onToggle={handleToggle}
         menuItems={staffMenuItems}
         basePath="/staff"
-        userBadge={{ name: 'Ust. Miftahul Huda', role: 'Staff Rumah Koin' }}
+        userBadge={buildUserBadge(user)}
       />
       <div className="main-content">
         <Header

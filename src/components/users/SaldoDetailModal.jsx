@@ -1,42 +1,70 @@
 import { useState, useRef, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { santriApi } from '../../utils/api';
 
-const mockSantriHistory = [
-  { id: 1, tanggal: '01 Agts 2025', keterangan: 'Tarik Koin (Rumah Koin)', nominal: -30000 },
-  { id: 2, tanggal: '28 Jul 2025', keterangan: 'Setor BNI Virtual Account', nominal: 100000 },
-  { id: 3, tanggal: '25 Jul 2025', keterangan: 'Tarik Koin (Rumah Koin)', nominal: -30000 },
-];
+const formatTanggal = (iso) => {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
   const fileInputRef = useRef(null);
   const [photoUrl, setPhotoUrl] = useState(santri?.foto || null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
       setPhotoUrl(santri?.foto || null);
       setUploadSuccess(false);
+      setUploadError('');
+      if (santri?.id) {
+        santriApi
+          .mutasi(santri.id)
+          .then((res) =>
+            setHistory((res.data || []).map((t) => ({
+              id: t.id,
+              tanggal: formatTanggal(t.created_at),
+              keterangan: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
+              nominal: t.nominal || 0,
+            })))
+          )
+          .catch(() => setHistory([]));
+      }
     }
   }, [isOpen, santri]);
 
   if (!santri) return null;
 
-  const currentSaldo = santri.saldo || 15000;
-  const initialLetter = (santri.nama || 'Muhammad Rizki').charAt(0).toUpperCase();
+  const currentSaldo = santri.saldo || 0;
+  const initialLetter = (santri.nama || 'S').charAt(0).toUpperCase();
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Create local URL for preview
-      const newUrl = URL.createObjectURL(file);
-      setPhotoUrl(newUrl);
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('foto', file);
+    fd.append('_method', 'PUT');
+    setIsUploading(true);
+    setUploadError('');
+    try {
+      const updated = await santriApi.update(santri.id, fd);
+      setPhotoUrl(updated.foto_url || URL.createObjectURL(file));
+      onUpdatePhoto?.(santri.id, updated.foto_url || null);
       setUploadSuccess(true);
-      onUpdatePhoto?.(santri.id, newUrl);
       setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (err) {
+      setUploadError(err.message || 'Gagal mengunggah pasfoto.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const handleRemovePhoto = () => {
+    // ponytail: backend punya update foto tapi tidak ada hapus-foto; hanya bersihkan preview lokal.
     setPhotoUrl(null);
     onUpdatePhoto?.(santri.id, null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -112,7 +140,7 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  {photoUrl ? 'Ganti Pasfoto' : 'Upload Pasfoto'}
+                  {isUploading ? 'Mengunggah...' : photoUrl ? 'Ganti Pasfoto' : 'Upload Pasfoto'}
                 </button>
                 {photoUrl && (
                   <button
@@ -136,6 +164,16 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
             </div>
           </div>
         </div>
+
+        {/* Upload Error Alert */}
+        {uploadError && (
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-200 rounded-xl text-xs font-bold flex items-center gap-2 animate-fadeIn">
+            <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            {uploadError}
+          </div>
+        )}
 
         {/* Upload Success Toast Alert */}
         {uploadSuccess && (
@@ -165,17 +203,25 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                {mockSantriHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                    <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
-                    <td className="px-4 py-3 font-medium">{item.keterangan}</td>
-                    <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
-                      <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                        {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
-                      </span>
+                {history.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="px-4 py-6 text-center text-slate-400 font-medium">
+                      Belum ada riwayat transaksi.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  history.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
+                      <td className="px-4 py-3 font-medium">{item.keterangan}</td>
+                      <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
+                        <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                          {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

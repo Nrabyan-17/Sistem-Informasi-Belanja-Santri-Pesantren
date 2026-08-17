@@ -2260,6 +2260,39 @@ html.dark .metric-divider,
   box-shadow: 0 4px 10px rgba(14, 93, 38, 0.25);
 }
 
+.btn-import-user {
+  height: 42px;
+  padding: 0 20px;
+  background-color: #ffffff;
+  color: #0e5d26;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-import-user:hover {
+  background-color: #f0fdf4;
+  border-color: #0e5d26;
+}
+
+.dark .btn-import-user {
+  background-color: #1e293b;
+  color: #34d399;
+  border-color: #334155;
+}
+
+.dark .btn-import-user:hover {
+  background-color: #0f172a;
+  border-color: #34d399;
+}
+
 /* User Table & Footer */
 .user-table-card {
   background: #ffffff;

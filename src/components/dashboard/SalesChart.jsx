@@ -47,25 +47,32 @@ const CustomTooltip = ({ active, payload, label, timeframe }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-slate-900 text-white p-3 rounded-xl shadow-lg border border-slate-700 text-xs space-y-1">
-        <p className="font-bold text-slate-300">
+      <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+        <p className="font-bold text-slate-500 dark:text-slate-400">
           {timeframe === 'mingguan' ? `Hari ${label}` : timeframe === 'bulanan' ? `Bulan ${label}` : `Tahun ${label}`}
         </p>
-        <p className="text-emerald-400 font-extrabold text-sm">
+        <p className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
           Rp {new Intl.NumberFormat('id-ID').format(data.total)}
         </p>
-        <p className="text-slate-400">
-          Total Transaksi: <strong className="text-white">{data.transaksi.toLocaleString('id-ID')} entri</strong>
-        </p>
+        {data.transaksi > 0 && (
+          <p className="text-slate-400 dark:text-slate-400">
+            Total Transaksi: <strong className="text-slate-700 dark:text-slate-200">{data.transaksi.toLocaleString('id-ID')} entri</strong>
+          </p>
+        )}
       </div>
     );
   }
   return null;
 };
 
-const SalesChart = () => {
+const SalesChart = ({ trendData }) => {
   const [timeframe, setTimeframe] = useState('mingguan'); // 'mingguan' | 'bulanan' | 'tahunan'
   const [selectedYear, setSelectedYear] = useState('2026');
+
+  // Pakai data API (14 hari terakhir) untuk mode mingguan; bulanan/tahunan tetap mock
+  const weeklyData = trendData && trendData.length
+    ? trendData.map((d) => ({ label: d.tanggal, total: d.penarikan || 0, transaksi: 0 }))
+    : mockWeeklyData;
 
   // Filter Data berdasarkan timeframe
   const getActiveData = () => {
@@ -76,7 +83,7 @@ const SalesChart = () => {
         return mockYearlyData;
       case 'mingguan':
       default:
-        return mockWeeklyData;
+        return weeklyData;
     }
   };
 
@@ -98,7 +105,7 @@ const SalesChart = () => {
             📈 Grafik Penarikan Koin Santri
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-            {timeframe === 'mingguan' && 'Aktivitas penarikan koin harian minggu ini'}
+            {timeframe === 'mingguan' && (trendData && trendData.length ? 'Aktivitas penarikan koin 14 hari terakhir' : 'Aktivitas penarikan koin harian minggu ini')}
             {timeframe === 'bulanan' && `Akumulasi penarikan koin per bulan tahun ${selectedYear}`}
             {timeframe === 'tahunan' && 'Rekapitulasi penarikan koin santri 5 tahun terakhir'}
           </p>

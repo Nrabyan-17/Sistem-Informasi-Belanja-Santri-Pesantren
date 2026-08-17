@@ -1,14 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import UserKpiCards from '../components/users/UserKpiCards';
 import UserFilterBar from '../components/users/UserFilterBar';
 import UserTable from '../components/users/UserTable';
 import UserModalForm from '../components/users/UserModalForm';
 import UserDetailModal from '../components/users/UserDetailModal';
-import { mockUsers } from '../data/mockUsers';
+import { adminApi, staffApi, waliUserApi, santriApi } from '../utils/api';
+
+// API → bentuk yang dibaca komponen pengguna
+const roleToLabel = (role) =>
+  role === 'admin' ? 'Kabid BAK & Manajerial'
+    : role === 'staff' ? 'Staff Rumah Koin'
+      : role === 'wali' ? 'Wali Santri / Wali'
+        : role || '—';
+
+const apiToUi = (u) => {
+  const firstSantri = u.santris && u.santris[0];
+  return {
+    id: u.id,
+    nama: u.name,
+    username: u.username || '',
+    noHp: u.phone || '—',
+    role: roleToLabel(u.role),
+    userRole: u.role,
+    status: u.is_active ? 'Aktif' : 'Nonaktif',
+    loginTerakhir: '—',
+    nis: firstSantri?.nis || '—',
+    santri: (u.santris || []).map((s) => s.nama).join(', ') || '—',
+    noVa: firstSantri?.va_jajan || '—',
+  };
+};
 
 const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, category = 'all' }) => {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('Semua Role');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
@@ -21,6 +47,31 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const categoryRole = category === 'admin' ? 'admin' : category === 'staff-koin' ? 'staff' : category === 'wali' ? 'wali' : null;
+
+  const fetchUsers = () => {
+    setLoading(true);
+    const fetchAll = () =>
+      Promise.all([
+        adminApi.list({ per_page: 100 }).then((r) => r.data || []),
+        staffApi.list({ per_page: 100 }).then((r) => r.data || []),
+        waliUserApi.list({ per_page: 100 }).then((r) => r.data || []),
+      ]).then(([admins, staffs, walis]) => [...admins, ...staffs, ...walis]);
+
+    const req =
+      category === 'admin' ? adminApi.list({ per_page: 100 }).then((r) => r.data || [])
+        : category === 'staff-koin' ? staffApi.list({ per_page: 100 }).then((r) => r.data || [])
+          : category === 'wali' ? waliUserApi.list({ per_page: 100 }).then((r) => r.data || [])
+            : fetchAll();
+
+    req
+      .then((list) => setUsers(list.map(apiToUi)))
+      .catch((e) => setError(e.message || 'Gagal memuat data pengguna.'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(fetchUsers, [category]);
 
   // Kategori data dasar berdasarkan sub-menu
   const categoryBaseUsers = useMemo(() => {
@@ -87,12 +138,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
   // Open modal for new user
   const handleAddUser = () => {
-    let presetRole = 'staff';
-    if (category === 'admin') presetRole = 'kabid';
-    if (category === 'staff-koin') presetRole = 'staff';
-    if (category === 'wali') presetRole = 'wali';
-
-    setEditUser({ role: presetRole });
+    setEditUser({ role: categoryRole || 'staff', userRole: categoryRole || 'staff' });
     setIsModalOpen(true);
   };
 
@@ -108,41 +154,58 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     setIsDeleteModalOpen(true);
   };
 
+  const apiByRole = (role) =>
+    role === 'admin' ? adminApi : role === 'staff' ? staffApi : waliUserApi;
+
+  const linkWaliByNis = async (waliId, nis) => {
+    try {
+      const santri = await santriApi.byNis(nis);
+      if (santri?.id) await waliUserApi.linkSantri(waliId, santri.id);
+    } catch (e) {
+      setError(`Akun wali dibuat, tapi NIS belum ditautkan: ${e.message}`);
+    }
+  };
+
   // Confirm delete user handler
-  const confirmDeleteUser = () => {
-    if (deleteUserTarget) {
-      setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
+  const confirmDeleteUser = async () => {
+    if (!deleteUserTarget) return;
+    setError('');
+    try {
+      await apiByRole(deleteUserTarget.userRole || categoryRole).destroy(deleteUserTarget.id);
       setIsDeleteModalOpen(false);
       setDeleteUserTarget(null);
+      fetchUsers();
+    } catch (e) {
+      setError(e.message || 'Gagal menghapus pengguna.');
+      setIsDeleteModalOpen(false);
     }
   };
 
   // Submit Handler for Modal Form
-  const handleSubmitForm = (formData) => {
-    if (editUser && editUser.id) {
-      // Edit existing user
-      setUsers(
-        users.map((u) => (u.id === editUser.id ? { ...u, ...formData } : u))
-      );
-    } else {
-      // Add new user
-      let assignedRole = formData.role || 'Staff Rumah Koin';
-      if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
-      if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
-      if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
+  const handleSubmitForm = async (formData) => {
+    setError('');
+    const isEdit = Boolean(editUser?.id);
+    const payload = {
+      name: formData.nama,
+      username: formData.username,
+      phone: formData.noHp,
+      is_active: formData.status === 'aktif',
+    };
+    if (formData.password) payload.password = formData.password;
 
-      const newUser = {
-        id: Date.now(),
-        nama: formData.nama || 'Pengguna Baru',
-        noHp: formData.noHp || '081234567890',
-        role: assignedRole,
-        status: 'Aktif',
-        loginTerakhir: 'Baru saja',
-        nis: formData.nis || '—',
-      };
-      setUsers([newUser, ...users]);
+    try {
+      const targetRole = isEdit ? editUser.userRole : categoryRole || 'staff';
+      if (isEdit) {
+        await apiByRole(targetRole).update(editUser.id, payload);
+      } else {
+        const res = await apiByRole(targetRole).store(payload);
+        if (targetRole === 'wali' && formData.nis) await linkWaliByNis(res.id, formData.nis);
+      }
+      setIsModalOpen(false);
+      fetchUsers();
+    } catch (e) {
+      setError(e.message || 'Gagal menyimpan data pengguna.');
     }
-    setIsModalOpen(false);
   };
 
   // Metadata Judul & Subtitle Halaman
@@ -192,6 +255,18 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
           {headerMeta.subtitle}
         </p>
       </div>
+
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Memuat data pengguna...
+        </div>
+      )}
 
       {/* 4 KPI Summary Cards Adaptif */}
       <UserKpiCards

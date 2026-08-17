@@ -1,33 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Modal from '../common/Modal';
 
 // Modal Form Tambah / Edit Data Santri
 const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   const isEdit = Boolean(initialData?.id);
+  const fileInputRef = useRef(null);
 
   const [nis, setNis] = useState('');
   const [nama, setNama] = useState('');
-  const [kelas, setKelas] = useState('VII A');
+  const [jenisKelamin, setJenisKelamin] = useState('L');
   const [tglLahir, setTglLahir] = useState('');
-  const [namaWali, setNamaWali] = useState('');
-  const [noHpWali, setNoHpWali] = useState('');
   const [vaJajan, setVaJajan] = useState('');
-  const [vaTagihan, setVaTagihan] = useState('');
   const [status, setStatus] = useState('aktif');
+  const [foto, setFoto] = useState(null);
+  const [fotoPreview, setFotoPreview] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setNis(initialData.nis || '');
       setNama(initialData.nama || '');
-      setKelas(initialData.kelas || 'VII A');
+      setJenisKelamin(initialData.jenisKelamin || 'L');
       setTglLahir(initialData.tglLahir || '');
-      setNamaWali(initialData.namaWali || '');
-      setNoHpWali(initialData.noHpWali || '');
       setVaJajan(initialData.vaJajan || '');
-      setVaTagihan(initialData.vaTagihan || '');
       setStatus(initialData.status || 'aktif');
+      setFoto(null);
+      setFotoPreview(initialData.foto || '');
     }
   }, [isOpen, initialData]);
+
+  const handleFotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFoto(file);
+    setFotoPreview(URL.createObjectURL(file));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,13 +41,11 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       ...initialData,
       nis,
       nama,
-      kelas,
+      jenisKelamin,
       tglLahir,
-      namaWali,
-      noHpWali,
       vaJajan,
-      vaTagihan,
       status,
+      foto,
     });
   };
 
@@ -88,95 +92,89 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </div>
         </div>
 
-        {/* KELAS & TANGGAL LAHIR — 2 kolom */}
+        {/* JENIS KELAMIN & TANGGAL LAHIR — 2 kolom */}
         <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="form-group-section flex flex-col gap-1">
-            <label className={labelClass}>KELAS / ASRAMA</label>
+            <label className={labelClass}>JENIS KELAMIN</label>
             <select
               className={inputClass}
-              value={kelas}
-              onChange={(e) => setKelas(e.target.value)}
+              value={jenisKelamin}
+              onChange={(e) => setJenisKelamin(e.target.value)}
             >
-              <option value="VII A">VII A</option>
-              <option value="VII B">VII B</option>
-              <option value="VIII A">VIII A</option>
-              <option value="VIII B">VIII B</option>
-              <option value="IX A">IX A</option>
-              <option value="IX B">IX B</option>
+              <option value="L">Laki-laki</option>
+              <option value="P">Perempuan</option>
             </select>
           </div>
           <div className="form-group-section flex flex-col gap-1">
             <label className={labelClass}>TANGGAL LAHIR</label>
             <input
-              type="text"
+              type="date"
               className={inputClass}
-              placeholder="Contoh: 12 Mei 2012"
               value={tglLahir}
               onChange={(e) => setTglLahir(e.target.value)}
             />
           </div>
         </div>
 
-        {/* NAMA WALI & NO HP WALI — 2 kolom */}
-        <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="form-group-section flex flex-col gap-1">
-            <label className={labelClass}>NAMA WALI</label>
+        {/* FOTO SANTRI — Opsional */}
+        <div className="form-group-section flex flex-col gap-1.5">
+          <label className={labelClass}>FOTO SANTRI <span className="normal-case font-medium text-slate-400 dark:text-slate-500">(Opsional — bisa diunggah nanti)</span></label>
+          <div className="flex items-center gap-4">
+            {fotoPreview ? (
+              <img
+                src={fotoPreview}
+                alt="Preview foto santri"
+                className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-black text-slate-400 shrink-0">
+                {(nama || 'S').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 rounded-lg text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-950 transition-all cursor-pointer w-fit"
+              >
+                {fotoPreview ? 'Ganti Foto' : 'Upload Foto'}
+              </button>
+              {fotoPreview && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFoto(null);
+                    setFotoPreview('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="px-3 py-1 text-rose-600 dark:text-rose-400 text-[11px] font-semibold hover:underline cursor-pointer w-fit"
+                >
+                  Hapus Foto
+                </button>
+              )}
+            </div>
             <input
-              type="text"
-              className={inputClass}
-              placeholder="Contoh: Bpk. Hendra Setiawan"
-              value={namaWali}
-              onChange={(e) => setNamaWali(e.target.value)}
-            />
-          </div>
-          <div className="form-group-section flex flex-col gap-1">
-            <label className={labelClass}>NO. HP / WA WALI</label>
-            <input
-              type="tel"
-              className={inputClass}
-              placeholder="Contoh: 0812-3456-7894"
-              value={noHpWali}
-              onChange={(e) => setNoHpWali(e.target.value)}
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/jpg"
+              className="hidden"
+              onChange={handleFotoChange}
             />
           </div>
         </div>
 
-        {/* VA JAJAN & VA TAGIHAN — 2 kolom, status Read-Only (Terkunci) */}
+        {/* VA JAJAN — 1 kolom */}
         <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="form-group-section flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <label className={labelClass}>NO. VA JAJAN (BNI)</label>
-              <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Read-Only
-              </span>
             </div>
             <input
               type="text"
-              readOnly
-              className="form-control-input w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-600 dark:text-slate-300 cursor-not-allowed select-none focus:outline-none"
-              placeholder="Otomatis terisi dari NIS..."
-              value={vaJajan || (nis ? `8808 0990 ${nis.slice(0, 4)} ${nis.slice(4)}` : '')}
-            />
-          </div>
-          <div className="form-group-section flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <label className={labelClass}>NO. VA TAGIHAN (BNI)</label>
-              <span className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Read-Only
-              </span>
-            </div>
-            <input
-              type="text"
-              readOnly
-              className="form-control-input w-full px-3.5 py-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-slate-600 dark:text-slate-300 cursor-not-allowed select-none focus:outline-none"
-              placeholder="Otomatis terisi dari NIS..."
-              value={vaTagihan || (nis ? `8808 0990 ${nis.slice(0, 4)} ${nis.slice(4)}` : '')}
+              className={inputClass}
+              placeholder="Contoh: 88080990..."
+              value={vaJajan}
+              onChange={(e) => setVaJajan(e.target.value)}
             />
           </div>
         </div>

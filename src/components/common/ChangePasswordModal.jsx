@@ -1,31 +1,47 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import { authApi } from '../../utils/api';
+import { usePopup } from '../../context/PopupContext';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const { showPopup } = usePopup();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!oldPassword) {
-      alert('Masukkan password lama Anda.');
+      showPopup('Peringatan', 'Masukkan password lama Anda.', 'info');
       return;
     }
     if (newPassword.length < 6) {
-      alert('Password baru minimal 6 karakter.');
+      showPopup('Peringatan', 'Password baru minimal 6 karakter.', 'info');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('Konfirmasi password baru tidak cocok.');
+      showPopup('Peringatan', 'Konfirmasi password baru tidak cocok.', 'info');
       return;
     }
 
-    alert('✅ Password berhasil diperbarui!');
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await authApi.changePassword({
+        password_lama: oldPassword,
+        password_baru: newPassword,
+        konfirmasi: confirmPassword,
+      });
+      showPopup('Berhasil', 'Password berhasil diperbarui!', 'success');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      onClose();
+    } catch (err) {
+      showPopup('Gagal', err.message || 'Gagal memperbarui password.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,9 +104,10 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </button>
           <button
             type="submit"
-            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer flex items-center justify-center"
+            disabled={isSubmitting}
+            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center"
           >
-            Simpan Password Baru
+            {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
           </button>
         </div>
       </form>

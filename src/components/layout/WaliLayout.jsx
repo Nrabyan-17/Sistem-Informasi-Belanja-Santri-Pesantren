@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useAuth, buildUserBadge } from '../../context/AuthContext';
 import { IconWallet, IconReport } from '../common/Icons';
 
 // Menu navigasi untuk Portal Wali Santri dengan Ikon SVG Profesional
@@ -10,6 +11,7 @@ const waliMenuItems = [
 ];
 
 const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('sidebar_collapsed') === 'true';
@@ -28,11 +30,6 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
     });
   };
 
-  const waliBadge = {
-    name: 'Bpk. Mahmud Fauzi',
-    role: 'Wali Santri Ahmad Fauzi',
-  };
-
   return (
     <div className={`main-layout ${collapsed ? 'main-layout--collapsed' : ''}`}>
       <Sidebar
@@ -40,7 +37,7 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
         onToggle={handleToggle}
         menuItems={waliMenuItems}
         basePath="/wali"
-        userBadge={waliBadge}
+        userBadge={buildUserBadge(user)}
       />
       <div className="main-content">
         <Header

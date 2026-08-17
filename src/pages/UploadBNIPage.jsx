@@ -1,93 +1,16 @@
 import { useState, useRef } from 'react';
 import StaffLayout from '../components/layout/StaffLayout';
-
-const mockParsedTransactions = [
-  { id: 1, va: '9881234567890001', nis: '123456', nama: 'Ahmad Fauzi', nominal: 100000, tanggal: '2026-08-01 08:30', status: 'valid' },
-  { id: 2, va: '9881234567890002', nis: '123457', nama: 'Budi Santoso', nominal: 50000, tanggal: '2026-08-01 09:15', status: 'valid' },
-  { id: 3, va: '9881234567890003', nis: '123458', nama: 'Citra Dewi', nominal: 75000, tanggal: '2026-08-01 10:45', status: 'valid' },
-  { id: 4, va: '9881234567899999', nis: '-', nama: 'Tidak Ditemukan', nominal: 25000, tanggal: '2026-08-01 11:20', status: 'invalid' },
-];
-
-// Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
-const cleanCell = (val) => {
-  if (!val) return '';
-  return val
-    .replace(/^="?|"?$/g, '')
-    .replace(/^"|"$/g, '')
-    .trim();
-};
-
-// Parser real untuk file mutasi BNI eCollection CSV
-const parseBNICSV = (text) => {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length < 2) return [];
-
-  // Deteksi delimiter (; atau , atau tab)
-  const firstLine = lines[0];
-  const delimiter = firstLine.includes(';') ? ';' : firstLine.includes(',') ? ',' : '\t';
-
-  // Parse header
-  const headers = lines[0].split(delimiter).map(cleanCell);
-  
-  const vaIdx = headers.findIndex(h => /va\s*number/i.test(h) || /^va$/i.test(h));
-  const nameIdx = headers.findIndex(h => /customer\s*name|nama/i.test(h));
-  const dateIdx = headers.findIndex(h => /payment\s*date|tanggal/i.test(h));
-  const amountIdx = headers.findIndex(h => /payment\s*amount|nominal|amount/i.test(h));
-  const billingIdx = headers.findIndex(h => /billing\s*id/i.test(h));
-
-  const results = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const rawLine = lines[i];
-    if (!rawLine) continue;
-    const parts = rawLine.split(delimiter).map(cleanCell);
-    if (parts.length < 3) continue;
-
-    const va = vaIdx !== -1 ? parts[vaIdx] : parts[3] || '—';
-    const nama = nameIdx !== -1 ? parts[nameIdx] : parts[4] || '—';
-    const tanggal = dateIdx !== -1 ? parts[dateIdx] : parts[5] || '—';
-    const rawAmount = amountIdx !== -1 ? parts[amountIdx] : parts[7] || '0';
-    const nominal = parseInt(rawAmount.replace(/[^0-9]/g, ''), 10) || 0;
-    const billingId = billingIdx !== -1 ? parts[billingIdx] : parts[8] || '';
-
-    // Deteksi jenis transaksi
-    const isJajan = billingId.toUpperCase().startsWith('JJN');
-    const isKlinik = nama.toUpperCase().includes('KLINIK');
-
-    let status = 'valid';
-    if (isKlinik || !va || va === '—' || va.length < 8) {
-      status = 'invalid';
-    }
-
-    // Ekstrak NIS santri dari Billing ID (misal: JJNJULI26/1136 -> 1136) atau 4 digit akhir VA
-    let nis = '—';
-    if (billingId.includes('/')) {
-      nis = billingId.split('/')[1] || '—';
-    } else if (va && va.length >= 7) {
-      nis = va.slice(-7);
-    }
-
-    results.push({
-      id: i,
-      va,
-      nis,
-      nama,
-      tanggal,
-      nominal,
-      billingId,
-      isJajan,
-      status,
-    });
-  }
-
-  return results;
-};
+import { bniApi } from '../utils/api';
+import { usePopup } from '../context/PopupContext';
 
 const UploadBNIPage = ({ Layout = StaffLayout }) => {
+  const { showPopup } = usePopup();
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
+  const [uploadId, setUploadId] = useState(null);
+  const [uploadError, setUploadError] = useState('');
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
 
@@ -102,40 +25,38 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     setIsDragging(false);
   };
 
-  const processFile = (selectedFile) => {
+  const processFile = async (selectedFile) => {
     if (!selectedFile) return;
     setFile(selectedFile);
     setIsUploading(true);
     setIsConfirmed(false);
+    setUploadError('');
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result;
-        if (typeof content === 'string') {
-          const parsed = parseBNICSV(content);
-          if (parsed.length > 0) {
-            setParsedData(parsed);
-          } else {
-            // Fallback jika bukan CSV BNI eCollection
-            setParsedData(mockParsedTransactions);
-          }
-        }
-      } catch (err) {
-        console.error('Gagal parsing CSV:', err);
-        setParsedData(mockParsedTransactions);
-      } finally {
-        setIsUploading(false);
-      }
-    };
+    const fd = new FormData();
+    fd.append('file', selectedFile);
 
-    reader.onerror = () => {
+    try {
+      const res = await bniApi.store(fd);
+      const items = (res.upload?.items || []).map((it) => ({
+        id: it.id,
+        va: it.va,
+        nis: it.santri?.nis || '—',
+        nama: it.santri?.nama || it.nama || '—',
+        nominal: it.nominal || 0,
+        tanggal: it.tanggal || '—',
+        billingId: it.billing_id || '',
+        isJajan: (it.billing_id || '').toUpperCase().startsWith('JJN'),
+        status: it.status_valid ? 'valid' : 'invalid',
+      }));
+      setParsedData(items);
+      setUploadId(res.upload?.id || null);
+    } catch (err) {
+      setUploadError(err.message || 'Gagal memproses file.');
+      setParsedData(null);
+      setUploadId(null);
+    } finally {
       setIsUploading(false);
-      alert('Gagal membaca file. Pastikan format file CSV/Excel valid.');
-    };
-
-    // Baca file secara real sebagai text
-    reader.readAsText(selectedFile);
+    }
   };
 
   const handleDrop = (e) => {
@@ -152,14 +73,25 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     }
   };
 
-  const handleConfirmSave = () => {
-    setIsConfirmed(true);
-    alert('Berhasil konfirmasi & simpan! Saldo santri telah berhasil diperbarui otomatis.');
+  const handleConfirmSave = async () => {
+    if (!uploadId) return;
+    setIsUploading(true);
+    try {
+      const res = await bniApi.apply(uploadId);
+      setIsConfirmed(true);
+      showPopup('Berhasil', res.message || 'Berhasil konfirmasi & simpan!', 'success');
+    } catch (err) {
+      showPopup('Gagal', err.message || 'Gagal menyimpan.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleReset = () => {
     setFile(null);
     setParsedData(null);
+    setUploadId(null);
+    setUploadError('');
     setIsConfirmed(false);
     setFilterMode('all');
   };
@@ -278,6 +210,13 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
           <div className="bni-loading-card bg-white border border-slate-200 rounded-2xl p-8 text-center flex flex-col items-center gap-3">
             <div className="bni-spinner w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
             <p className="text-sm font-semibold text-slate-700">Membaca dan mencocokkan data mutasi BNI eCollection...</p>
+          </div>
+        )}
+
+        {/* Upload Error Alert */}
+        {uploadError && (
+          <div className="px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+            {uploadError}
           </div>
         )}
 

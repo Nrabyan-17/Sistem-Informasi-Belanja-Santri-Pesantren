@@ -53,8 +53,6 @@ const SantriTable = ({
                 />
               </th>
               <th className="text-left">SANTRI</th>
-              <th className="text-left">KELAS</th>
-              <th className="text-left">WALI SANTRI</th>
               <th className="text-left">SALDO</th>
               <th className="text-left">STATUS</th>
               <th className="text-center">AKSI</th>
@@ -63,7 +61,7 @@ const SantriTable = ({
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-slate-400 font-medium">
+                <td colSpan={5} className="text-center py-8 text-slate-400 font-medium">
                   Tidak ada data santri yang sesuai filter.
                 </td>
               </tr>
@@ -82,9 +80,17 @@ const SantriTable = ({
                     </td>
                     <td onClick={() => onViewDetail?.(santri)} className="cursor-pointer group py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-700 group-hover:text-white transition-all shadow-2xs">
-                          {(santri.nama || 'S').charAt(0).toUpperCase()}
-                        </div>
+                        {santri.foto ? (
+                          <img
+                            src={santri.foto}
+                            alt={santri.nama}
+                            className="w-8 h-8 rounded-full object-cover border border-amber-200 dark:border-amber-800 shrink-0 shadow-2xs"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-700 group-hover:text-white transition-all shadow-2xs">
+                            {(santri.nama || 'S').charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div className="flex flex-col">
                           <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                             {santri.nama}
@@ -93,21 +99,6 @@ const SantriTable = ({
                             NIS: {santri.nis}
                           </span>
                         </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                        {santri.kelas}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                          {santri.namaWali || '—'}
-                        </span>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-                          {santri.noHpWali || '—'}
-                        </span>
                       </div>
                     </td>
                     <td>

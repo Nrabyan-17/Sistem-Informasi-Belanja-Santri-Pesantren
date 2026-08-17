@@ -1,48 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import WaliLayout from '../components/layout/WaliLayout';
+import { waliApi } from '../utils/api';
 
-const mockWaliTransactions = [
-  { id: 1, tanggal: '4 Agts 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 350000, type: 'keluar' },
-  { id: 2, tanggal: '3 Agts 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 380000, type: 'keluar' },
-  { id: 3, tanggal: '2 Agts 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Setor BNI Virtual Account',   nominal: 200000,  saldoAfter: 410000, type: 'masuk' },
-  { id: 4, tanggal: '1 Agts 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 210000, type: 'keluar' },
-  { id: 5, tanggal: '31 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Setor BNI Virtual Account',   nominal: 200000,  saldoAfter: 240000, type: 'masuk' },
-  { id: 6, tanggal: '28 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 40000,  type: 'keluar' },
-  { id: 7, tanggal: '26 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Setor BNI Virtual Account',   nominal: 300000,  saldoAfter: 70000,  type: 'masuk' },
-  { id: 8, tanggal: '24 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 230000, type: 'keluar' },
-  { id: 9, tanggal: '21 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 260000, type: 'keluar' },
-  { id: 10, tanggal: '18 Jul 2025', nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 170000, type: 'keluar' },
-  { id: 11, tanggal: '15 Jul 2025', nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 140000, type: 'keluar' },
-  { id: 12, tanggal: '12 Jul 2025', nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Setor BNI Virtual Account',   nominal: 250000,  saldoAfter: 110000, type: 'masuk' },
-  { id: 13, tanggal: '8 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 260000, type: 'keluar' },
-  { id: 14, tanggal: '4 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Tarik Koin (Rumah Koin)',     nominal: -30000,  saldoAfter: 290000, type: 'keluar' },
-  { id: 15, tanggal: '1 Jul 2025',  nis: '2024001', nama: 'Ahmad Fauzi', ket: 'Setor BNI Virtual Account',   nominal: 500000,  saldoAfter: 320000, type: 'masuk' },
-];
+const formatTanggal = (iso) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 const WaliRiwayatPage = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [filterType, setFilterType] = useState('semua');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  useEffect(() => {
+    waliApi
+      .transactions({ per_page: 100 })
+      .then((res) =>
+        setTransactions(
+          (res.data || []).map((t) => ({
+            id: t.id,
+            tanggal: formatTanggal(t.created_at),
+            rawDate: t.created_at ? t.created_at.slice(0, 10) : '',
+            nis: t.santri?.nis || '—',
+            nama: t.santri?.nama || '—',
+            ket: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
+            nominal: t.nominal || 0,
+            saldoAfter: t.saldo_setelah ?? null,
+            type: (t.nominal || 0) > 0 ? 'masuk' : 'keluar',
+          }))
+        )
+      )
+      .catch((e) => setError(e.message || 'Gagal memuat riwayat transaksi.'))
+      .finally(() => setLoading(false));
+  }, []);
+
   // Filtering
-  const filteredData = mockWaliTransactions.filter((item) => {
+  const filteredData = transactions.filter((item) => {
     if (filterType === 'masuk' && item.type !== 'masuk') return false;
     if (filterType === 'keluar' && item.type !== 'keluar') return false;
+    if (startDate && item.rawDate < startDate) return false;
+    if (endDate && item.rawDate > endDate) return false;
     return true;
   });
 
-  const totalMasuk = mockWaliTransactions
+  const totalMasuk = transactions
     .filter((t) => t.type === 'masuk')
     .reduce((sum, t) => sum + t.nominal, 0);
 
   const totalKeluar = Math.abs(
-    mockWaliTransactions
+    transactions
       .filter((t) => t.type === 'keluar')
       .reduce((sum, t) => sum + t.nominal, 0)
   );
 
   const handleExportExcel = () => {
-    alert('📥 Memulai unduh laporan riwayat transaksi (.xlsx)...');
+    waliApi
+      .export({
+        tipe: filterType === 'semua' ? undefined : filterType,
+        dari: startDate || undefined,
+        sampai: endDate || undefined,
+      })
+      .catch((e) => setError(e.message || 'Gagal mengekspor riwayat transaksi.'));
   };
 
   return (
@@ -51,6 +73,18 @@ const WaliRiwayatPage = () => {
         <div className="wali-header-subtitle text-sm text-slate-500 -mt-3 mb-1 font-medium">
           Pondok Pesantren Nazhatut Thullab
         </div>
+
+        {error && (
+          <div className="px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+            Memuat riwayat transaksi...
+          </div>
+        )}
 
         {/* Filter Bar & Export */}
         <div className="wali-filter-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-xs">
@@ -118,7 +152,7 @@ const WaliRiwayatPage = () => {
               TOTAL TRANSAKSI
             </span>
             <span className="summary-val text-xl font-extrabold text-slate-800 dark:text-slate-100">
-              {mockWaliTransactions.length} entri
+              {transactions.length} entri
             </span>
           </div>
           <div className="wali-summary-card wali-summary-card--green bg-emerald-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 flex flex-col gap-1.5 shadow-xs">
@@ -144,7 +178,7 @@ const WaliRiwayatPage = () => {
           <div className="wali-table-header flex justify-between items-center">
             <h3 className="wali-table-title text-base font-bold text-slate-800 dark:text-slate-100">Daftar Arus Kas Saldo</h3>
             <span className="wali-table-count text-xs text-slate-400 font-medium">
-              {filteredData.length} dari {mockWaliTransactions.length} transaksi
+              {filteredData.length} dari {transactions.length} transaksi
             </span>
           </div>
 
@@ -179,7 +213,9 @@ const WaliRiwayatPage = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 font-semibold text-slate-800 whitespace-nowrap">
-                      Rp {item.saldoAfter.toLocaleString('id-ID')}
+                      {item.saldoAfter != null
+                        ? `Rp ${item.saldoAfter.toLocaleString('id-ID')}`
+                        : '—'}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       {item.type === 'masuk' ? (

@@ -1,22 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
-
-const mockSantriList = [
-  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 15000 },
-  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',   saldo: 45000 },
-  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',   saldo: 95000 },
-  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 120000 },
-  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 50000 },
-  { id: 6, nis: '2024004', nama: 'Budi Santoso',    saldo: 75000 },
-  { id: 7, nis: '2024005', nama: 'Citra Dewi',      saldo: 200000 },
-];
+import { santriApi } from '../utils/api';
 
 const TopUpPage = ({ Layout = MainLayout }) => {
-  const [santriList, setSantriList] = useState(mockSantriList);
+  const [santriList, setSantriList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    santriApi
+      .list({ per_page: 100 })
+      .then((res) =>
+        setSantriList(
+          (res.data || []).map((s) => ({
+            id: s.id,
+            nis: s.nis,
+            nama: s.nama,
+            saldo: s.saldo || 0,
+            foto: s.foto_url || null,
+          }))
+        )
+      )
+      .catch(() => setSantriList([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Filter santri
   const filteredSantri = useMemo(() => {
@@ -52,6 +62,12 @@ const TopUpPage = ({ Layout = MainLayout }) => {
           Cek saldo santri dan penyesuaian (tambah/kurang)
         </p>
       </div>
+
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Memuat data santri...
+        </div>
+      )}
 
       {/* Card Table: Daftar Identitas & Saldo Santri */}
       <div className="saldo-table-card">
