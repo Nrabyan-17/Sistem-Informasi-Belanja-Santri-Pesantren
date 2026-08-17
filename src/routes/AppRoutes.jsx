@@ -13,6 +13,7 @@ import FinancialReportPage from '../pages/FinancialReportPage';
 import UserManagementPage  from '../pages/UserManagementPage';
 import TopUpPage           from '../pages/TopUpPage';
 import StaffPage           from '../pages/StaffPage';
+import SantriManagementPage from '../pages/SantriManagementPage';
 
 // Halaman Upload BNI
 import UploadBNIPage      from '../pages/UploadBNIPage';
@@ -35,6 +36,7 @@ const AppRoutes = () => {
       <Route path="/admin/pengguna/admin"      element={<UserManagementPage category="admin" />} />
       <Route path="/admin/pengguna/staff-koin" element={<UserManagementPage category="staff-koin" />} />
       <Route path="/admin/pengguna/wali"       element={<UserManagementPage category="wali" />} />
+      <Route path="/admin/pengguna/santri"     element={<SantriManagementPage />} />
       <Route path="/admin/topup"               element={<TopUpPage />} />
 
       {/* Staff Rumah Koin Routes */}

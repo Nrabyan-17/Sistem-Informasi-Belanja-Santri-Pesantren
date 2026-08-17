@@ -5380,7 +5380,7 @@ html.dark .wali-table-title,
   grid-template-rows: 0fr;
   opacity: 0;
   overflow: hidden !important;
-  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease !important;
+  transition: grid-template-rows 0.38s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
 }
 
 .sidebar-submenu-wrapper--open {
@@ -5391,6 +5391,17 @@ html.dark .wali-table-title,
 .sidebar-submenu-inner {
   min-height: 0;
   overflow: hidden !important;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease !important;
+}
+
+.sidebar-submenu-wrapper:not(.sidebar-submenu-wrapper--open) .sidebar-submenu-inner {
+  transform: translateY(-6px);
+  opacity: 0;
+}
+
+.sidebar-submenu-wrapper--open .sidebar-submenu-inner {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* ── Sidebar Submenu & Subitem Dedicated Rules ── */

@@ -9,6 +9,7 @@ import {
   IconAdmin,
   IconCoin,
   IconWali,
+  IconSantri,
   IconReport,
 } from '../common/Icons';
 
@@ -25,6 +26,7 @@ const adminMenuItems = [
       { path: '/pengguna/admin',      label: 'Admin / Manajerial', icon: <IconAdmin className="w-4 h-4" /> },
       { path: '/pengguna/staff-koin', label: 'Staff Rumah Koin',   icon: <IconCoin className="w-4 h-4" /> },
       { path: '/pengguna/wali',       label: 'Wali Santri',        icon: <IconWali className="w-4 h-4" /> },
+      { path: '/pengguna/santri',     label: 'Data Santri',         icon: <IconSantri className="w-4 h-4" /> },
     ],
   },
   { path: '/laporan',   label: 'Laporan',             icon: <IconReport /> },

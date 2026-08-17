@@ -110,7 +110,7 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
                     </div>
                     {!collapsed && (
                       <svg
-                        className={`w-4 h-4 transition-transform duration-200 shrink-0 ${
+                        className={`w-4 h-4 transition-transform duration-350 ease-out shrink-0 ${
                           isOpen ? 'rotate-180 text-emerald-800 dark:text-emerald-400' : 'text-slate-400'
                         }`}
                         fill="none"

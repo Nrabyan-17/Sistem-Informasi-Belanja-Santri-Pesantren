@@ -135,7 +135,7 @@ const UserDetailModal = ({ isOpen, onClose, user = {}, onEdit }) => {
           {user.noVa && user.noVa !== '—' && (
             <div className="flex flex-col gap-1.5">
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                No. Virtual Account BNI
+                No. Virtual Account BNI Santri
               </span>
               <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 w-fit">
                 {user.noVa}
