@@ -58,7 +58,7 @@ const UserTable = ({
               {isWaliCategory ? (
                 <>
                   <th className="text-left">SANTRI TERHUBUNG / NIS</th>
-                  <th className="text-left">NO. VA BNI</th>
+                  <th className="text-left">NO. VA BNI SANTRI</th>
                 </>
               ) : (
                 <th className="text-left">ROLE</th>

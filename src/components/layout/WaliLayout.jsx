@@ -30,7 +30,7 @@ const WaliLayout = ({ children, pageTitle = 'Saldo & Cara Pembayaran' }) => {
 
   const waliBadge = {
     name: 'Bpk. Mahmud Fauzi',
-    role: 'Wali Santri — Ahmad Fauzi',
+    role: 'Wali Santri Ahmad Fauzi',
   };
 
   return (
