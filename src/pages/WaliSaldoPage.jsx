@@ -26,8 +26,8 @@ const WaliSaldoPage = () => {
             {/* Banner Dark Green */}
             <div className="wali-santri-banner bg-gradient-to-br from-emerald-900 to-emerald-700 dark:bg-none dark:bg-slate-800 dark:border dark:border-slate-700 rounded-3xl p-7 text-white shadow-xl dark:shadow-none">
               <div className="wali-santri-profile flex items-center gap-4 mb-6">
-                <div className="wali-avatar w-14 h-14 rounded-full bg-white/20 dark:bg-slate-700/60 border-2 border-white/40 dark:border-slate-600 flex items-center justify-center text-2xl shadow-inner">
-                  👤
+                <div className="wali-avatar w-14 h-14 rounded-2xl bg-white/20 dark:bg-slate-700/80 border-2 border-white/40 dark:border-slate-600 flex items-center justify-center text-xl font-black text-white shadow-md tracking-wider shrink-0">
+                  AF
                 </div>
                 <div className="wali-santri-meta">
                   <h2 className="wali-santri-name text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Ahmad Fauzi</h2>
