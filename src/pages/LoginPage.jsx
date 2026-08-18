@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoPesantren from '../assets/logo-pesantren.png';
+import { IconEye, IconEyeOff } from '../components/common/Icons';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const LoginPage = () => {
 
   const [noHp, setNoHp] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -68,14 +70,29 @@ const LoginPage = () => {
                   Lupa password?
                 </a>
               </div>
-              <input
-                type="password"
-                className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="login-input w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-700 focus:outline-none transition-colors cursor-pointer flex items-center justify-center"
+                  title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                >
+                  {showPassword ? (
+                    <IconEyeOff className="w-5 h-5" />
+                  ) : (
+                    <IconEye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Submit Button */}

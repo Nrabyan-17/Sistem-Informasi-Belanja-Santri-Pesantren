@@ -90,6 +90,8 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const [parsedData, setParsedData] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const fileInputRef = useRef(null);
 
@@ -131,7 +133,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
 
     reader.onerror = () => {
       setIsUploading(false);
-      alert('Gagal membaca file. Pastikan format file CSV/Excel valid.');
+      setErrorMessage('Gagal membaca file. Pastikan format file CSV/Excel valid.');
     };
 
     // Baca file secara real sebagai text
@@ -154,7 +156,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
 
   const handleConfirmSave = () => {
     setIsConfirmed(true);
-    alert('Berhasil konfirmasi & simpan! Saldo santri telah berhasil diperbarui otomatis.');
+    setIsSuccessModalOpen(true);
   };
 
   const handleReset = () => {
@@ -424,6 +426,159 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
           );
         })()}
       </div>
+
+      {/* Modal Pop-Up Berhasil Konfirmasi & Simpan */}
+      {isSuccessModalOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsSuccessModalOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Emerald Check Icon Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-emerald-600 dark:text-emerald-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Sinkronisasi Berhasil!
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '20px' }}
+            >
+              Saldo santri telah berhasil diperbarui otomatis ke dalam sistem dari mutasi BNI eCollection.
+            </p>
+
+            {/* Ringkasan Box */}
+            {parsedData && (
+              <div
+                className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
+                style={{ padding: '18px 20px', marginBottom: '28px', gap: '12px' }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Transaksi Valid:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+                    {parsedData.filter((d) => d.status === 'valid').length} data
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Dana Masuk:</span>
+                  <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
+                    Rp {parsedData.filter((d) => d.status === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div
+                  className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80"
+                  style={{ paddingTop: '10px' }}
+                >
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Status Saldo:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Otomatis Masuk ke Saldo Santri
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessModalOpen(false)}
+              className="w-full bg-emerald-800 hover:bg-emerald-900 active:scale-95 hover:scale-[1.01] text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center"
+              style={{ height: '50px', fontSize: '15px' }}
+            >
+              Selesai &amp; Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Pop-Up Error File */}
+      {errorMessage && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setErrorMessage('')}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Rose Exclamation Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-rose-600 dark:text-rose-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Gagal Membaca File
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '24px' }}
+            >
+              {errorMessage}
+            </p>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={() => setErrorMessage('')}
+              className="w-full bg-slate-800 hover:bg-slate-900 active:scale-95 text-white font-bold rounded-2xl shadow-md transition-all duration-150 cursor-pointer flex items-center justify-center"
+              style={{ height: '48px', fontSize: '15px' }}
+            >
+              Tutup &amp; Coba Lagi
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
