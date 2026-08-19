@@ -161,8 +161,19 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   };
 
   // Batch Upload Success Handler (Push data dari pop-up preview ke database/state)
-  const handleBatchUploadSuccess = (importedData) => {
-    setSantriList((prev) => [...importedData, ...prev]);
+  const handleBatchUploadSuccess = (payload) => {
+    if (Array.isArray(payload)) {
+      setSantriList((prev) => [...payload, ...prev]);
+    } else if (payload && typeof payload === 'object') {
+      const { newSantri = [], updatedSantri = [] } = payload;
+      setSantriList((prev) => {
+        const updatedList = prev.map((item) => {
+          const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
+          return matchedUpdate ? { ...item, ...matchedUpdate } : item;
+        });
+        return [...newSantri, ...updatedList];
+      });
+    }
   };
 
   return (
@@ -242,11 +253,12 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         />
       )}
 
-      {/* Modal Pop-Up Import Batch Santri dengan Fitur Preview, Edit, Delete sebelum Push */}
+      {/* Modal Pop-Up Import Batch Santri dengan Fitur Preview, Edit, Delete, dan Handler Data Ganda */}
       <SantriBatchUploadModal
         isOpen={isBatchUploadOpen}
         onClose={() => setIsBatchUploadOpen(false)}
         onImportSuccess={handleBatchUploadSuccess}
+        existingSantriList={santriList}
       />
 
       {/* Modal Konfirmasi Hapus Single Data Santri */}

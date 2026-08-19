@@ -5421,6 +5421,176 @@ html.dark .import-batch-btn-demo,
 }
 
 /* ========================================
+   IMPORT BATCH PREVIEW HEADER (Generous Padding & Gap)
+   ======================================== */
+.import-batch-preview-header {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 24px 28px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 6px;
+}
+
+.dark .import-batch-preview-header,
+html.dark .import-batch-preview-header,
+[data-theme="dark"] .import-batch-preview-header {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+  border-color: #334155 !important;
+}
+
+.import-batch-preview-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background-color: #047857;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.25);
+}
+
+.import-batch-preview-btn-change {
+  padding: 11px 24px !important;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.import-batch-preview-btn-change:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.dark .import-batch-preview-btn-change,
+html.dark .import-batch-preview-btn-change,
+[data-theme="dark"] .import-batch-preview-btn-change {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* ========================================
+   IMPORT BATCH PREVIEW TABLE (Clean Spacing & Gap)
+   ======================================== */
+.import-batch-table-container {
+  max-height: 350px;
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dark .import-batch-table-container,
+html.dark .import-batch-table-container,
+[data-theme="dark"] .import-batch-table-container {
+  border-color: #334155 !important;
+  background-color: #0f172a !important;
+}
+
+.import-batch-table {
+  width: 100%;
+  min-width: 750px;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.import-batch-table thead th {
+  padding: 14px 20px !important;
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 800;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dark .import-batch-table thead th,
+html.dark .import-batch-table thead th,
+[data-theme="dark"] .import-batch-table thead th {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-bottom-color: #334155 !important;
+}
+
+.import-batch-table tbody td {
+  padding: 14px 20px !important;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+  font-size: 0.82rem;
+}
+
+.dark .import-batch-table tbody td,
+html.dark .import-batch-table tbody td,
+[data-theme="dark"] .import-batch-table tbody td {
+  border-bottom-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.import-batch-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.import-batch-table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+.dark .import-batch-table tbody tr:hover td,
+html.dark .import-batch-table tbody tr:hover td,
+[data-theme="dark"] .import-batch-table tbody tr:hover td {
+  background-color: rgba(30, 41, 59, 0.45) !important;
+}
+
+.import-batch-col-no {
+  width: 60px;
+  text-align: center;
+}
+
+.import-batch-col-nis {
+  width: 140px;
+  min-width: 130px;
+}
+
+.import-batch-col-nama {
+  min-width: 200px;
+}
+
+.import-batch-col-kelas {
+  width: 110px;
+  min-width: 100px;
+}
+
+.import-batch-col-wali {
+  min-width: 170px;
+}
+
+.import-batch-col-action {
+  width: 140px;
+  text-align: center;
+}
+
+/* ========================================
    USER DETAIL MODAL STYLING (Spacious & Clean)
    ======================================== */
 .user-detail-header-box {
