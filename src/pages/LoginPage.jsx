@@ -46,13 +46,13 @@ const LoginPage = () => {
         {/* Form Card */}
         <div className="login-card bg-white w-full rounded-3xl p-7 sm:p-9 border border-slate-200 shadow-xl">
           <form onSubmit={handleSubmit} className="login-form flex flex-col gap-5">
-            {/* Username / Nomor Handphone Input */}
+            {/* NIP / Username / NIS Input */}
             <div className="login-form-group flex flex-col gap-2">
-              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">USERNAME / NOMOR HP</label>
+              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">NIP / USERNAME / NIS</label>
               <input
                 type="text"
                 className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="Masukkan username atau nomor handphone..."
+                placeholder="Masukkan NIP, username, atau NIS santri..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required

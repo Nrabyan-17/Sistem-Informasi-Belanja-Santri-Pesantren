@@ -50,11 +50,15 @@ const DashboardPage = ({ Layout = MainLayout }) => {
           />
           <StatCards
             totalSaldo={stats?.total_saldo ?? 0}
-            totalPemasukan={stats?.total_pemasukan ?? 0}
-            totalTransaksi={stats?.total_transaksi ?? 0}
+            totalPemasukan={stats?.total_penarikan ?? 0}
+            santriAktif={stats?.santri_aktif ?? stats?.total_santri_aktif ?? 0}
           />
           <div className="flex flex-col gap-6">
-            <SalesChart trendData={stats?.tren_transaksi ?? []} />
+            <SalesChart 
+              trendData={stats?.tren_transaksi ?? []} 
+              monthlyData={stats?.tren_bulanan ?? []}
+              yearlyData={stats?.tren_tahunan ?? []}
+            />
             <RecentTransactionsWidget transactions={(stats?.transaksi_terbaru ?? []).map(mapRecent)} />
           </div>
         </>

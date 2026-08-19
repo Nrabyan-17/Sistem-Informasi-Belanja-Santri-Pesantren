@@ -1,7 +1,7 @@
 import React from 'react';
 
-// StatCards: Kartu Ringkasan Statistik (Total Saldo Mengendap, Koin Ditarik Hari Ini, Santri Aktif)
-const StatCards = ({ totalSaldo = 2847500, totalPemasukan = 90000, totalTransaksi = 247 }) => {
+// StatCards: Kartu Ringkasan Statistik (Total Saldo Mengendap, Total Koin Ditarik, Santri Aktif)
+const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, santriAktif = 0 }) => {
   return (
     <div className="stat-cards">
       {/* Total Saldo Mengendap */}
@@ -14,20 +14,20 @@ const StatCards = ({ totalSaldo = 2847500, totalPemasukan = 90000, totalTransaks
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">Rp {totalSaldo?.toLocaleString('id-ID') || '2.847.500'}</h2>
+        <h2 className="stat-value">Rp {Number(totalSaldo || 0).toLocaleString('id-ID')}</h2>
       </div>
 
-      {/* Koin Ditarik Hari Ini */}
+      {/* Koin Ditarik */}
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-label">KOIN DITARIK HARI INI</span>
+          <span className="stat-label">TOTAL KOIN DITARIK</span>
           <div className="stat-icon-pill stat-icon-pill--orange">
             <svg className="stat-icon" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" />
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">Rp {totalPemasukan?.toLocaleString('id-ID') || '90.000'}</h2>
+        <h2 className="stat-value">Rp {Number(totalPemasukan || 0).toLocaleString('id-ID')}</h2>
       </div>
 
       {/* Santri Aktif */}
@@ -40,7 +40,7 @@ const StatCards = ({ totalSaldo = 2847500, totalPemasukan = 90000, totalTransaks
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">{totalTransaksi || 247}</h2>
+        <h2 className="stat-value">{Number(santriAktif || 0).toLocaleString('id-ID')} Santri</h2>
       </div>
     </div>
   );

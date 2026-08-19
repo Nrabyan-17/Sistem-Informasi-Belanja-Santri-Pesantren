@@ -7,16 +7,14 @@ import {
   IconTransaction,
   IconWallet,
   IconUpload,
-  IconReport,
 } from '../common/Icons';
 
 // Menu navigasi untuk Staff Rumah Koin dengan Ikon SVG Profesional
 const staffMenuItems = [
-  { path: '',           label: 'Dashboard',   icon: <IconDashboard /> },
-  { path: '/transaksi', label: 'Transaksi',   icon: <IconTransaction /> },
-  { path: '/topup',     label: 'Cek Saldo',   icon: <IconWallet /> },
-  { path: '/upload-bni',label: 'Upload BNI',  icon: <IconUpload /> },
-  { path: '/laporan',   label: 'Laporan',     icon: <IconReport /> },
+  { path: '',           label: 'Dashboard',         icon: <IconDashboard /> },
+  { path: '/transaksi', label: 'Penarikan & Transaksi', icon: <IconTransaction /> },
+  { path: '/topup',     label: 'Penyesuaian Saldo', icon: <IconWallet /> },
+  { path: '/upload-bni',label: 'Upload BNI',        icon: <IconUpload /> },
 ];
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman

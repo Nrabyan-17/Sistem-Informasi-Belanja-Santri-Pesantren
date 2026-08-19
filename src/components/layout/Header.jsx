@@ -5,11 +5,18 @@ import { IconKey } from '../common/Icons';
 // Header / Top Navbar Admin & Staff
 const Header = ({
   pageTitle = 'Dashboard',
-  headerDate = 'Sabtu, 1 Agustus 2026',
+  headerDate,
   onToggleSidebar,
   isSidebarCollapsed = false,
 }) => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  const displayDate = headerDate || new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <>
@@ -35,9 +42,9 @@ const Header = ({
 
         <div className="header-actions">
           {/* Teks Tanggal di Header */}
-          {headerDate && (
+          {displayDate && (
             <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 hidden md:inline-block">
-              {headerDate}
+              {displayDate}
             </span>
           )}
 

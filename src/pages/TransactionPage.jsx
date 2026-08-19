@@ -134,33 +134,64 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
         </div>
       )}
 
-      {/* 1. Filter Card Bar (CARI SANTRI, JENIS, DARI, SAMPAI, Ekspor .xlsx) */}
-      <TransactionFilterBar
-        search={search}
-        onSearchChange={setSearch}
-        jenis={jenis}
-        onJenisChange={setJenis}
-        dari={dari}
-        onDariChange={setDari}
-        sampai={sampai}
-        onSampaiChange={setSampai}
-        onExport={handleExportXLSX}
-      />
-
-      {/* 2. KPI Cards Ringkasan (TOTAL TRANSAKSI, TOTAL MASUK, TOTAL KELUAR) */}
-      <TransactionKpiCards
-        totalTransaksi={kpiStats.totalTransaksi}
-        totalMasuk={kpiStats.totalMasuk}
-        totalKeluar={kpiStats.totalKeluar}
-      />
-
-      {/* 3. Jika versi Staff: Tampilkan Form Penarikan Koin di bawah KPI & Cari Santri */}
+      {/* JIKA STAFF: Urutan 1. Form Penarikan, 2. KPI, 3. Filter Bar, 4. Tabel */}
       {isStaffVersion && (
-        <StaffCoinWithdrawalForm onWithdrawalSuccess={handleNewWithdrawal} />
+        <>
+          {/* 1. Form Penarikan Koin */}
+          <StaffCoinWithdrawalForm onWithdrawalSuccess={handleNewWithdrawal} />
+
+          {/* 2. KPI Cards Ringkasan */}
+          <TransactionKpiCards
+            totalTransaksi={kpiStats.totalTransaksi}
+            totalMasuk={kpiStats.totalMasuk}
+            totalKeluar={kpiStats.totalKeluar}
+          />
+
+          {/* 3. Filter Card Bar */}
+          <TransactionFilterBar
+            search={search}
+            onSearchChange={setSearch}
+            jenis={jenis}
+            onJenisChange={setJenis}
+            dari={dari}
+            onDariChange={setDari}
+            sampai={sampai}
+            onSampaiChange={setSampai}
+            onExport={handleExportXLSX}
+          />
+
+          {/* 4. Table Data Transaksi */}
+          <TransactionTable data={filteredData} />
+        </>
       )}
 
-      {/* 4. Table Data Transaksi */}
-      <TransactionTable data={filteredData} />
+      {/* JIKA ADMIN: Urutan 1. Filter, 2. KPI, 3. Tabel */}
+      {!isStaffVersion && (
+        <>
+          {/* 1. Filter Card Bar */}
+          <TransactionFilterBar
+            search={search}
+            onSearchChange={setSearch}
+            jenis={jenis}
+            onJenisChange={setJenis}
+            dari={dari}
+            onDariChange={setDari}
+            sampai={sampai}
+            onSampaiChange={setSampai}
+            onExport={handleExportXLSX}
+          />
+
+          {/* 2. KPI Cards Ringkasan */}
+          <TransactionKpiCards
+            totalTransaksi={kpiStats.totalTransaksi}
+            totalMasuk={kpiStats.totalMasuk}
+            totalKeluar={kpiStats.totalKeluar}
+          />
+
+          {/* 3. Table Data Transaksi */}
+          <TransactionTable data={filteredData} />
+        </>
+      )}
     </Layout>
   );
 };

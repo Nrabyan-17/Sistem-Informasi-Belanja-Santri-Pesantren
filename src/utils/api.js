@@ -59,7 +59,7 @@ export const authApi = {
 };
 
 export const dashboardApi = {
-  get: () => apiFetch('/dashboard'),
+  get: (params = {}) => apiFetch('/dashboard?' + new URLSearchParams(params)),
 };
 
 export const santriApi = {
@@ -71,6 +71,8 @@ export const santriApi = {
   update: (id, formData) => apiFetchForm(`/santris/${id}`, formData, 'POST'),
   destroy: (id) => apiFetch(`/santris/${id}`, { method: 'DELETE' }),
   import: (formData) => apiFetchForm('/santris/import', formData, 'POST'),
+  importPreview: (formData) => apiFetchForm('/santris/import-preview', formData, 'POST'),
+  importConfirm: (items) => apiFetch('/santris/import-confirm', { method: 'POST', body: JSON.stringify({ items }) }),
   penyesuaian: (id, data) => apiFetch(`/santris/${id}/penyesuaian`, { method: 'POST', body: JSON.stringify(data) }),
 };
 
@@ -105,7 +107,17 @@ export const bniApi = {
   list: () => apiFetch('/bni-uploads'),
   store: (formData) => apiFetchForm('/bni-uploads', formData, 'POST'),
   show: (id) => apiFetch(`/bni-uploads/${id}`),
-  apply: (id) => apiFetch(`/bni-uploads/${id}/apply`, { method: 'POST' }),
+  apply: (id, itemIds = null) => apiFetch(`/bni-uploads/${id}/apply`, { 
+    method: 'POST', 
+    body: itemIds ? JSON.stringify({ item_ids: itemIds }) : JSON.stringify({}) 
+  }),
+  updateItem: (uploadId, itemId, data) => apiFetch(`/bni-uploads/${uploadId}/items/${itemId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteItem: (uploadId, itemId) => apiFetch(`/bni-uploads/${uploadId}/items/${itemId}`, {
+    method: 'DELETE',
+  }),
 };
 
 export const transactionApi = {

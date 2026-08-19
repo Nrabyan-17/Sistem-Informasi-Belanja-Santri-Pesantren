@@ -20,7 +20,6 @@ const apiToUi = (u) => {
     id: u.id,
     nama: u.name,
     username: u.username || '',
-    noHp: u.phone || '—',
     role: roleToLabel(u.role),
     userRole: u.role,
     status: u.is_active ? 'Aktif' : 'Nonaktif',
@@ -90,13 +89,13 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   // Filter Users berdasarkan Search, Role, dan Status
   const filteredUsers = useMemo(() => {
     return categoryBaseUsers.filter((u) => {
-      // 1. Search Query (Nama, No HP, atau NIS)
+      // 1. Search Query (Nama, Username, atau NIS)
       if (search.trim()) {
         const query = search.toLowerCase();
         const matchesName = u.nama.toLowerCase().includes(query);
-        const matchesNoHp = u.noHp ? u.noHp.toLowerCase().includes(query) : false;
+        const matchesUsername = u.username ? u.username.toLowerCase().includes(query) : false;
         const matchesNis = u.nis ? u.nis.toLowerCase().includes(query) : false;
-        if (!matchesName && !matchesNoHp && !matchesNis) return false;
+        if (!matchesName && !matchesUsername && !matchesNis) return false;
       }
 
       // 2. Role Filter (Hanya berlaku jika kategori 'all')
@@ -157,15 +156,6 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   const apiByRole = (role) =>
     role === 'admin' ? adminApi : role === 'staff' ? staffApi : waliUserApi;
 
-  const linkWaliByNis = async (waliId, nis) => {
-    try {
-      const santri = await santriApi.byNis(nis);
-      if (santri?.id) await waliUserApi.linkSantri(waliId, santri.id);
-    } catch (e) {
-      setError(`Akun wali dibuat, tapi NIS belum ditautkan: ${e.message}`);
-    }
-  };
-
   // Confirm delete user handler
   const confirmDeleteUser = async () => {
     if (!deleteUserTarget) return;
@@ -188,7 +178,6 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     const payload = {
       name: formData.nama,
       username: formData.username,
-      phone: formData.noHp,
       is_active: formData.status === 'aktif',
     };
     if (formData.password) payload.password = formData.password;
@@ -198,8 +187,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
       if (isEdit) {
         await apiByRole(targetRole).update(editUser.id, payload);
       } else {
-        const res = await apiByRole(targetRole).store(payload);
-        if (targetRole === 'wali' && formData.nis) await linkWaliByNis(res.id, formData.nis);
+        await apiByRole(targetRole).store(payload);
       }
       setIsModalOpen(false);
       fetchUsers();
@@ -371,7 +359,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
               className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
               style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
             >
-              Apakah Anda yakin ingin menghapus akun <strong className="text-slate-900 dark:text-slate-100 font-bold">{deleteUserTarget.nama}</strong> ({deleteUserTarget.noHp})? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus akun <strong className="text-slate-900 dark:text-slate-100 font-bold">{deleteUserTarget.nama}</strong> ({deleteUserTarget.username || deleteUserTarget.role})? Tindakan ini tidak dapat dibatalkan.
             </p>
 
             {/* Garis Pembatas (Divider Line) */}

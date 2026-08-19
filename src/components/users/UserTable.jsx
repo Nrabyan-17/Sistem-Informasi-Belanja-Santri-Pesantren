@@ -97,9 +97,11 @@ const UserTable = ({
                           <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                             {user.nama}
                           </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-                            {user.noHp || user.telepon || '—'}
-                          </span>
+                          {user.username && (
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
+                              NIP/User: {user.username}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>

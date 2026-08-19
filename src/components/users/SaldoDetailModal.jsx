@@ -1,45 +1,74 @@
 import { useState, useRef, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { santriApi } from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
 const formatTanggal = (iso) => {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
+const SaldoDetailModal = ({
+  isOpen,
+  onClose,
+  santri = {},
+  initialMode = 'view', // 'view' | 'edit'
+  allowAdjustment = false,
+  onUpdatePhoto,
+  onUpdateSaldo,
+}) => {
+  const { user } = useAuth();
   const fileInputRef = useRef(null);
+  const [activeTab, setActiveTab] = useState(initialMode === 'edit' && allowAdjustment ? 'adjust' : 'detail');
   const [photoUrl, setPhotoUrl] = useState(santri?.foto || null);
+  const [currentSaldo, setCurrentSaldo] = useState(santri?.saldo || 0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [history, setHistory] = useState([]);
 
+  // Form Penyesuaian State
+  const [actionType, setActionType] = useState('tambah'); // 'tambah' | 'kurang'
+  const [adjustNominal, setAdjustNominal] = useState('');
+  const [adjustNote, setAdjustNote] = useState('');
+  const [isAdjusting, setIsAdjusting] = useState(false);
+  const [adjustSuccess, setAdjustSuccess] = useState('');
+  const [adjustError, setAdjustError] = useState('');
+
   useEffect(() => {
     if (isOpen) {
+      setActiveTab(initialMode === 'edit' && allowAdjustment ? 'adjust' : 'detail');
       setPhotoUrl(santri?.foto || null);
+      setCurrentSaldo(santri?.saldo || 0);
       setUploadSuccess(false);
       setUploadError('');
+      setAdjustSuccess('');
+      setAdjustError('');
+      setAdjustNominal('');
+      setAdjustNote('');
+
       if (santri?.id) {
         santriApi
           .mutasi(santri.id)
           .then((res) =>
-            setHistory((res.data || []).map((t) => ({
-              id: t.id,
-              tanggal: formatTanggal(t.created_at),
-              keterangan: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
-              nominal: t.nominal || 0,
-            })))
+            setHistory(
+              (res.data || []).map((t) => ({
+                id: t.id,
+                tanggal: formatTanggal(t.created_at),
+                keterangan: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
+                nominal: t.nominal || 0,
+              }))
+            )
           )
           .catch(() => setHistory([]));
       }
     }
-  }, [isOpen, santri]);
+  }, [isOpen, santri, initialMode, allowAdjustment]);
 
   if (!santri) return null;
 
-  const currentSaldo = santri.saldo || 0;
   const initialLetter = (santri.nama || 'S').charAt(0).toUpperCase();
+  const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
@@ -64,25 +93,78 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
   };
 
   const handleRemovePhoto = () => {
-    // ponytail: backend punya update foto tapi tidak ada hapus-foto; hanya bersihkan preview lokal.
     setPhotoUrl(null);
     onUpdatePhoto?.(santri.id, null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSubmitAdjustment = async (e) => {
+    e.preventDefault();
+    const amount = parseInt(adjustNominal || '0', 10);
+    if (amount <= 0) {
+      setAdjustError('Masukkan nominal penyesuaian yang valid.');
+      return;
+    }
+    if (!adjustNote.trim()) {
+      setAdjustError('Catatan alasan penyesuaian wajib diisi.');
+      return;
+    }
+    if (actionType === 'kurang' && amount > currentSaldo) {
+      setAdjustError(`Saldo tidak cukup untuk dikurangi! Maksimal pengurangan adalah Rp ${formatRupiah(currentSaldo)}.`);
+      return;
+    }
+
+    setIsAdjusting(true);
+    setAdjustError('');
+    setAdjustSuccess('');
+
+    try {
+      const payload = {
+        aksi: actionType, // 'tambah' | 'kurang'
+        nominal: amount,
+        keterangan: `Penyesuaian Saldo (${actionType === 'tambah' ? '+' : '-'}Rp ${formatRupiah(amount)}): ${adjustNote.trim()}`,
+      };
+
+      const res = await santriApi.penyesuaian(santri.id, payload);
+      const newSaldo = actionType === 'tambah' ? currentSaldo + amount : currentSaldo - amount;
+      setCurrentSaldo(newSaldo);
+      onUpdateSaldo?.(santri.id, newSaldo);
+
+      setAdjustSuccess(`Berhasil menyesuaikan saldo! Saldo baru ${santri.nama} adalah Rp ${formatRupiah(newSaldo)}.`);
+      setAdjustNominal('');
+      setAdjustNote('');
+
+      // Refresh mutation history
+      santriApi.mutasi(santri.id).then((mut) =>
+        setHistory(
+          (mut.data || []).map((t) => ({
+            id: t.id,
+            tanggal: formatTanggal(t.created_at),
+            keterangan: t.keterangan || 'Penyesuaian Saldo',
+            nominal: t.nominal || 0,
+          }))
+        )
+      );
+    } catch (err) {
+      setAdjustError(err.message || 'Gagal memproses penyesuaian saldo.');
+    } finally {
+      setIsAdjusting(false);
+    }
   };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Detail Saldo &amp; Pasfoto Santri"
+      title={allowAdjustment ? "Cek &amp; Penyesuaian Saldo Santri" : "Detail Saldo &amp; Pasfoto Santri"}
       subtitle="Lihat detail saldo, kelola pasfoto verifikasi, dan pantau riwayat transaksi santri."
       maxWidth="max-w-2xl"
     >
       <div className="saldo-modal-content flex flex-col gap-6">
-        {/* Identitas Santri & Pasfoto Card (Ditingkatkan Ukuran & Padding) */}
+        {/* Identitas Santri & Pasfoto Card */}
         <div className="saldo-identity-card bg-slate-50/90 dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xs">
           <div className="saldo-identity-left flex items-center gap-5">
-            {/* Area Avatar / Foto Santri dengan Upload Trigger */}
+            {/* Foto Santri */}
             <div className="relative shrink-0 group">
               {photoUrl ? (
                 <img
@@ -95,19 +177,6 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
                   {initialLetter}
                 </div>
               )}
-
-              {/* Tombol Kamera Overlay */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-800 hover:bg-emerald-900 text-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-white dark:border-slate-800 transition-transform active:scale-90"
-                title="Unggah / Ganti Pasfoto"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
 
               {/* Hidden File Input */}
               <input
@@ -124,29 +193,26 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
                 IDENTITAS SANTRI
               </span>
               <h3 className="identity-name text-xl font-black text-slate-900 dark:text-slate-100 leading-tight mt-0.5">
-                {santri.nama || 'Muhammad Rizki'}
+                {santri.nama}
               </h3>
               <p className="identity-nis text-xs font-mono font-bold text-slate-500 dark:text-slate-400 mt-1">
-                NIS: <span className="text-emerald-800 dark:text-emerald-400 font-extrabold">{santri.nis || '2024003'}</span>
+                NIS: <span className="text-emerald-800 dark:text-emerald-400 font-extrabold">{santri.nis}</span>
               </p>
 
               {/* Action Buttons: Upload & Hapus Foto */}
-              <div className="saldo-photo-actions">
+              <div className="saldo-photo-actions mt-2 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="btn-upload-photo"
+                  className="px-3 py-1 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg shadow-2xs hover:bg-slate-50"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
                   {isUploading ? 'Mengunggah...' : photoUrl ? 'Ganti Pasfoto' : 'Upload Pasfoto'}
                 </button>
                 {photoUrl && (
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="btn-delete-photo"
+                    className="px-2.5 py-1 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg"
                   >
                     Hapus
                   </button>
@@ -159,73 +225,196 @@ const SaldoDetailModal = ({ isOpen, onClose, santri = {}, onUpdatePhoto }) => {
             <span className="sisa-saldo-tag text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
               SISA SALDO SAAT INI
             </span>
-            <div className="sisa-saldo-val text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 mt-1">
-              Rp {(currentSaldo || 15000).toLocaleString('id-ID')}
+            <div className="sisa-saldo-val text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
+              Rp {formatRupiah(currentSaldo)}
             </div>
           </div>
         </div>
 
-        {/* Upload Error Alert */}
+        {/* Upload Alert */}
         {uploadError && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-200 rounded-xl text-xs font-bold flex items-center gap-2 animate-fadeIn">
-            <svg className="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            </svg>
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-rose-700 rounded-xl text-xs font-bold">
             {uploadError}
           </div>
         )}
-
-        {/* Upload Success Toast Alert */}
         {uploadSuccess && (
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-bold flex items-center gap-2 animate-fadeIn">
-            <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-            </svg>
-            Pasfoto santri berhasil diunggah dan disimpan ke sistem verifikasi loket!
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold">
+            Pasfoto santri berhasil diperbarui!
           </div>
         )}
 
-        {/* Riwayat Transaksi Terakhir */}
-        <div className="saldo-history-section flex flex-col gap-2.5">
-          <div className="flex items-center justify-between">
-            <h4 className="section-title-sm text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-              Riwayat Transaksi Terakhir
-            </h4>
-            <span className="text-[11px] font-semibold text-slate-400">Arus Kas Masuk &amp; Penarikan</span>
+        {/* Navigation Tabs if Staff Adjustment is allowed */}
+        {allowAdjustment && (
+          <div className="flex border-b border-slate-200 dark:border-slate-700 gap-4">
+            <button
+              type="button"
+              onClick={() => setActiveTab('detail')}
+              className={`pb-3 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
+                activeTab === 'detail'
+                  ? 'border-emerald-700 text-emerald-700 dark:text-emerald-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Riwayat Mutasi Saldo
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('adjust')}
+              className={`pb-3 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
+                activeTab === 'adjust'
+                  ? 'border-emerald-700 text-emerald-700 dark:text-emerald-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              ⚙️ Form Penyesuaian Saldo (Koreksi)
+            </button>
           </div>
-          <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900 shadow-2xs">
-            <table className="mini-data-table w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">TANGGAL</th>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">KETERANGAN</th>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase text-right">NOMINAL</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                {history.length === 0 ? (
+        )}
+
+        {/* TAB 1: Riwayat Mutasi */}
+        {activeTab === 'detail' && (
+          <div className="saldo-history-section flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <h4 className="section-title-sm text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                Mutasi Transaksi
+              </h4>
+              <span className="text-[11px] font-semibold text-slate-400">Pemasukan &amp; Penarikan</span>
+            </div>
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900 shadow-2xs max-h-56 overflow-y-auto">
+              <table className="mini-data-table w-full text-left border-collapse text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 border-b border-slate-200 dark:border-slate-700">
                   <tr>
-                    <td colSpan="3" className="px-4 py-6 text-center text-slate-400 font-medium">
-                      Belum ada riwayat transaksi.
-                    </td>
+                    <th className="px-4 py-3 font-bold text-slate-500 uppercase">TANGGAL</th>
+                    <th className="px-4 py-3 font-bold text-slate-500 uppercase">KETERANGAN</th>
+                    <th className="px-4 py-3 font-bold text-slate-500 uppercase text-right">NOMINAL</th>
                   </tr>
-                ) : (
-                  history.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
-                      <td className="px-4 py-3 font-medium">{item.keterangan}</td>
-                      <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
-                        <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                          {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
-                        </span>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                  {history.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="px-4 py-6 text-center text-slate-400 font-medium">
+                        Belum ada riwayat transaksi.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    history.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                        <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
+                        <td className="px-4 py-3 font-medium">{item.keterangan}</td>
+                        <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
+                          <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                            {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* TAB 2: Form Penyesuaian Saldo */}
+        {activeTab === 'adjust' && (
+          <form onSubmit={handleSubmitAdjustment} className="flex flex-col gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            {adjustSuccess && (
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-bold">
+                ✓ {adjustSuccess}
+              </div>
+            )}
+            {adjustError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-bold">
+                ⚠ {adjustError}
+              </div>
+            )}
+
+            {/* Aksi: Tambah atau Kurang */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">
+                Tipe Penyesuaian Saldo
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActionType('tambah')}
+                  className={`py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                    actionType === 'tambah'
+                      ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                      : 'bg-white dark:bg-slate-900 border-slate-300 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <span className="text-sm">+</span> Tambah Saldo (Kredit)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActionType('kurang')}
+                  className={`py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                    actionType === 'kurang'
+                      ? 'bg-rose-700 text-white border-rose-700 shadow-xs'
+                      : 'bg-white dark:bg-slate-900 border-slate-300 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <span className="text-sm">-</span> Kurangi Saldo (Debet)
+                </button>
+              </div>
+            </div>
+
+            {/* Nominal */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">
+                Nominal Koreksi (RP) <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                  Rp
+                </span>
+                <input
+                  type="number"
+                  placeholder="Contoh: 15000"
+                  value={adjustNominal}
+                  onChange={(e) => setAdjustNominal(e.target.value)}
+                  className="w-full h-11 pl-10 pr-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Catatan / Alasan (Wajib) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold uppercase text-slate-600 dark:text-slate-400">
+                Catatan Alasan Penyesuaian <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Tuliskan alasan penyesuaian (misal: koreksi human error salah input / kendala mutasi)..."
+                value={adjustNote}
+                onChange={(e) => setAdjustNote(e.target.value)}
+                className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-600"
+                required
+              />
+            </div>
+
+            {/* Staff Logger Info */}
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between pt-1">
+              <span>
+                Petugas Penyesuai: <strong className="text-slate-800 dark:text-slate-200">{user?.name || 'Staff Loket'}</strong>
+              </span>
+              <span>Dicatat otomatis dalam log transaksi</span>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isAdjusting || !adjustNominal || !adjustNote}
+              className={`h-11 px-6 font-extrabold rounded-xl text-xs text-white shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 ${
+                actionType === 'tambah' ? 'bg-emerald-800 hover:bg-emerald-900' : 'bg-rose-700 hover:bg-rose-800'
+              }`}
+            >
+              {isAdjusting ? 'Memproses Penyesuaian...' : `Terapkan ${actionType === 'tambah' ? 'Penambahan' : 'Pengurangan'} Saldo`}
+            </button>
+          </form>
+        )}
 
         {/* Footer Modal Action */}
         <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">

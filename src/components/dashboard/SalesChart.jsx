@@ -9,54 +9,20 @@ import {
   CartesianGrid,
 } from 'recharts';
 
-// Data Mock Multi-Timeline
-const mockWeeklyData = [
-  { label: 'Senin',  total: 1800000, transaksi: 120 },
-  { label: 'Selasa', total: 2200000, transaksi: 150 },
-  { label: 'Rabu',   total: 2600000, transaksi: 180 },
-  { label: 'Kamis',  total: 2100000, transaksi: 140 },
-  { label: 'Jumat',  total: 3100000, transaksi: 210 },
-  { label: 'Sabtu',  total: 2847500, transaksi: 247 },
-  { label: 'Minggu', total: 2500000, transaksi: 190 },
-];
-
-const mockMonthlyData = [
-  { label: 'Jan', total: 42000000, transaksi: 1400 },
-  { label: 'Feb', total: 38000000, transaksi: 1250 },
-  { label: 'Mar', total: 45000000, transaksi: 1500 },
-  { label: 'Apr', total: 51000000, transaksi: 1700 },
-  { label: 'Mei', total: 48000000, transaksi: 1600 },
-  { label: 'Jun', total: 32000000, transaksi: 1100 },
-  { label: 'Jul', total: 55000000, transaksi: 1850 },
-  { label: 'Ags', total: 58000000, transaksi: 1920 },
-  { label: 'Sep', total: 49000000, transaksi: 1630 },
-  { label: 'Okt', total: 52000000, transaksi: 1730 },
-  { label: 'Nov', total: 47000000, transaksi: 1580 },
-  { label: 'Des', total: 60000000, transaksi: 2000 },
-];
-
-const mockYearlyData = [
-  { label: '2022', total: 480000000, transaksi: 16000 },
-  { label: '2023', total: 540000000, transaksi: 18000 },
-  { label: '2024', total: 590000000, transaksi: 19500 },
-  { label: '2025', total: 630000000, transaksi: 21000 },
-  { label: '2026', total: 577000000, transaksi: 19200 },
-];
-
 const CustomTooltip = ({ active, payload, label, timeframe }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 text-xs space-y-1">
         <p className="font-bold text-slate-500 dark:text-slate-400">
-          {timeframe === 'mingguan' ? `Hari ${label}` : timeframe === 'bulanan' ? `Bulan ${label}` : `Tahun ${label}`}
+          {timeframe === 'mingguan' ? `${label} (${data.tanggal || ''})` : timeframe === 'bulanan' ? `Bulan ${label}` : `Tahun ${label}`}
         </p>
         <p className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
-          Rp {new Intl.NumberFormat('id-ID').format(data.total)}
+          Rp {new Intl.NumberFormat('id-ID').format(data.total || 0)}
         </p>
         {data.transaksi > 0 && (
           <p className="text-slate-400 dark:text-slate-400">
-            Total Transaksi: <strong className="text-slate-700 dark:text-slate-200">{data.transaksi.toLocaleString('id-ID')} entri</strong>
+            Total Penarikan: <strong className="text-slate-700 dark:text-slate-200">{data.transaksi.toLocaleString('id-ID')} kali</strong>
           </p>
         )}
       </div>
@@ -65,29 +31,44 @@ const CustomTooltip = ({ active, payload, label, timeframe }) => {
   return null;
 };
 
-const SalesChart = ({ trendData }) => {
+const SalesChart = ({ trendData = [], monthlyData = [], yearlyData = [] }) => {
+  const currentYear = new Date().getFullYear().toString();
   const [timeframe, setTimeframe] = useState('mingguan'); // 'mingguan' | 'bulanan' | 'tahunan'
-  const [selectedYear, setSelectedYear] = useState('2026');
-
-  // Pakai data API (14 hari terakhir) untuk mode mingguan; bulanan/tahunan tetap mock
-  const weeklyData = trendData && trendData.length
-    ? trendData.map((d) => ({ label: d.tanggal, total: d.penarikan || 0, transaksi: 0 }))
-    : mockWeeklyData;
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [customMonthly, setCustomMonthly] = useState(null);
 
   // Filter Data berdasarkan timeframe
   const getActiveData = () => {
     switch (timeframe) {
       case 'bulanan':
-        return mockMonthlyData;
+        return customMonthly || monthlyData;
       case 'tahunan':
-        return mockYearlyData;
+        return yearlyData;
       case 'mingguan':
       default:
-        return weeklyData;
+        return trendData.map((d) => ({
+          label: d.label || d.tanggal,
+          tanggal: d.tanggal,
+          total: d.penarikan ?? d.total ?? 0,
+          transaksi: d.transaksi ?? 0,
+        }));
     }
   };
 
   const activeData = getActiveData();
+
+  const handleYearChange = async (year) => {
+    setSelectedYear(year);
+    try {
+      const { dashboardApi } = await import('../../utils/api');
+      const res = await dashboardApi.get({ tahun: year });
+      if (res?.tren_bulanan) {
+        setCustomMonthly(res.tren_bulanan);
+      }
+    } catch {
+      // fallback to current
+    }
+  };
 
   const formatYAxis = (val) => {
     if (val >= 1000000000) return `${(val / 1000000000).toFixed(1)}B`;
@@ -151,7 +132,7 @@ const SalesChart = ({ trendData }) => {
           {timeframe === 'bulanan' && (
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              onChange={(e) => handleYearChange(e.target.value)}
               className="px-4 sm:px-5 py-2.5 sm:py-3 h-11 sm:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-600 cursor-pointer shadow-xs"
             >
               <option value="2026">Tahun 2026</option>

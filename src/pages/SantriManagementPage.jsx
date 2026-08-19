@@ -5,17 +5,25 @@ import SantriFilterBar from '../components/santri/SantriFilterBar';
 import SantriTable from '../components/santri/SantriTable';
 import SantriModalForm from '../components/santri/SantriModalForm';
 import SantriDetailModal from '../components/santri/SantriDetailModal';
+import SantriBatchPreviewModal from '../components/santri/SantriBatchPreviewModal';
 import { santriApi } from '../utils/api';
 
 // API → bentuk yang dibaca komponen santri
 const apiToUi = (s) => ({
   id: s.id,
   nis: s.nis,
+  nis2: s.nis2 || '',
   nama: s.nama,
+  tempatLahir: s.tempat_lahir || '',
   jenisKelamin: s.jenis_kelamin || '',
   tglLahir: s.tanggal_lahir || '',
+  alamat: s.alamat || '',
+  kelas: s.kelas || '',
+  kelasDetail: s.kelas_detail || '',
+  tags: s.tags || '',
+  note: s.note || '',
+  unit: s.unit || '',
   vaJajan: s.va_jajan || '',
-  vaTagihan: s.va_pembayaran || '',
   status: s.status || 'aktif',
   saldo: s.saldo || 0,
   foto: s.foto_url || null,
@@ -28,8 +36,12 @@ const uiToFormData = (f, isEdit) => {
   fd.append('nama', f.nama);
   fd.append('jenis_kelamin', f.jenisKelamin);
   if (f.tglLahir) fd.append('tanggal_lahir', f.tglLahir);
+  if (f.tempatLahir) fd.append('tempat_lahir', f.tempatLahir);
+  if (f.alamat) fd.append('alamat', f.alamat);
+  if (f.unit) fd.append('unit', f.unit);
+  if (f.kelas) fd.append('kelas', f.kelas);
+  if (f.kelasDetail) fd.append('kelas_detail', f.kelasDetail);
   if (f.vaJajan) fd.append('va_jajan', f.vaJajan);
-  if (f.vaTagihan) fd.append('va_pembayaran', f.vaTagihan);
   fd.append('status', f.status);
   if (f.foto instanceof File) fd.append('foto', f.foto);
   if (isEdit) fd.append('_method', 'PUT');
@@ -56,6 +68,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [isImporting, setIsImporting] = useState(false);
   const [importReport, setImportReport] = useState(null);
   const [importError, setImportError] = useState('');
+
+  // Batch Preview Modal State
+  const [isPreviewBatchOpen, setIsPreviewBatchOpen] = useState(false);
+  const [previewBatchData, setPreviewBatchData] = useState([]);
+  const [isSavingBatch, setIsSavingBatch] = useState(false);
 
   const fetchSantri = () => {
     setLoading(true);
@@ -98,8 +115,14 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   }, [santriList]);
 
   // View Detail
-  const handleViewDetail = (santri) => {
-    setDetailTarget(santri);
+  const handleViewDetail = async (santri) => {
+    try {
+      const res = await santriApi.show(santri.id);
+      const detail = res?.data || res;
+      setDetailTarget(apiToUi(detail));
+    } catch {
+      setDetailTarget(santri);
+    }
     setIsDetailOpen(true);
   };
 
@@ -150,7 +173,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     }
   };
 
-  // Import Batch (xlsx)
+  // Import Batch (xlsx) -> Preview Modal First
   const handleImportClick = () => importFileRef.current?.click();
 
   const handleImportFile = async (e) => {
@@ -162,14 +185,32 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     setImportError('');
     setImportReport(null);
     try {
-      const report = await santriApi.import(fd);
-      setImportReport(report);
-      fetchSantri();
+      const preview = await santriApi.importPreview(fd);
+      if (!preview.items || preview.items.length === 0) {
+        throw new Error('Tidak ada data santri yang terbaca dari file.');
+      }
+      setPreviewBatchData(preview.items);
+      setIsPreviewBatchOpen(true);
     } catch (err) {
-      setImportError(err.message || 'Gagal mengimpor data santri.');
+      setImportError(err.message || 'Gagal membaca file Excel santri.');
     } finally {
       setIsImporting(false);
       if (importFileRef.current) importFileRef.current.value = '';
+    }
+  };
+
+  const handleConfirmSaveBatch = async (selectedItems) => {
+    setIsSavingBatch(true);
+    setImportError('');
+    try {
+      const report = await santriApi.importConfirm(selectedItems);
+      setImportReport(report);
+      setIsPreviewBatchOpen(false);
+      fetchSantri();
+    } catch (err) {
+      setImportError(err.message || 'Gagal menyimpan data santri batch.');
+    } finally {
+      setIsSavingBatch(false);
     }
   };
 
@@ -356,6 +397,17 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Preview Batch Upload Data Santri */}
+      {isPreviewBatchOpen && (
+        <SantriBatchPreviewModal
+          isOpen={isPreviewBatchOpen}
+          onClose={() => setIsPreviewBatchOpen(false)}
+          previewData={previewBatchData}
+          onConfirmSave={handleConfirmSaveBatch}
+          isSaving={isSavingBatch}
+        />
       )}
     </Layout>
   );

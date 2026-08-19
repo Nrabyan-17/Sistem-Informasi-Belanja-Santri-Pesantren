@@ -35,16 +35,14 @@ const AppRoutes = () => {
       <Route path="/admin/pengguna"            element={<UserManagementPage category="all" />} />
       <Route path="/admin/pengguna/admin"      element={<UserManagementPage category="admin" />} />
       <Route path="/admin/pengguna/staff-koin" element={<UserManagementPage category="staff-koin" />} />
-      <Route path="/admin/pengguna/wali"       element={<UserManagementPage category="wali" />} />
       <Route path="/admin/pengguna/santri"     element={<SantriManagementPage />} />
-      <Route path="/admin/topup"               element={<TopUpPage />} />
+      <Route path="/admin/topup"               element={<TopUpPage isStaffVersion={false} />} />
 
       {/* Staff Rumah Koin Routes */}
       <Route path="/staff"            element={<DashboardPage Layout={StaffLayout} />} />
       <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} isStaffVersion={true} />} />
-      <Route path="/staff/laporan"    element={<FinancialReportPage Layout={StaffLayout} />} />
       <Route path="/staff/upload-bni" element={<UploadBNIPage Layout={StaffLayout} />} />
-      <Route path="/staff/topup"      element={<TopUpPage Layout={StaffLayout} />} />
+      <Route path="/staff/topup"      element={<TopUpPage Layout={StaffLayout} isStaffVersion={true} />} />
 
       {/* Wali Santri Portal Routes */}
       <Route path="/wali"             element={<WaliSaldoPage />} />
