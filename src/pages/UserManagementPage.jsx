@@ -7,15 +7,66 @@ import UserModalForm from '../components/users/UserModalForm';
 import UserDetailModal from '../components/users/UserDetailModal';
 import BatchActionBar from '../components/common/BatchActionBar';
 import { mockUsers } from '../data/mockUsers';
+import { adminApi, staffApi, waliUserApi } from '../utils/api';
+
+const mapUserFromApi = (item, defaultRole) => ({
+  id: item.id,
+  nama: item.name || item.nama || '—',
+  username: item.username || '',
+  role: item.role || defaultRole || 'Staff Rumah Koin',
+  noHp: item.no_hp || item.phone || item.noHp || '—',
+  email: item.email || '—',
+  status: item.is_active === 0 ? 'Non-Aktif' : (item.status || 'Aktif'),
+  createdDate: item.created_at ? item.created_at.slice(0, 10) : '2026-08-01',
+  lastLogin: item.last_login || 'Baru saja',
+  santriLinked: item.santris ? item.santris.map(s => s.nama).join(', ') : (item.santri_name || '—'),
+  nis: item.santris && item.santris[0] ? item.santris[0].nis : (item.nis || ''),
+});
 
 const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, category = 'all' }) => {
   const [users, setUsers] = useState(mockUsers);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('Semua Role');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBatchDeleteOpen, setIsBatchDeleteOpen] = useState(false);
+
+  // Fetch users dynamically from API
+  const fetchUsers = () => {
+    setLoading(true);
+    Promise.allSettled([
+      adminApi.list({ per_page: 200 }),
+      staffApi.list({ per_page: 200 }),
+      waliUserApi.list({ per_page: 200 }),
+    ])
+      .then(([adminRes, staffRes, waliRes]) => {
+        let combined = [];
+
+        if (adminRes.status === 'fulfilled' && adminRes.value?.data) {
+          combined = [...combined, ...adminRes.value.data.map(u => mapUserFromApi(u, 'Kabid BAK & Manajerial'))];
+        }
+        if (staffRes.status === 'fulfilled' && staffRes.value?.data) {
+          combined = [...combined, ...staffRes.value.data.map(u => mapUserFromApi(u, 'Staff Rumah Koin'))];
+        }
+        if (waliRes.status === 'fulfilled' && waliRes.value?.data) {
+          combined = [...combined, ...waliRes.value.data.map(u => mapUserFromApi(u, 'Wali Santri / Wali'))];
+        }
+
+        if (combined.length > 0) {
+          setUsers(combined);
+        }
+      })
+      .catch((err) => {
+        console.warn('Menggunakan data user lokal:', err.message);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // Otomatis reset centang / multi-select saat berpindah sub-menu / kategori akun
   useEffect(() => {

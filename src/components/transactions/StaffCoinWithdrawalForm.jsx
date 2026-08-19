@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 
 // Form Penarikan Koin / Saldo khusus Staff Rumah Koin
 const mockSantriOptions = [
-  { nis: '2024003', nama: 'Muhammad Rizki',  kelas: 'VII A', saldo: 150000, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024007', nama: 'Zainab Mustafa',  kelas: 'VIII B', saldo: 95000,  foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024006', nama: 'Nurul Hidayah',  kelas: 'IX A', saldo: 120000, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024002', nama: 'Siti Nurhaliza', kelas: 'VII B', saldo: 200000, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024001', nama: 'Ahmad Fauzi',    kelas: 'VIII A', saldo: 80000,  foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024082', nama: 'Budi Santoso',   kelas: 'VIII B', saldo: 75000, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024084', nama: 'Dani Pratama',   kelas: 'VII B', saldo: 120000, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024085', nama: 'Eka Rahmawati',  kelas: 'VIII A', saldo: 30000, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024003', nama: 'Muhammad Rizki',  kelas: 'VII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024007', nama: 'Zainab Mustafa',  kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024006', nama: 'Nurul Hidayah',  kelas: 'IX A', saldo: 0, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024002', nama: 'Siti Nurhaliza', kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024001', nama: 'Ahmad Fauzi',    kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024082', nama: 'Budi Santoso',   kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024084', nama: 'Dani Pratama',   kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
+  { nis: '2024085', nama: 'Eka Rahmawati',  kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
 ];
 
 const getInitials = (name) => {

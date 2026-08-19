@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SantriKpiCards from '../components/santri/SantriKpiCards';
 import SantriFilterBar from '../components/santri/SantriFilterBar';
@@ -8,9 +8,26 @@ import SantriDetailModal from '../components/santri/SantriDetailModal';
 import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
 import BatchActionBar from '../components/common/BatchActionBar';
 import { mockSantri } from '../data/mockSantri';
+import { santriApi } from '../utils/api';
+
+const mapSantriFromApi = (item) => ({
+  id: item.id,
+  nis: item.nis || '',
+  nama: item.nama || item.name || '',
+  kelas: item.kelas || 'VII A',
+  tglLahir: item.tgl_lahir || item.tglLahir || '',
+  namaWali: item.nama_wali || item.namaWali || item.wali_user?.name || '',
+  noHpWali: item.no_hp_wali || item.noHpWali || '',
+  vaJajan: item.va_jajan || item.vaJajan || `8808 0990 ${item.nis || '2024'} 0001`,
+  vaTagihan: item.va_tagihan || item.vaTagihan || `8808 0990 9${item.nis || '024'} 0001`,
+  status: item.status || 'aktif',
+  saldo: Number(item.saldo || 0),
+  foto: item.foto || item.foto_url || null,
+});
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [santriList, setSantriList] = useState(mockSantri);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
@@ -27,6 +44,25 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const loadSantriData = () => {
+    setLoading(true);
+    santriApi.list({ per_page: 500 })
+      .then((res) => {
+        const rawData = res.data || (Array.isArray(res) ? res : null);
+        if (rawData && rawData.length >= 0) {
+          setSantriList(rawData.map(mapSantriFromApi));
+        }
+      })
+      .catch((err) => {
+        console.warn('Menggunakan data santri lokal (gagal terhubung ke API):', err.message);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadSantriData();
+  }, []);
 
   // Daftar kelas unik dari data santri
   const kelasOptions = useMemo(() => {
@@ -127,35 +163,56 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const confirmDelete = () => {
     if (deleteTarget) {
-      setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-      setIsDeleteOpen(false);
-      setDeleteTarget(null);
+      santriApi.destroy(deleteTarget.id)
+        .then(() => loadSantriData())
+        .catch(() => {
+          setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+        })
+        .finally(() => {
+          setIsDeleteOpen(false);
+          setDeleteTarget(null);
+        });
     }
   };
 
   // Submit Form (Single Add/Edit)
   const handleSubmitForm = (formData) => {
+    const dataToSend = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== undefined && formData[key] !== null) {
+        dataToSend.append(key, formData[key]);
+      }
+    });
+
     if (editSantri && editSantri.id) {
       // Edit existing
-      setSantriList(
-        santriList.map((s) => (s.id === editSantri.id ? { ...s, ...formData } : s))
-      );
+      santriApi.update(editSantri.id, dataToSend)
+        .then(() => loadSantriData())
+        .catch(() => {
+          setSantriList(
+            santriList.map((s) => (s.id === editSantri.id ? { ...s, ...formData } : s))
+          );
+        });
     } else {
       // Add new
-      const newSantri = {
-        id: Date.now(),
-        nis: formData.nis || '',
-        nama: formData.nama || 'Santri Baru',
-        kelas: formData.kelas || 'VII A',
-        tglLahir: formData.tglLahir || '',
-        namaWali: formData.namaWali || '',
-        noHpWali: formData.noHpWali || '',
-        vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
-        vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
-        status: 'aktif',
-        saldo: 0,
-      };
-      setSantriList([newSantri, ...santriList]);
+      santriApi.store(dataToSend)
+        .then(() => loadSantriData())
+        .catch(() => {
+          const newSantri = {
+            id: Date.now(),
+            nis: formData.nis || '',
+            nama: formData.nama || 'Santri Baru',
+            kelas: formData.kelas || 'VII A',
+            tglLahir: formData.tglLahir || '',
+            namaWali: formData.namaWali || '',
+            noHpWali: formData.noHpWali || '',
+            vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
+            vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
+            status: 'aktif',
+            saldo: 0,
+          };
+          setSantriList([newSantri, ...santriList]);
+        });
     }
     setIsModalOpen(false);
   };

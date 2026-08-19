@@ -59,7 +59,10 @@ export const authApi = {
 };
 
 export const dashboardApi = {
-  get: () => apiFetch('/dashboard'),
+  get: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiFetch('/dashboard' + (query ? `?${query}` : ''));
+  },
 };
 
 export const santriApi = {

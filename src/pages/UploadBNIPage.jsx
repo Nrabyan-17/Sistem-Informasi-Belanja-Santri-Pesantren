@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import StaffLayout from '../components/layout/StaffLayout';
+import { bniApi } from '../utils/api';
 
 const mockParsedTransactions = [
   { id: 1, va: '9881234567890001', nis: '123456', nama: 'Ahmad Fauzi', nominal: 100000, tanggal: '2026-08-01 08:30', status: 'valid', billingId: 'JJNJULI26/123456', isJajan: true, isDuplicate: true },

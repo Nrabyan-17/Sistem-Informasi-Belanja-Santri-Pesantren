@@ -1,12 +1,19 @@
 import React from 'react';
 
+const getTodayString = () => {
+  return new Date().toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  }).toUpperCase();
+};
+
 // Banner Ringkasan Harian pada Dashboard Keuangan Admin
 const DailySummaryBanner = ({
-  dateStr = 'SABTU, 1 Agustus 2026',
-  masuk = 200000,
-  keluar = 90000,
-  transaksi = 4,
+  dateStr,
+  masuk = 0,
+  keluar = 0,
+  transaksi = 0,
 }) => {
+  const displayDate = dateStr || getTodayString();
   const formatRupiah = (val) => {
     return new Intl.NumberFormat('id-ID').format(val);
   };
@@ -15,7 +22,7 @@ const DailySummaryBanner = ({
     <div className="daily-summary-banner">
       {/* Tanggal Hari Ini */}
       <div className="banner-date-wrapper">
-        <h2 className="banner-date">{dateStr}</h2>
+        <h2 className="banner-date">{displayDate}</h2>
       </div>
 
       {/* Ringkasan Finansial (Masuk, Keluar, Transaksi) */}

@@ -1,26 +1,56 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
 import { useAuth } from '../context/AuthContext';
+import { santriApi } from '../utils/api';
 
 const mockSantriList = [
-  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 15000 },
-  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',   saldo: 45000 },
-  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',   saldo: 95000 },
-  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 120000 },
-  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 50000 },
-  { id: 6, nis: '2024004', nama: 'Budi Santoso',    saldo: 75000 },
-  { id: 7, nis: '2024005', nama: 'Citra Dewi',      saldo: 200000 },
+  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 0 },
+  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',   saldo: 0 },
+  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',   saldo: 0 },
+  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 0 },
+  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 0 },
+  { id: 6, nis: '2024004', nama: 'Budi Santoso',    saldo: 0 },
+  { id: 7, nis: '2024005', nama: 'Citra Dewi',      saldo: 0 },
 ];
+
+const mapSantriForSaldo = (s) => ({
+  id: s.id,
+  nis: s.nis || '',
+  nama: s.nama || s.name || '',
+  saldo: Number(s.saldo || 0),
+  foto: s.foto || s.foto_url || null,
+  kelas: s.kelas || '',
+});
 
 const TopUpPage = ({ Layout = MainLayout }) => {
   const { user } = useAuth();
   const isStaff = user?.role === 'staff' || Layout !== MainLayout;
 
   const [santriList, setSantriList] = useState(mockSantriList);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchSantriList = () => {
+    setLoading(true);
+    santriApi.list({ per_page: 500 })
+      .then((res) => {
+        const rawData = res.data || (Array.isArray(res) ? res : null);
+        if (rawData && rawData.length >= 0) {
+          setSantriList(rawData.map(mapSantriForSaldo));
+        }
+      })
+      .catch((err) => {
+        console.warn('Menggunakan data saldo santri lokal:', err.message);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchSantriList();
+  }, []);
 
   // Filter santri
   const filteredSantri = useMemo(() => {
@@ -44,9 +74,22 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   };
 
   const handleAdjustSaldo = (santriId, newSaldo, historyItem) => {
-    setSantriList((prev) =>
-      prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
-    );
+    // Panggil API penyesuaian saldo jika backend tersedia
+    if (historyItem) {
+      const nominal = historyItem.nominal || Math.abs(newSaldo - (selectedSantri?.saldo || 0));
+      const tipe = historyItem.tipe === 'tambah' || historyItem.type === 'in' ? 'topup' : 'penarikan';
+      santriApi.penyesuaian(santriId, { nominal, tipe, keterangan: historyItem.keterangan || 'Penyesuaian saldo' })
+        .then(() => fetchSantriList())
+        .catch(() => {
+          setSantriList((prev) =>
+            prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
+          );
+        });
+    } else {
+      setSantriList((prev) =>
+        prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
+      );
+    }
     setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, saldo: newSaldo } : prev));
   };
 

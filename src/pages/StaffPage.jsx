@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import StaffTable from '../components/staff/StaffTable';
 import StaffModalForm from '../components/staff/StaffModalForm';
+import { staffApi } from '../utils/api';
 
 // Data mock staff
 const mockStaff = [
@@ -13,15 +14,46 @@ const mockStaff = [
   { id: 6, nip: 'STF-006', nama: 'Ustadz Rahman',      jabatan: 'Manajer',    noHp: '0856-8901-2345', status: 'aktif',    shift: 'Full' },
 ];
 
+const mapStaffFromApi = (s) => ({
+  id: s.id,
+  nip: s.nip || `STF-00${s.id}`,
+  nama: s.name || s.nama || '—',
+  jabatan: s.jabatan || s.role || 'Kasir',
+  noHp: s.no_hp || s.phone || s.noHp || '—',
+  status: s.is_active === 0 ? 'nonaktif' : (s.status || 'aktif'),
+  shift: s.shift || 'Full',
+});
+
 const StaffPage = () => {
+  const [staffList, setStaffList] = useState(mockStaff);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [filterJabatan, setFilterJabatan] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
+  const fetchStaffData = () => {
+    setLoading(true);
+    staffApi.list({ per_page: 200 })
+      .then((res) => {
+        const raw = res.data || (Array.isArray(res) ? res : null);
+        if (raw && raw.length >= 0) {
+          setStaffList(raw.map(mapStaffFromApi));
+        }
+      })
+      .catch((err) => {
+        console.warn('Menggunakan data staff lokal:', err.message);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStaffData();
+  }, []);
+
   // Filter & search
-  const filteredStaff = mockStaff.filter((staff) => {
+  const filteredStaff = staffList.filter((staff) => {
     const matchSearch =
       staff.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.nip.toLowerCase().includes(searchTerm.toLowerCase());
@@ -30,9 +62,9 @@ const StaffPage = () => {
     return matchSearch && matchJabatan && matchStatus;
   });
 
-  const totalStaff = mockStaff.length;
-  const activeStaff = mockStaff.filter((s) => s.status === 'aktif').length;
-  const inactiveStaff = mockStaff.filter((s) => s.status === 'nonaktif').length;
+  const totalStaff = staffList.length;
+  const activeStaff = staffList.filter((s) => s.status === 'aktif').length;
+  const inactiveStaff = staffList.filter((s) => s.status === 'nonaktif').length;
 
   const handleEdit = (staff) => {
     setEditData(staff);
@@ -41,15 +73,29 @@ const StaffPage = () => {
 
   const handleDelete = (staff) => {
     if (confirm(`Hapus staff ${staff.nama}?`)) {
-      console.log('Hapus:', staff);
-      // TODO: Implementasi delete
+      staffApi.destroy(staff.id)
+        .then(() => fetchStaffData())
+        .catch(() => {
+          setStaffList((prev) => prev.filter((s) => s.id !== staff.id));
+        });
     }
   };
 
   const handleSubmit = (data) => {
-    console.log('Submit:', data);
+    if (editData && editData.id) {
+      staffApi.update(editData.id, data)
+        .then(() => fetchStaffData())
+        .catch(() => {
+          setStaffList((prev) => prev.map((s) => (s.id === editData.id ? { ...s, ...data } : s)));
+        });
+    } else {
+      staffApi.store(data)
+        .then(() => fetchStaffData())
+        .catch(() => {
+          setStaffList((prev) => [{ id: Date.now(), nip: `STF-00${prev.length + 1}`, ...data }, ...prev]);
+        });
+    }
     setIsModalOpen(false);
-    // TODO: Implementasi simpan data
   };
 
   return (

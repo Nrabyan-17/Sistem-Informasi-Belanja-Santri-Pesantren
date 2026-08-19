@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ChangePasswordModal from '../common/ChangePasswordModal';
 import { IconKey } from '../common/Icons';
+
+function getRealtimeIndonesianDate() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+}
 
 // Header / Top Navbar Admin & Staff
 const Header = ({
   pageTitle = 'Dashboard',
-  headerDate = 'Sabtu, 1 Agustus 2026',
+  headerDate,
   onToggleSidebar,
   isSidebarCollapsed = false,
 }) => {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [currentDateStr, setCurrentDateStr] = useState(getRealtimeIndonesianDate);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateStr(getRealtimeIndonesianDate());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const displayDate = headerDate || currentDateStr;
 
   return (
     <>
@@ -34,10 +55,10 @@ const Header = ({
         </div>
 
         <div className="header-actions">
-          {/* Teks Tanggal di Header */}
-          {headerDate && (
+          {/* Teks Tanggal di Header (Real-Time) */}
+          {displayDate && (
             <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 hidden md:inline-block">
-              {headerDate}
+              {displayDate}
             </span>
           )}
 

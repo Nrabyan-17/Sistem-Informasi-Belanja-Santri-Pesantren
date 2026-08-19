@@ -9,38 +9,38 @@ import {
   CartesianGrid,
 } from 'recharts';
 
-// Data Mock Multi-Timeline
-const mockWeeklyData = [
-  { label: 'Senin',  total: 1800000, transaksi: 120 },
-  { label: 'Selasa', total: 2200000, transaksi: 150 },
-  { label: 'Rabu',   total: 2600000, transaksi: 180 },
-  { label: 'Kamis',  total: 2100000, transaksi: 140 },
-  { label: 'Jumat',  total: 3100000, transaksi: 210 },
-  { label: 'Sabtu',  total: 2847500, transaksi: 247 },
-  { label: 'Minggu', total: 2500000, transaksi: 190 },
+// Default 0-data structures when API returns no transaction data yet
+const zeroWeeklyData = [
+  { label: 'Senin',  total: 0, transaksi: 0 },
+  { label: 'Selasa', total: 0, transaksi: 0 },
+  { label: 'Rabu',   total: 0, transaksi: 0 },
+  { label: 'Kamis',  total: 0, transaksi: 0 },
+  { label: 'Jumat',  total: 0, transaksi: 0 },
+  { label: 'Sabtu',  total: 0, transaksi: 0 },
+  { label: 'Minggu', total: 0, transaksi: 0 },
 ];
 
-const mockMonthlyData = [
-  { label: 'Jan', total: 42000000, transaksi: 1400 },
-  { label: 'Feb', total: 38000000, transaksi: 1250 },
-  { label: 'Mar', total: 45000000, transaksi: 1500 },
-  { label: 'Apr', total: 51000000, transaksi: 1700 },
-  { label: 'Mei', total: 48000000, transaksi: 1600 },
-  { label: 'Jun', total: 32000000, transaksi: 1100 },
-  { label: 'Jul', total: 55000000, transaksi: 1850 },
-  { label: 'Ags', total: 58000000, transaksi: 1920 },
-  { label: 'Sep', total: 49000000, transaksi: 1630 },
-  { label: 'Okt', total: 52000000, transaksi: 1730 },
-  { label: 'Nov', total: 47000000, transaksi: 1580 },
-  { label: 'Des', total: 60000000, transaksi: 2000 },
+const zeroMonthlyData = [
+  { label: 'Jan', total: 0, transaksi: 0 },
+  { label: 'Feb', total: 0, transaksi: 0 },
+  { label: 'Mar', total: 0, transaksi: 0 },
+  { label: 'Apr', total: 0, transaksi: 0 },
+  { label: 'Mei', total: 0, transaksi: 0 },
+  { label: 'Jun', total: 0, transaksi: 0 },
+  { label: 'Jul', total: 0, transaksi: 0 },
+  { label: 'Ags', total: 0, transaksi: 0 },
+  { label: 'Sep', total: 0, transaksi: 0 },
+  { label: 'Okt', total: 0, transaksi: 0 },
+  { label: 'Nov', total: 0, transaksi: 0 },
+  { label: 'Des', total: 0, transaksi: 0 },
 ];
 
-const mockYearlyData = [
-  { label: '2022', total: 480000000, transaksi: 16000 },
-  { label: '2023', total: 540000000, transaksi: 18000 },
-  { label: '2024', total: 590000000, transaksi: 19500 },
-  { label: '2025', total: 630000000, transaksi: 21000 },
-  { label: '2026', total: 577000000, transaksi: 19200 },
+const zeroYearlyData = [
+  { label: '2022', total: 0, transaksi: 0 },
+  { label: '2023', total: 0, transaksi: 0 },
+  { label: '2024', total: 0, transaksi: 0 },
+  { label: '2025', total: 0, transaksi: 0 },
+  { label: '2026', total: 0, transaksi: 0 },
 ];
 
 const CustomTooltip = ({ active, payload, label, timeframe }) => {
@@ -65,25 +65,56 @@ const CustomTooltip = ({ active, payload, label, timeframe }) => {
   return null;
 };
 
-const SalesChart = ({ trendData }) => {
-  const [timeframe, setTimeframe] = useState('mingguan'); // 'mingguan' | 'bulanan' | 'tahunan'
-  const [selectedYear, setSelectedYear] = useState('2026');
+const SalesChart = ({
+  trendData,
+  timeframe: propTimeframe,
+  selectedYear: propSelectedYear,
+  onTimeframeChange,
+}) => {
+  const [localTimeframe, setLocalTimeframe] = useState('mingguan');
+  const [localSelectedYear, setLocalSelectedYear] = useState('2026');
 
-  // Pakai data API (14 hari terakhir) untuk mode mingguan; bulanan/tahunan tetap mock
-  const weeklyData = trendData && trendData.length
-    ? trendData.map((d) => ({ label: d.tanggal, total: d.penarikan || 0, transaksi: 0 }))
-    : mockWeeklyData;
+  const timeframe = propTimeframe !== undefined ? propTimeframe : localTimeframe;
+  const selectedYear = propSelectedYear !== undefined ? propSelectedYear : localSelectedYear;
 
-  // Filter Data berdasarkan timeframe
+  const handleSetTimeframe = (tf) => {
+    if (onTimeframeChange) {
+      onTimeframeChange(tf, selectedYear);
+    } else {
+      setLocalTimeframe(tf);
+    }
+  };
+
+  const handleSetYear = (yr) => {
+    if (onTimeframeChange) {
+      onTimeframeChange(timeframe, yr);
+    } else {
+      setLocalSelectedYear(yr);
+    }
+  };
+
+  // Format data dari API
+  const apiFormattedData = trendData && trendData.length
+    ? trendData.map((d) => ({
+        label: d.label || d.tanggal || '',
+        total: d.total !== undefined ? d.total : d.penarikan || 0,
+        transaksi: d.transaksi || 0,
+      }))
+    : null;
+
+  // Data aktif berdasarkan timeframe
   const getActiveData = () => {
+    if (apiFormattedData && apiFormattedData.length > 0) {
+      return apiFormattedData;
+    }
     switch (timeframe) {
       case 'bulanan':
-        return mockMonthlyData;
+        return zeroMonthlyData;
       case 'tahunan':
-        return mockYearlyData;
+        return zeroYearlyData;
       case 'mingguan':
       default:
-        return weeklyData;
+        return zeroWeeklyData;
     }
   };
 
@@ -121,7 +152,7 @@ const SalesChart = ({ trendData }) => {
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('mingguan')}
+              onClick={() => handleSetTimeframe('mingguan')}
             >
               Mingguan
             </button>
@@ -131,7 +162,7 @@ const SalesChart = ({ trendData }) => {
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('bulanan')}
+              onClick={() => handleSetTimeframe('bulanan')}
             >
               Bulanan
             </button>
@@ -141,7 +172,7 @@ const SalesChart = ({ trendData }) => {
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('tahunan')}
+              onClick={() => handleSetTimeframe('tahunan')}
             >
               Tahunan
             </button>
@@ -151,7 +182,7 @@ const SalesChart = ({ trendData }) => {
           {timeframe === 'bulanan' && (
             <select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              onChange={(e) => handleSetYear(e.target.value)}
               className="px-4 sm:px-5 py-2.5 sm:py-3 h-11 sm:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-600 cursor-pointer shadow-xs"
             >
               <option value="2026">Tahun 2026</option>
