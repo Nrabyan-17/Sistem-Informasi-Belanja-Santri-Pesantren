@@ -1,42 +1,55 @@
 import { createContext, useContext, useState } from 'react';
-import { authApi } from '../utils/api';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user') || 'null'); }
-    catch { return null; }
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const login = async (username, password) => {
-    setLoading(true);
-    setError('');
     try {
-      const data = await authApi.login({ username, password });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      return data.user.role;
+      const savedUser = localStorage.getItem('auth_user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const login = (credentials = {}) => {
+    let role = credentials.role || 'admin';
+    let nama = credentials.nama;
+
+    if (!nama) {
+      if (role === 'admin') nama = 'Ustadzah Ina Wahdiah';
+      else if (role === 'staff') nama = 'Ust. Miftahul Huda';
+      else if (role === 'wali') nama = 'Bpk. Mahmud Fauzi';
+      else nama = 'Pengguna Sistem';
+    }
+
+    const newUser = {
+      noHp: credentials.noHp || '081234567890',
+      role,
+      nama,
+      loginAt: new Date().toISOString(),
+    };
+
+    setUser(newUser);
+    try {
+      localStorage.setItem('auth_user', JSON.stringify(newUser));
     } catch (e) {
-      setError(e.message || 'Login gagal.');
-      throw e;
-    } finally {
-      setLoading(false);
+      console.error('Gagal menyimpan sesi login:', e);
+    }
+    return newUser;
+  };
+
+  const logout = () => {
+    setUser(null);
+    try {
+      localStorage.removeItem('auth_user');
+    } catch (e) {
+      console.error('Gagal menghapus sesi login:', e);
     }
   };
 
-  const logout = async () => {
-    try { await authApi.logout(); } catch (_) {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: Boolean(user) }}>
       {children}
     </AuthContext.Provider>
   );
@@ -44,14 +57,12 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => useContext(AuthContext);
 
-// Label jabatan default per role untuk badge sidebar.
 const ROLE_LABEL = {
   admin: 'Administrator',
   staff: 'Staff Rumah Koin',
   wali: 'Wali Santri',
 };
 
-// Badge sidebar: nama + jabatan user login (fallback ke label role).
 export const buildUserBadge = (user) =>
   user
     ? {

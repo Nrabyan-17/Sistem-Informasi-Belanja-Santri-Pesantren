@@ -1,47 +1,23 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SantriKpiCards from '../components/santri/SantriKpiCards';
 import SantriFilterBar from '../components/santri/SantriFilterBar';
 import SantriTable from '../components/santri/SantriTable';
 import SantriModalForm from '../components/santri/SantriModalForm';
 import SantriDetailModal from '../components/santri/SantriDetailModal';
-import { santriApi } from '../utils/api';
-
-// API → bentuk yang dibaca komponen santri
-const apiToUi = (s) => ({
-  id: s.id,
-  nis: s.nis,
-  nama: s.nama,
-  jenisKelamin: s.jenis_kelamin || '',
-  tglLahir: s.tanggal_lahir || '',
-  vaJajan: s.va_jajan || '',
-  vaTagihan: s.va_pembayaran || '',
-  status: s.status || 'aktif',
-  saldo: s.saldo || 0,
-  foto: s.foto_url || null,
-});
-
-// Form (UI) → payload API (snake_case); update via method spoofing _method=PUT
-const uiToFormData = (f, isEdit) => {
-  const fd = new FormData();
-  fd.append('nis', f.nis);
-  fd.append('nama', f.nama);
-  fd.append('jenis_kelamin', f.jenisKelamin);
-  if (f.tglLahir) fd.append('tanggal_lahir', f.tglLahir);
-  if (f.vaJajan) fd.append('va_jajan', f.vaJajan);
-  if (f.vaTagihan) fd.append('va_pembayaran', f.vaTagihan);
-  fd.append('status', f.status);
-  if (f.foto instanceof File) fd.append('foto', f.foto);
-  if (isEdit) fd.append('_method', 'PUT');
-  return fd;
-};
+import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
+import BatchActionBar from '../components/common/BatchActionBar';
+import { mockSantri } from '../data/mockSantri';
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
-  const [santriList, setSantriList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [santriList, setSantriList] = useState(mockSantri);
   const [search, setSearch] = useState('');
+  const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
+
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBatchDeleteOpen, setIsBatchDeleteOpen] = useState(false);
+  const [isBatchUploadOpen, setIsBatchUploadOpen] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editSantri, setEditSantri] = useState(null);
@@ -52,21 +28,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const importFileRef = useRef(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importReport, setImportReport] = useState(null);
-  const [importError, setImportError] = useState('');
-
-  const fetchSantri = () => {
-    setLoading(true);
-    santriApi
-      .list({ per_page: 100 })
-      .then((res) => setSantriList((res.data || []).map(apiToUi)))
-      .catch((e) => setError(e.message || 'Gagal memuat data santri.'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(fetchSantri, []);
+  // Daftar kelas unik dari data santri
+  const kelasOptions = useMemo(() => {
+    const kelasSet = new Set(santriList.map((s) => s.kelas));
+    return Array.from(kelasSet).sort();
+  }, [santriList]);
 
   // Filter data santri
   const filteredSantri = useMemo(() => {
@@ -76,17 +42,23 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         const query = search.toLowerCase();
         const matchesNama = s.nama.toLowerCase().includes(query);
         const matchesNis = s.nis.toLowerCase().includes(query);
-        if (!matchesNama && !matchesNis) return false;
+        const matchesWali = s.namaWali ? s.namaWali.toLowerCase().includes(query) : false;
+        if (!matchesNama && !matchesNis && !matchesWali) return false;
       }
 
-      // 2. Filter Status
+      // 2. Filter Kelas
+      if (kelasFilter !== 'Semua Kelas') {
+        if (s.kelas !== kelasFilter) return false;
+      }
+
+      // 3. Filter Status
       if (statusFilter !== 'Semua Status') {
         if (s.status !== statusFilter) return false;
       }
 
       return true;
     });
-  }, [santriList, search, statusFilter]);
+  }, [santriList, search, kelasFilter, statusFilter]);
 
   // KPI metrics
   const kpiStats = useMemo(() => {
@@ -97,133 +69,124 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     return { total, aktif, nonaktif, totalSaldo };
   }, [santriList]);
 
+  // Multi-Select Handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredSantri.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredSantri.map((s) => s.id));
+    }
+  };
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchStatusChange = (status) => {
+    setSantriList((prev) =>
+      prev.map((s) => (selectedIds.includes(s.id) ? { ...s, status } : s))
+    );
+    setSelectedIds([]);
+  };
+
+  const handleBatchDelete = () => {
+    setIsBatchDeleteOpen(true);
+  };
+
+  const confirmBatchDelete = () => {
+    setSantriList((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
+    setSelectedIds([]);
+    setIsBatchDeleteOpen(false);
+  };
+
   // View Detail
   const handleViewDetail = (santri) => {
     setDetailTarget(santri);
     setIsDetailOpen(true);
   };
 
-  // Add New
+  // Add New Single
   const handleAddSantri = () => {
     setEditSantri({});
     setIsModalOpen(true);
   };
 
-  // Edit
+  // Edit Single
   const handleEditSantri = (santri) => {
     setEditSantri(santri);
     setIsModalOpen(true);
   };
 
-  // Delete
+  // Delete Single
   const handleDeleteSantri = (santri) => {
     setDeleteTarget(santri);
     setIsDeleteOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setError('');
-    try {
-      await santriApi.destroy(deleteTarget.id);
+  const confirmDelete = () => {
+    if (deleteTarget) {
+      setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setIsDeleteOpen(false);
       setDeleteTarget(null);
-      fetchSantri();
-    } catch (e) {
-      setError(e.message || 'Gagal menghapus data santri.');
-      setIsDeleteOpen(false);
     }
   };
 
-  // Submit Form
-  const handleSubmitForm = async (formData) => {
-    setError('');
-    try {
-      const isEdit = Boolean(editSantri?.id);
-      const fd = uiToFormData(formData, isEdit);
-      if (isEdit) await santriApi.update(editSantri.id, fd);
-      else await santriApi.store(fd);
-      setIsModalOpen(false);
-      fetchSantri();
-    } catch (e) {
-      setError(e.message || 'Gagal menyimpan data santri.');
+  // Submit Form (Single Add/Edit)
+  const handleSubmitForm = (formData) => {
+    if (editSantri && editSantri.id) {
+      // Edit existing
+      setSantriList(
+        santriList.map((s) => (s.id === editSantri.id ? { ...s, ...formData } : s))
+      );
+    } else {
+      // Add new
+      const newSantri = {
+        id: Date.now(),
+        nis: formData.nis || '',
+        nama: formData.nama || 'Santri Baru',
+        kelas: formData.kelas || 'VII A',
+        tglLahir: formData.tglLahir || '',
+        namaWali: formData.namaWali || '',
+        noHpWali: formData.noHpWali || '',
+        vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
+        vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
+        status: 'aktif',
+        saldo: 0,
+      };
+      setSantriList([newSantri, ...santriList]);
     }
+    setIsModalOpen(false);
   };
 
-  // Import Batch (xlsx)
-  const handleImportClick = () => importFileRef.current?.click();
-
-  const handleImportFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append('file', file);
-    setIsImporting(true);
-    setImportError('');
-    setImportReport(null);
-    try {
-      const report = await santriApi.import(fd);
-      setImportReport(report);
-      fetchSantri();
-    } catch (err) {
-      setImportError(err.message || 'Gagal mengimpor data santri.');
-    } finally {
-      setIsImporting(false);
-      if (importFileRef.current) importFileRef.current.value = '';
+  // Batch Upload Success Handler (Push data dari pop-up preview ke database/state)
+  const handleBatchUploadSuccess = (payload) => {
+    if (Array.isArray(payload)) {
+      setSantriList((prev) => [...payload, ...prev]);
+    } else if (payload && typeof payload === 'object') {
+      const { newSantri = [], updatedSantri = [] } = payload;
+      setSantriList((prev) => {
+        const updatedList = prev.map((item) => {
+          const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
+          return matchedUpdate ? { ...item, ...matchedUpdate } : item;
+        });
+        return [...newSantri, ...updatedList];
+      });
     }
   };
 
   return (
     <Layout pageTitle="Data Santri">
-      {/* Hidden file input untuk import batch */}
-      <input
-        ref={importFileRef}
-        type="file"
-        accept=".xlsx,.xls,.csv"
-        className="hidden"
-        onChange={handleImportFile}
-      />
-
       {/* Header Title & Subtitle */}
       <div className="report-header-card mb-6">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
           Manajemen Data Santri
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          Kelola data identitas, saldo, dan akun virtual seluruh santri pesantren
+          Kelola data identitas, kelas, wali, dan akun virtual seluruh santri pesantren
         </p>
       </div>
-
-      {error && (
-        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
-          {error}
-        </div>
-      )}
-
-      {importError && (
-        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
-          {importError}
-        </div>
-      )}
-
-      {importReport && (
-        <div className="mb-6 px-4 py-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900 rounded-2xl text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-          Import selesai: diproses {importReport.diproses ?? 0}, ditambah {importReport.ditambah ?? 0},
-          diupdate {importReport.diupdate ?? 0}, error {importReport.error ?? 0}.
-        </div>
-      )}
-
-      {isImporting && (
-        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
-          Mengimpor data santri...
-        </div>
-      )}
-
-      {loading && (
-        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
-          Memuat data santri...
-        </div>
-      )}
 
       {/* KPI Cards */}
       <SantriKpiCards
@@ -233,14 +196,26 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         totalSaldo={kpiStats.totalSaldo}
       />
 
-      {/* Filter Bar */}
+      {/* Filter Bar dengan Tombol Import Batch & Tambah Santri */}
       <SantriFilterBar
         search={search}
         onSearchChange={setSearch}
+        kelas={kelasFilter}
+        onKelasChange={setKelasFilter}
         status={statusFilter}
         onStatusChange={setStatusFilter}
         onAddSantri={handleAddSantri}
-        onImportSantri={handleImportClick}
+        onUploadBatch={() => setIsBatchUploadOpen(true)}
+        kelasOptions={kelasOptions}
+      />
+
+      {/* Batch Action Bar (Model B: Tampil tepat di atas tabel saat checkbox dicentang) */}
+      <BatchActionBar
+        selectedCount={selectedIds.length}
+        onClearSelection={() => setSelectedIds([])}
+        onBatchStatusChange={handleBatchStatusChange}
+        onBatchDelete={handleBatchDelete}
+        itemLabel="santri"
       />
 
       {/* Tabel Data Santri */}
@@ -249,6 +224,9 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         totalCount={santriList.length}
         activeCount={kpiStats.aktif}
         nonactiveCount={kpiStats.nonaktif}
+        selectedIds={selectedIds}
+        onToggleSelectAll={toggleSelectAll}
+        onToggleSelectRow={toggleSelectRow}
         onViewDetail={handleViewDetail}
         onEdit={handleEditSantri}
         onDelete={handleDeleteSantri}
@@ -275,7 +253,15 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         />
       )}
 
-      {/* Modal Konfirmasi Hapus Data Santri */}
+      {/* Modal Pop-Up Import Batch Santri dengan Fitur Preview, Edit, Delete, dan Handler Data Ganda */}
+      <SantriBatchUploadModal
+        isOpen={isBatchUploadOpen}
+        onClose={() => setIsBatchUploadOpen(false)}
+        onImportSuccess={handleBatchUploadSuccess}
+        existingSantriList={santriList}
+      />
+
+      {/* Modal Konfirmasi Hapus Single Data Santri */}
       {isDeleteOpen && deleteTarget && (
         <div
           className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
@@ -289,7 +275,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             style={{ padding: '44px 36px 36px 36px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Ikon Trash */}
             <div
               className="modal-badge-bounce rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center shrink-0 shadow-xs"
               style={{ width: '64px', height: '64px', marginBottom: '24px' }}
@@ -310,7 +295,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
               </svg>
             </div>
 
-            {/* Judul */}
             <h3
               className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
               style={{ fontSize: '22px', marginBottom: '10px' }}
@@ -318,7 +302,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
               Hapus Data Santri
             </h3>
 
-            {/* Deskripsi */}
             <p
               className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
               style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
@@ -326,13 +309,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
               Apakah Anda yakin ingin menghapus data santri <strong className="text-slate-900 dark:text-slate-100 font-bold">{deleteTarget.nama}</strong> (NIS: {deleteTarget.nis})? Tindakan ini tidak dapat dibatalkan.
             </p>
 
-            {/* Divider */}
             <div
               className="w-full border-t border-slate-200 dark:border-slate-800"
               style={{ marginBottom: '24px' }}
             />
 
-            {/* Tombol Aksi */}
             <div className="flex items-center w-full" style={{ gap: '14px' }}>
               <button
                 type="button"
@@ -352,6 +333,78 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus Massal (Batch Delete) */}
+      {isBatchDeleteOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsBatchDeleteOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '44px 36px 36px 36px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="modal-badge-bounce rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '24px' }}
+            >
+              <svg
+                className="text-rose-600 dark:text-rose-400"
+                style={{ width: '32px', height: '32px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </div>
+
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '10px' }}
+            >
+              Hapus {selectedIds.length} Santri Terpilih?
+            </h3>
+
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
+            >
+              Apakah Anda yakin ingin menghapus <strong className="text-rose-600 font-bold">{selectedIds.length} data santri</strong> sekaligus? Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            <div
+              className="w-full border-t border-slate-200 dark:border-slate-800"
+              style={{ marginBottom: '24px' }}
+            />
+
+            <div className="flex items-center w-full" style={{ gap: '14px' }}>
+              <button
+                type="button"
+                onClick={() => setIsBatchDeleteOpen(false)}
+                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                style={{ height: '50px', fontSize: '15px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmBatchDelete}
+                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                style={{ height: '50px', fontSize: '15px' }}
+              >
+                Ya, Hapus Semua
               </button>
             </div>
           </div>

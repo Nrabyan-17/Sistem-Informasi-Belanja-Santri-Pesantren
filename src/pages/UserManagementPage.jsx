@@ -1,43 +1,26 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import UserKpiCards from '../components/users/UserKpiCards';
 import UserFilterBar from '../components/users/UserFilterBar';
 import UserTable from '../components/users/UserTable';
 import UserModalForm from '../components/users/UserModalForm';
 import UserDetailModal from '../components/users/UserDetailModal';
-import { adminApi, staffApi, waliUserApi, santriApi } from '../utils/api';
-
-// API → bentuk yang dibaca komponen pengguna
-const roleToLabel = (role) =>
-  role === 'admin' ? 'Kabid BAK & Manajerial'
-    : role === 'staff' ? 'Staff Rumah Koin'
-      : role === 'wali' ? 'Wali Santri / Wali'
-        : role || '—';
-
-const apiToUi = (u) => {
-  const firstSantri = u.santris && u.santris[0];
-  return {
-    id: u.id,
-    nama: u.name,
-    username: u.username || '',
-    noHp: u.phone || '—',
-    role: roleToLabel(u.role),
-    userRole: u.role,
-    status: u.is_active ? 'Aktif' : 'Nonaktif',
-    loginTerakhir: '—',
-    nis: firstSantri?.nis || '—',
-    santri: (u.santris || []).map((s) => s.nama).join(', ') || '—',
-    noVa: firstSantri?.va_jajan || '—',
-  };
-};
+import BatchActionBar from '../components/common/BatchActionBar';
+import { mockUsers } from '../data/mockUsers';
 
 const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, category = 'all' }) => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [users, setUsers] = useState(mockUsers);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('Semua Role');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
+
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBatchDeleteOpen, setIsBatchDeleteOpen] = useState(false);
+
+  // Otomatis reset centang / multi-select saat berpindah sub-menu / kategori akun
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [category]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
@@ -47,31 +30,6 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  const categoryRole = category === 'admin' ? 'admin' : category === 'staff-koin' ? 'staff' : category === 'wali' ? 'wali' : null;
-
-  const fetchUsers = () => {
-    setLoading(true);
-    const fetchAll = () =>
-      Promise.all([
-        adminApi.list({ per_page: 100 }).then((r) => r.data || []),
-        staffApi.list({ per_page: 100 }).then((r) => r.data || []),
-        waliUserApi.list({ per_page: 100 }).then((r) => r.data || []),
-      ]).then(([admins, staffs, walis]) => [...admins, ...staffs, ...walis]);
-
-    const req =
-      category === 'admin' ? adminApi.list({ per_page: 100 }).then((r) => r.data || [])
-        : category === 'staff-koin' ? staffApi.list({ per_page: 100 }).then((r) => r.data || [])
-          : category === 'wali' ? waliUserApi.list({ per_page: 100 }).then((r) => r.data || [])
-            : fetchAll();
-
-    req
-      .then((list) => setUsers(list.map(apiToUi)))
-      .catch((e) => setError(e.message || 'Gagal memuat data pengguna.'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(fetchUsers, [category]);
 
   // Kategori data dasar berdasarkan sub-menu
   const categoryBaseUsers = useMemo(() => {
@@ -138,7 +96,12 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
   // Open modal for new user
   const handleAddUser = () => {
-    setEditUser({ role: categoryRole || 'staff', userRole: categoryRole || 'staff' });
+    let presetRole = 'staff';
+    if (category === 'admin') presetRole = 'kabid';
+    if (category === 'staff-koin') presetRole = 'staff';
+    if (category === 'wali') presetRole = 'wali';
+
+    setEditUser({ role: presetRole });
     setIsModalOpen(true);
   };
 
@@ -154,58 +117,83 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     setIsDeleteModalOpen(true);
   };
 
-  const apiByRole = (role) =>
-    role === 'admin' ? adminApi : role === 'staff' ? staffApi : waliUserApi;
-
-  const linkWaliByNis = async (waliId, nis) => {
-    try {
-      const santri = await santriApi.byNis(nis);
-      if (santri?.id) await waliUserApi.linkSantri(waliId, santri.id);
-    } catch (e) {
-      setError(`Akun wali dibuat, tapi NIS belum ditautkan: ${e.message}`);
+  // Confirm delete user handler
+  const confirmDeleteUser = () => {
+    if (deleteUserTarget) {
+      setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
+      setIsDeleteModalOpen(false);
+      setDeleteUserTarget(null);
     }
   };
 
-  // Confirm delete user handler
-  const confirmDeleteUser = async () => {
-    if (!deleteUserTarget) return;
-    setError('');
-    try {
-      await apiByRole(deleteUserTarget.userRole || categoryRole).destroy(deleteUserTarget.id);
-      setIsDeleteModalOpen(false);
-      setDeleteUserTarget(null);
-      fetchUsers();
-    } catch (e) {
-      setError(e.message || 'Gagal menghapus pengguna.');
-      setIsDeleteModalOpen(false);
+  // Hanya ID yang benar-benar ada di tabel sub-menu saat ini yang valid
+  const validSelectedIds = useMemo(() => {
+    const currentIds = new Set(filteredUsers.map((u) => u.id));
+    return selectedIds.filter((id) => currentIds.has(id));
+  }, [selectedIds, filteredUsers]);
+
+  // Multi-Select Handlers
+  const toggleSelectAll = () => {
+    if (validSelectedIds.length === filteredUsers.length && filteredUsers.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredUsers.map((u) => u.id));
     }
+  };
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchStatusChange = (status) => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        validSelectedIds.includes(u.id)
+          ? { ...u, status: status === 'aktif' ? 'Aktif' : 'Nonaktif' }
+          : u
+      )
+    );
+    setSelectedIds([]);
+  };
+
+  const handleBatchDelete = () => {
+    setIsBatchDeleteOpen(true);
+  };
+
+  const confirmBatchDelete = () => {
+    setUsers((prev) => prev.filter((u) => !validSelectedIds.includes(u.id)));
+    setSelectedIds([]);
+    setIsBatchDeleteOpen(false);
   };
 
   // Submit Handler for Modal Form
-  const handleSubmitForm = async (formData) => {
-    setError('');
-    const isEdit = Boolean(editUser?.id);
-    const payload = {
-      name: formData.nama,
-      username: formData.username,
-      phone: formData.noHp,
-      is_active: formData.status === 'aktif',
-    };
-    if (formData.password) payload.password = formData.password;
+  const handleSubmitForm = (formData) => {
+    if (editUser && editUser.id) {
+      // Edit existing user
+      setUsers(
+        users.map((u) => (u.id === editUser.id ? { ...u, ...formData } : u))
+      );
+    } else {
+      // Add new user
+      let assignedRole = formData.role || 'Staff Rumah Koin';
+      if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
+      if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
+      if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
 
-    try {
-      const targetRole = isEdit ? editUser.userRole : categoryRole || 'staff';
-      if (isEdit) {
-        await apiByRole(targetRole).update(editUser.id, payload);
-      } else {
-        const res = await apiByRole(targetRole).store(payload);
-        if (targetRole === 'wali' && formData.nis) await linkWaliByNis(res.id, formData.nis);
-      }
-      setIsModalOpen(false);
-      fetchUsers();
-    } catch (e) {
-      setError(e.message || 'Gagal menyimpan data pengguna.');
+      const newUser = {
+        id: Date.now(),
+        nama: formData.nama || 'Pengguna Baru',
+        noHp: formData.noHp || '081234567890',
+        role: assignedRole,
+        status: 'Aktif',
+        loginTerakhir: 'Baru saja',
+        nis: formData.nis || '—',
+      };
+      setUsers([newUser, ...users]);
     }
+    setIsModalOpen(false);
   };
 
   // Metadata Judul & Subtitle Halaman
@@ -256,18 +244,6 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         </p>
       </div>
 
-      {error && (
-        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
-          {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
-          Memuat data pengguna...
-        </div>
-      )}
-
       {/* 4 KPI Summary Cards Adaptif */}
       <UserKpiCards
         category={category}
@@ -290,6 +266,15 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         hideRoleFilter={category !== 'all'}
       />
 
+      {/* Batch Action Bar (Model B: Tampil tepat di atas tabel saat checkbox dicentang) */}
+      <BatchActionBar
+        selectedCount={validSelectedIds.length}
+        onClearSelection={() => setSelectedIds([])}
+        onBatchStatusChange={handleBatchStatusChange}
+        onBatchDelete={handleBatchDelete}
+        itemLabel={category === 'wali' ? 'wali santri' : 'pengguna'}
+      />
+
       {/* User Table Card */}
       <UserTable
         category={category}
@@ -297,6 +282,9 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         totalCount={categoryBaseUsers.length}
         activeCount={kpiStats.penggunaAktif}
         nonactiveCount={categoryBaseUsers.length - kpiStats.penggunaAktif}
+        selectedIds={validSelectedIds}
+        onToggleSelectAll={toggleSelectAll}
+        onToggleSelectRow={toggleSelectRow}
         onViewDetail={handleViewUserDetail}
         onEdit={handleEditUser}
         onDelete={isStaffVersion ? undefined : handleDeleteUser}
@@ -400,6 +388,78 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus Massal Akun (Batch Delete) */}
+      {isBatchDeleteOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsBatchDeleteOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '44px 36px 36px 36px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="modal-badge-bounce rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '24px' }}
+            >
+              <svg
+                className="text-rose-600 dark:text-rose-400"
+                style={{ width: '32px', height: '32px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </div>
+
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '10px' }}
+            >
+              Hapus {selectedIds.length} Akun Terpilih?
+            </h3>
+
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
+            >
+              Apakah Anda yakin ingin menghapus <strong className="text-rose-600 font-bold">{selectedIds.length} akun</strong> sekaligus? Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            <div
+              className="w-full border-t border-slate-200 dark:border-slate-800"
+              style={{ marginBottom: '24px' }}
+            />
+
+            <div className="flex items-center w-full" style={{ gap: '14px' }}>
+              <button
+                type="button"
+                onClick={() => setIsBatchDeleteOpen(false)}
+                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                style={{ height: '50px', fontSize: '15px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmBatchDelete}
+                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                style={{ height: '50px', fontSize: '15px' }}
+              >
+                Ya, Hapus Semua
               </button>
             </div>
           </div>

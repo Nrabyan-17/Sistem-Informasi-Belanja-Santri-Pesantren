@@ -4,14 +4,18 @@ import logoPesantren from '../../assets/logo-pesantren.png';
 import LogoutModal from '../common/LogoutModal';
 import { IconLogout } from '../common/Icons';
 
+// Global memory untuk mengingat status dropdown saat berpindah halaman antar-layout
+let globalDropdownMemory = {};
+
 // Sidebar Navigasi — dipakai oleh AdminLayout, StaffLayout, & WaliLayout
 const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadge = null }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  // Inisialisasi status dropdown langsung sejak render pertama agar tidak ada glitch animasi
+
+  // Inisialisasi status dropdown dari memori sebelumnya agar dapat menganimasikan penutupan saat pindah halaman
   const [openDropdowns, setOpenDropdowns] = useState(() => {
-    const initialOpen = {};
+    const initialOpen = { ...globalDropdownMemory };
     menuItems.forEach((item) => {
       if (item.subItems) {
         const isChildActive = item.subItems.some((sub) =>
@@ -23,35 +27,45 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
         }
       }
     });
+    globalDropdownMemory = { ...initialOpen };
     return initialOpen;
   });
 
-  // Auto-sync status dropdown dengan rute aktif saat berpindah rute
+  // Auto-sync status dropdown dengan rute aktif saat berpindah rute dengan animasi halus
   useEffect(() => {
-    setOpenDropdowns((prev) => {
-      const nextState = { ...prev };
-      menuItems.forEach((item) => {
-        if (item.subItems) {
-          const isChildActive = item.subItems.some((sub) =>
-            location.pathname.startsWith(`${basePath}${sub.path}`)
-          );
-          const isParentActive = location.pathname.startsWith(`${basePath}${item.path}`);
-          if (isChildActive || isParentActive) {
-            nextState[item.label] = true;
-          } else {
-            nextState[item.label] = false;
+    const timer = setTimeout(() => {
+      setOpenDropdowns((prev) => {
+        const nextState = { ...prev };
+        menuItems.forEach((item) => {
+          if (item.subItems) {
+            const isChildActive = item.subItems.some((sub) =>
+              location.pathname.startsWith(`${basePath}${sub.path}`)
+            );
+            const isParentActive = location.pathname.startsWith(`${basePath}${item.path}`);
+            if (isChildActive || isParentActive) {
+              nextState[item.label] = true;
+            } else {
+              nextState[item.label] = false;
+            }
           }
-        }
+        });
+        globalDropdownMemory = { ...nextState };
+        return nextState;
       });
-      return nextState;
-    });
+    }, 60);
+
+    return () => clearTimeout(timer);
   }, [location.pathname, menuItems, basePath]);
 
   const toggleDropdown = (label) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
+    setOpenDropdowns((prev) => {
+      const nextState = {
+        ...prev,
+        [label]: !prev[label],
+      };
+      globalDropdownMemory = { ...nextState };
+      return nextState;
+    });
   };
 
   const handleLogoutClick = () => {
@@ -169,7 +183,6 @@ const Sidebar = ({ collapsed, onToggle, menuItems = [], basePath = '/', userBadg
                 key={item.path}
                 to={`${basePath}${item.path}`}
                 end={item.path === '' || item.path === '/'}
-                onClick={() => setOpenDropdowns({})}
                 className={({ isActive }) =>
                   `nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                     isActive

@@ -14,23 +14,15 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Detail Data Santri"
-      subtitle="Informasi lengkap profil dan akun virtual santri."
+      subtitle="Informasi lengkap profil, wali, dan akun virtual santri."
     >
       <div className="flex flex-col gap-6 pt-1 pb-2">
 
         {/* ── Avatar & Identitas ─────────────────────────── */}
         <div className="flex items-center gap-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-          {santri.foto ? (
-            <img
-              src={santri.foto}
-              alt={santri.nama}
-              className="w-16 h-16 rounded-2xl object-cover border border-amber-200 dark:border-amber-800 shrink-0 shadow-md"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-2xl bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-2xl font-black text-white shrink-0 shadow-md">
-              {initialLetter}
-            </div>
-          )}
+          <div className="w-16 h-16 rounded-2xl bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-2xl font-black text-white shrink-0 shadow-md">
+            {initialLetter}
+          </div>
           <div className="flex flex-col gap-1.5 flex-1">
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
               {santri.nama}
@@ -42,6 +34,10 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
               <span>NIS: {santri.nis}</span>
             </div>
             <div className="flex items-center gap-2 mt-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
+                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                Kelas {santri.kelas}
+              </span>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                 santri.status === 'aktif'
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
@@ -80,6 +76,16 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
             </span>
           </div>
 
+          {/* Nama Wali */}
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              Nama Wali
+            </span>
+            <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {santri.namaWali || '—'}
+            </span>
+          </div>
+
           {/* VA Jajan */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
@@ -90,6 +96,15 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
             </span>
           </div>
 
+          {/* VA Tagihan */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              No. VA Tagihan (BNI)
+            </span>
+            <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 w-fit">
+              {santri.vaTagihan || '—'}
+            </span>
+          </div>
         </div>
 
         {/* ── Divider ─────────────────────────────────────── */}

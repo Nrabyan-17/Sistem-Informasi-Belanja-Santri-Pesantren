@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 // Tabel Daftar Pengguna Sistem
 const UserTable = ({
   category = 'all',
@@ -7,29 +5,15 @@ const UserTable = ({
   totalCount = 7,
   activeCount = 6,
   nonactiveCount = 1,
+  selectedIds = [],
+  onToggleSelectAll,
+  onToggleSelectRow,
   onViewDetail,
   onEdit,
   onDelete,
 }) => {
-  const [selectedIds, setSelectedIds] = useState([]);
-
   const isWaliCategory = category === 'wali';
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === data.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(data.map((d) => d.id));
-    }
-  };
-
-  const toggleSelectRow = (id) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter((item) => item !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
-    }
-  };
+  const allSelected = data.length > 0 && selectedIds.length === data.length;
 
   return (
     <div className="user-table-card">
@@ -49,8 +33,8 @@ const UserTable = ({
               <th className="w-10 text-center">
                 <input
                   type="checkbox"
-                  checked={data.length > 0 && selectedIds.length === data.length}
-                  onChange={toggleSelectAll}
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
                   className="user-checkbox"
                 />
               </th>
@@ -84,7 +68,7 @@ const UserTable = ({
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => toggleSelectRow(user.id)}
+                        onChange={() => onToggleSelectRow?.(user.id)}
                         className="user-checkbox"
                       />
                     </td>
@@ -93,14 +77,9 @@ const UserTable = ({
                         <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-700 group-hover:text-white transition-all shadow-2xs">
                           {(user.nama || 'U').charAt(0).toUpperCase()}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                            {user.nama}
-                          </span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-                            {user.noHp || user.telepon || '—'}
-                          </span>
-                        </div>
+                        <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                          {user.nama}
+                        </span>
                       </div>
                     </td>
                     {isWaliCategory ? (

@@ -1,34 +1,41 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { usePopup } from '../context/PopupContext';
 import logoPesantren from '../assets/logo-pesantren.png';
+import { IconEye, IconEyeOff } from '../components/common/Icons';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showPopup } = usePopup();
 
-  const [username, setUsername] = useState('');
+  const [noHp, setNoHp] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrorMsg('');
-    try {
-      const role = await login(username, password);
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'staff') navigate('/staff');
-      else if (role === 'wali') navigate('/wali');
-      else navigate('/');
-    } catch (err) {
-      setErrorMsg(err.message || 'Username atau password salah.');
-    } finally {
-      setIsLoading(false);
+    if (login) {
+      // Deteksi role berdasarkan input atau default ke admin
+      login({ noHp, role: 'admin', nama: 'Ustadzah Ina Wahdiah' });
     }
+    navigate('/admin');
+  };
+
+  const handleQuickLogin = (roleLabel, targetPath) => {
+    let role = 'admin';
+    let nama = 'Ustadzah Ina Wahdiah';
+    if (roleLabel === 'Staff Rumah Koin') {
+      role = 'staff';
+      nama = 'Ust. Miftahul Huda';
+    } else if (roleLabel === 'Wali Santri') {
+      role = 'wali';
+      nama = 'Bpk. Mahmud Fauzi';
+    }
+
+    if (login) {
+      login({ noHp: '081234567890', role, nama });
+    }
+    navigate(targetPath);
   };
 
   return (
@@ -52,9 +59,9 @@ const LoginPage = () => {
               <input
                 type="text"
                 className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="Masukkan username atau nomor handphone..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Masukkan username atau nomor HP..."
+                value={noHp}
+                onChange={(e) => setNoHp(e.target.value)}
                 required
               />
             </div>
@@ -68,35 +75,75 @@ const LoginPage = () => {
                   className="login-forgot-link text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors"
                   onClick={(e) => {
                     e.preventDefault();
-                    showPopup('Lupa Password', 'Silakan hubungi administrator untuk mereset password.', 'info');
+                    alert('Silakan hubungi administrator untuk mereset password.');
                   }}
                 >
                   Lupa password?
                 </a>
               </div>
-              <input
-                type="password"
-                className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="login-input w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-700 focus:outline-none transition-colors cursor-pointer flex items-center justify-center"
+                  title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                >
+                  {showPassword ? (
+                    <IconEyeOff className="w-5 h-5" />
+                  ) : (
+                    <IconEye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
-
-            {errorMsg && (
-              <p className="text-rose-600 text-sm font-semibold text-center mt-2">{errorMsg}</p>
-            )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="login-btn-submit w-full py-3.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-950/20 transition-all mt-1 cursor-pointer disabled:opacity-60"
+              className="login-btn-submit w-full py-3.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-950/20 transition-all mt-1 cursor-pointer"
             >
-              {isLoading ? 'Memproses...' : 'Masuk ke Sistem'}
+              Masuk ke Sistem
             </button>
           </form>
+
+          {/* Quick Login Section */}
+          <div className="login-quick-section mt-7 pt-6 border-t border-slate-100 flex flex-col gap-3 text-center">
+            <span className="login-quick-label text-xs font-bold text-slate-500">
+              Ingin login sebagai apa?
+            </span>
+            <div className="login-quick-grid grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                className="login-quick-btn py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 transition-all cursor-pointer"
+                onClick={() => handleQuickLogin('Kabid / Admin', '/admin')}
+              >
+                Kabid / Admin
+              </button>
+              <button
+                type="button"
+                className="login-quick-btn py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 transition-all cursor-pointer"
+                onClick={() => handleQuickLogin('Staff Rumah Koin', '/staff')}
+              >
+                Staff Rumah Koin
+              </button>
+            </div>
+            <button
+              type="button"
+              className="login-quick-btn login-quick-btn-full w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 transition-all cursor-pointer"
+              onClick={() => handleQuickLogin('Wali Santri', '/wali')}
+            >
+              Wali Santri
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
