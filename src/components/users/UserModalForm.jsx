@@ -73,21 +73,6 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           />
         </div>
 
-        {/* NO TELEPHONE / WA */}
-        <div className="form-group-section flex flex-col gap-1">
-          <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-            NO. TELEPHONE / WA
-          </label>
-          <input
-            type="tel"
-            className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-            placeholder="Contoh: 081234567890"
-            value={noHp}
-            onChange={(e) => setNoHp(e.target.value)}
-            required
-          />
-        </div>
-
         {/* TAUTAN NIS SANTRI (jika role wali atau santri) */}
         {(role === 'wali' || role === 'santri') && (
           <div className="form-group-section flex flex-col gap-1">
