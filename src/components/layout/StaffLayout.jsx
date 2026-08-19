@@ -6,7 +6,6 @@ import {
   IconTransaction,
   IconWallet,
   IconUpload,
-  IconReport,
 } from '../common/Icons';
 
 // Menu navigasi untuk Staff Rumah Koin dengan Ikon SVG Profesional
@@ -15,7 +14,6 @@ const staffMenuItems = [
   { path: '/transaksi', label: 'Transaksi',   icon: <IconTransaction /> },
   { path: '/topup',     label: 'Cek Saldo',   icon: <IconWallet /> },
   { path: '/upload-bni',label: 'Upload BNI',  icon: <IconUpload /> },
-  { path: '/laporan',   label: 'Laporan',     icon: <IconReport /> },
 ];
 
 // Layout Khusus Staff Kasir: Sidebar + Header + Konten Halaman

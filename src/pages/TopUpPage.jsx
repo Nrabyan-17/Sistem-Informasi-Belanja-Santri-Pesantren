@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
+import { useAuth } from '../context/AuthContext';
 
 const mockSantriList = [
   { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 15000 },
@@ -13,6 +14,9 @@ const mockSantriList = [
 ];
 
 const TopUpPage = ({ Layout = MainLayout }) => {
+  const { user } = useAuth();
+  const isStaff = user?.role === 'staff' || Layout !== MainLayout;
+
   const [santriList, setSantriList] = useState(mockSantriList);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
@@ -39,17 +43,26 @@ const TopUpPage = ({ Layout = MainLayout }) => {
     setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, foto: newPhoto } : prev));
   };
 
+  const handleAdjustSaldo = (santriId, newSaldo, historyItem) => {
+    setSantriList((prev) =>
+      prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
+    );
+    setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, saldo: newSaldo } : prev));
+  };
+
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
   return (
-    <Layout pageTitle="Penyesuaian Saldo">
+    <Layout pageTitle={isStaff ? 'Cek Saldo & Penyesuaian' : 'Detail Saldo Santri'}>
       {/* Header Title */}
       <div className="report-header-card mb-6">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
-          Penyesuaian Saldo
+          {isStaff ? 'Cek Saldo & Penyesuaian Santri' : 'Detail Saldo Santri'}
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Cek saldo santri dan penyesuaian (tambah/kurang)
+          {isStaff
+            ? 'Cek sisa saldo santri, penyesuaian manual (tambah/kurang), dan riwayat transaksi'
+            : 'Informasi sisa saldo dan pantau riwayat mutasi santri pesantren'}
         </p>
       </div>
 
@@ -152,13 +165,15 @@ const TopUpPage = ({ Layout = MainLayout }) => {
         </div>
       </div>
 
-      {/* Saldo Detail & Photo Management Modal */}
+      {/* Saldo Detail Modal (Penyesuaian Saldo untuk Staff Rumah Koin, Detail View untuk Admin) */}
       {selectedSantri && (
         <SaldoDetailModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           santri={selectedSantri}
           onUpdatePhoto={handleUpdatePhoto}
+          onAdjustSaldo={handleAdjustSaldo}
+          canAdjustSaldo={isStaff}
         />
       )}
     </Layout>

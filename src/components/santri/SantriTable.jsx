@@ -1,35 +1,20 @@
-import React, { useState } from 'react';
-
 // Tabel Daftar Data Santri Pesantren
 const SantriTable = ({
   data = [],
   totalCount = 0,
   activeCount = 0,
   nonactiveCount = 0,
+  selectedIds = [],
+  onToggleSelectAll,
+  onToggleSelectRow,
   onViewDetail,
   onEdit,
   onDelete,
 }) => {
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === data.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(data.map((d) => d.id));
-    }
-  };
-
-  const toggleSelectRow = (id) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter((item) => item !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
-    }
-  };
-
   const formatRupiah = (val) =>
     'Rp ' + Number(val).toLocaleString('id-ID');
+
+  const allSelected = data.length > 0 && selectedIds.length === data.length;
 
   return (
     <div className="user-table-card">
@@ -47,8 +32,8 @@ const SantriTable = ({
               <th className="w-10 text-center">
                 <input
                   type="checkbox"
-                  checked={data.length > 0 && selectedIds.length === data.length}
-                  onChange={toggleSelectAll}
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
                   className="user-checkbox"
                 />
               </th>
@@ -76,7 +61,7 @@ const SantriTable = ({
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => toggleSelectRow(santri.id)}
+                        onChange={() => onToggleSelectRow?.(santri.id)}
                         className="user-checkbox"
                       />
                     </td>
@@ -101,14 +86,9 @@ const SantriTable = ({
                       </span>
                     </td>
                     <td className="py-3">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                          {santri.namaWali || '—'}
-                        </span>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">
-                          {santri.noHpWali || '—'}
-                        </span>
-                      </div>
+                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                        {santri.namaWali || '—'}
+                      </span>
                     </td>
                     <td>
                       <span className="font-bold text-slate-900 dark:text-slate-100 text-sm font-mono">

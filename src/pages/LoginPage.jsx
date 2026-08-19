@@ -15,14 +15,25 @@ const LoginPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (login) {
-      login({ noHp, role: 'admin' });
+      // Deteksi role berdasarkan input atau default ke admin
+      login({ noHp, role: 'admin', nama: 'Ustadzah Ina Wahdiah' });
     }
     navigate('/admin');
   };
 
-  const handleQuickLogin = (role, targetPath) => {
+  const handleQuickLogin = (roleLabel, targetPath) => {
+    let role = 'admin';
+    let nama = 'Ustadzah Ina Wahdiah';
+    if (roleLabel === 'Staff Rumah Koin') {
+      role = 'staff';
+      nama = 'Ust. Miftahul Huda';
+    } else if (roleLabel === 'Wali Santri') {
+      role = 'wali';
+      nama = 'Bpk. Mahmud Fauzi';
+    }
+
     if (login) {
-      login({ noHp: '081234567890', role: role === 'Staff Rumah Koin' ? 'staff' : 'admin' });
+      login({ noHp: '081234567890', role, nama });
     }
     navigate(targetPath);
   };

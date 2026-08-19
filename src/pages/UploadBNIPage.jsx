@@ -92,8 +92,43 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [editingRowId, setEditingRowId] = useState(null);
+  const [editRowData, setEditRowData] = useState({});
 
   const fileInputRef = useRef(null);
+
+  const handleDeletePreviewRow = (id) => {
+    setParsedData((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleStartEditRow = (row) => {
+    setEditingRowId(row.id);
+    setEditRowData({ ...row });
+  };
+
+  const handleSaveEditRow = () => {
+    setParsedData((prev) =>
+      prev.map((item) => {
+        if (item.id === editingRowId) {
+          const isValid = editRowData.va && editRowData.va.length >= 8 && editRowData.nis && editRowData.nis !== '-';
+          return {
+            ...item,
+            ...editRowData,
+            nominal: Number(editRowData.nominal) || 0,
+            status: isValid ? 'valid' : 'invalid',
+          };
+        }
+        return item;
+      })
+    );
+    setEditingRowId(null);
+    setEditRowData({});
+  };
+
+  const handleCancelEditRow = () => {
+    setEditingRowId(null);
+    setEditRowData({});
+  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -374,50 +409,139 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
                       <th className="px-4 py-3">Tanggal Transaksi</th>
                       <th className="px-4 py-3">Nominal</th>
                       <th className="px-4 py-3">Status Validasi</th>
+                      <th className="px-4 py-3 text-center">Aksi Preview</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                     {displayedData.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center py-6 text-slate-400">
+                        <td colSpan="8" className="text-center py-6 text-slate-400">
                           Tidak ada data yang sesuai filter.
                         </td>
                       </tr>
                     ) : (
-                      displayedData.map((item, idx) => (
-                        <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="px-4 py-3 font-medium">{idx + 1}</td>
-                          <td className="px-4 py-3">
-                            <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-mono text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">
-                              {item.va}
-                            </code>
-                          </td>
-                          <td className="px-4 py-3 font-mono font-medium">{item.nis}</td>
-                          <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
-                            {item.nama}
-                            {item.billingId && (
-                              <span className="block text-[10px] text-slate-400 font-mono font-normal">
-                                {item.billingId}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{item.tanggal}</td>
-                          <td className="px-4 py-3 font-bold text-emerald-700 dark:text-emerald-400">
-                            + Rp {item.nominal.toLocaleString('id-ID')}
-                          </td>
-                          <td className="px-4 py-3">
-                            {item.status === 'valid' ? (
-                              <span className="inline-flex items-center bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full text-xs font-bold">
-                                Valid
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 px-3 py-1 rounded-full text-xs font-bold">
-                                VA Tidak Cocok
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                      displayedData.map((item, idx) => {
+                        const isEditing = editingRowId === item.id;
+
+                        if (isEditing) {
+                          return (
+                            <tr key={item.id} className="bg-emerald-50/70 dark:bg-emerald-950/40">
+                              <td className="px-4 py-3 font-medium">{idx + 1}</td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  className="w-full px-2 py-1 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-mono font-bold"
+                                  value={editRowData.va || ''}
+                                  onChange={(e) => setEditRowData({ ...editRowData, va: e.target.value })}
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  className="w-20 px-2 py-1 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-mono font-medium"
+                                  value={editRowData.nis || ''}
+                                  onChange={(e) => setEditRowData({ ...editRowData, nis: e.target.value })}
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  className="w-full px-2 py-1 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
+                                  value={editRowData.nama || ''}
+                                  onChange={(e) => setEditRowData({ ...editRowData, nama: e.target.value })}
+                                />
+                              </td>
+                              <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{item.tanggal}</td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number"
+                                  className="w-28 px-2 py-1 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold font-mono"
+                                  value={editRowData.nominal || 0}
+                                  onChange={(e) => setEditRowData({ ...editRowData, nominal: e.target.value })}
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="inline-flex items-center bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-full text-xs font-bold">
+                                  Mengedit
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={handleSaveEditRow}
+                                    className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer"
+                                  >
+                                    Simpan
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleCancelEditRow}
+                                    className="px-2.5 py-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-bold cursor-pointer"
+                                  >
+                                    Batal
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return (
+                          <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td className="px-4 py-3 font-medium">{idx + 1}</td>
+                            <td className="px-4 py-3">
+                              <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-mono text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700">
+                                {item.va}
+                              </code>
+                            </td>
+                            <td className="px-4 py-3 font-mono font-medium">{item.nis}</td>
+                            <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
+                              {item.nama}
+                              {item.billingId && (
+                                <span className="block text-[10px] text-slate-400 font-mono font-normal">
+                                  {item.billingId}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">{item.tanggal}</td>
+                            <td className="px-4 py-3 font-bold text-emerald-700 dark:text-emerald-400">
+                              + Rp {item.nominal.toLocaleString('id-ID')}
+                            </td>
+                            <td className="px-4 py-3">
+                              {item.status === 'valid' ? (
+                                <span className="inline-flex items-center bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full text-xs font-bold">
+                                  Valid
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 px-3 py-1 rounded-full text-xs font-bold">
+                                  VA Tidak Cocok
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEditRow(item)}
+                                  className="px-2.5 py-1 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                  title="Edit data baris ini"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePreviewRow(item.id)}
+                                  className="px-2.5 py-1 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                  title="Hapus baris ini sebelum disimpan"
+                                >
+                                  Hapus
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

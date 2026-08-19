@@ -77,22 +77,12 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
           </div>
 
           {/* Nama Wali */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               Nama Wali
             </span>
             <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {santri.namaWali || '—'}
-            </span>
-          </div>
-
-          {/* No HP Wali */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              No. HP / WA Wali
-            </span>
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 font-mono">
-              {santri.noHpWali || '—'}
             </span>
           </div>
 

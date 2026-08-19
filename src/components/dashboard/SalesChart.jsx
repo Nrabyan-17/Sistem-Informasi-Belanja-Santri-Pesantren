@@ -95,7 +95,7 @@ const SalesChart = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <h3 className="chart-title text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            📈 Grafik Penarikan Koin Santri
+            Grafik Penarikan Koin Santri
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
             {timeframe === 'mingguan' && 'Aktivitas penarikan koin harian minggu ini'}
