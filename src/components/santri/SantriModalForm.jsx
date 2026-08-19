@@ -117,28 +117,16 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </div>
         </div>
 
-        {/* NAMA WALI & NO HP WALI — 2 kolom */}
-        <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="form-group-section flex flex-col gap-1">
-            <label className={labelClass}>NAMA WALI</label>
-            <input
-              type="text"
-              className={inputClass}
-              placeholder="Contoh: Bpk. Hendra Setiawan"
-              value={namaWali}
-              onChange={(e) => setNamaWali(e.target.value)}
-            />
-          </div>
-          <div className="form-group-section flex flex-col gap-1">
-            <label className={labelClass}>NO. HP / WA WALI</label>
-            <input
-              type="tel"
-              className={inputClass}
-              placeholder="Contoh: 0812-3456-7894"
-              value={noHpWali}
-              onChange={(e) => setNoHpWali(e.target.value)}
-            />
-          </div>
+        {/* NAMA WALI */}
+        <div className="form-group-section flex flex-col gap-1">
+          <label className={labelClass}>NAMA WALI</label>
+          <input
+            type="text"
+            className={inputClass}
+            placeholder="Contoh: Bpk. Hendra Setiawan"
+            value={namaWali}
+            onChange={(e) => setNamaWali(e.target.value)}
+          />
         </div>
 
         {/* VA JAJAN & VA TAGIHAN — 2 kolom, status Read-Only (Terkunci) */}
