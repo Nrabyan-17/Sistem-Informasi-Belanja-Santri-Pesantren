@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -56,3 +56,17 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+const ROLE_LABEL = {
+  admin: 'Administrator',
+  staff: 'Staff Rumah Koin',
+  wali: 'Wali Santri',
+};
+
+export const buildUserBadge = (user) =>
+  user
+    ? {
+        name: user.nama || user.name || '—',
+        role: user.jabatan || ROLE_LABEL[user.role] || '—',
+      }
+    : null;

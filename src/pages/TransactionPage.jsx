@@ -1,21 +1,47 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import TransactionFilterBar from '../components/transactions/TransactionFilterBar';
 import TransactionKpiCards from '../components/transactions/TransactionKpiCards';
 import TransactionTable from '../components/transactions/TransactionTable';
 import StaffCoinWithdrawalForm from '../components/transactions/StaffCoinWithdrawalForm';
-import { mockTransactions } from '../data/mockTransactions';
+import { transactionApi } from '../utils/api';
+
+// API → bentuk yang dibaca komponen transaksi
+const apiToUi = (t) => ({
+  id: t.id,
+  tanggal: t.created_at ? t.created_at.slice(0, 10) : '',
+  nis: t.santri?.nis || '',
+  namaSantri: t.santri?.nama || '—',
+  jenis: t.tipe === 'topup' ? 'Masuk' : 'Keluar',
+  kategori: t.tipe === 'topup' ? 'Top Up' : 'Penarikan Koin',
+  nominal: Math.abs(t.nominal || 0),
+  staff: t.created_by?.name || '—',
+  status: 'sukses',
+});
 
 const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
-  const [transactions, setTransactions] = useState(mockTransactions);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [jenis, setJenis] = useState('Semua'); // 'Semua' | 'Masuk' | 'Keluar'
   const [dari, setDari] = useState('');
   const [sampai, setSampai] = useState('');
 
+  const fetchTransactions = () => {
+    setLoading(true);
+    transactionApi
+      .list({ per_page: 100 })
+      .then((res) => setTransactions((res.data || []).map(apiToUi)))
+      .catch((e) => setError(e.message || 'Gagal memuat data transaksi.'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(fetchTransactions, []);
+
   // Handle new withdrawal from Staff form
-  const handleNewWithdrawal = (newTx) => {
-    setTransactions([newTx, ...transactions]);
+  const handleNewWithdrawal = (res) => {
+    if (res?.transaction) setTransactions((prev) => [apiToUi(res.transaction), ...prev]);
   };
 
   // Filter Data Transaksi
@@ -70,31 +96,16 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
     };
   }, [filteredData]);
 
-  // Export .xlsx
+  // Export .xlsx via API
   const handleExportXLSX = () => {
-    const headers = ['No', 'Tanggal', 'NIS', 'Nama Santri', 'Kategori', 'Jenis', 'Nominal', 'Staff', 'Status'];
-    const rows = filteredData.map((item, idx) => [
-      idx + 1,
-      item.tanggal,
-      item.nis || '-',
-      `"${item.namaSantri}"`,
-      item.kategori,
-      item.jenis || (item.kategori === 'Top Up' ? 'Masuk' : 'Keluar'),
-      item.nominal,
-      `"${item.staff || 'Ust. Miftahul Huda'}"`,
-      item.status,
-    ]);
-
-    const csvContent =
-      'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `transaksi_santri_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    transactionApi
+      .export({
+        search: search || undefined,
+        kategori: jenis !== 'Semua' ? (jenis === 'Masuk' ? 'topup' : 'tarik_koin') : undefined,
+        dari: dari || undefined,
+        sampai: sampai || undefined,
+      })
+      .catch((e) => setError(e.message || 'Gagal mengekspor data transaksi.'));
   };
 
   return (
@@ -110,6 +121,18 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
             : "Pantau dan kelola seluruh riwayat transaksi masuk dan keluar"}
         </p>
       </div>
+
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Memuat data transaksi...
+        </div>
+      )}
 
       {/* 1. Filter Card Bar (CARI SANTRI, JENIS, DARI, SAMPAI, Ekspor .xlsx) */}
       <TransactionFilterBar

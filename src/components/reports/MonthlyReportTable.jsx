@@ -58,7 +58,7 @@ const MonthlyReportTable = ({
                     {row.jmlTrx} transaksi
                   </td>
                   <td className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                    {row.staff || 'Ust. Miftahul Huda'}
+                    {row.staff || '—'}
                   </td>
                   <td>
                     <span

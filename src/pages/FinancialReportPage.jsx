@@ -1,58 +1,52 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import FinancialSummaryCards from '../components/reports/FinancialSummaryCards';
 import ExportButtons from '../components/reports/ExportButtons';
 import MonthlyReportTable from '../components/reports/MonthlyReportTable';
-
-const mockMonthlyData = [
-  { periode: 'Agustus 2025', totalMasuk: 1225000, totalKeluar: 90000, net: 1135000, jmlTrx: 12, staff: 'Ust. Miftahul Huda', status: 'Berjalan' },
-  { periode: 'Juli 2025',    totalMasuk: 3110000, totalKeluar: 480000, net: 2630000, jmlTrx: 87, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
-  { periode: 'Juni 2025',    totalMasuk: 2840000, totalKeluar: 510000, net: 2330000, jmlTrx: 79, staff: 'Ust. Miftahul Huda', status: 'Selesai' },
-  { periode: 'Mei 2025',     totalMasuk: 3450000, totalKeluar: 600000, net: 2850000, jmlTrx: 95, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
-  { periode: 'April 2025',   totalMasuk: 2620000, totalKeluar: 390000, net: 2230000, jmlTrx: 63, staff: 'Ust. Miftahul Huda', status: 'Selesai' },
-  { periode: 'Maret 2025',   totalMasuk: 2980000, totalKeluar: 450000, net: 2530000, jmlTrx: 72, staff: 'Ust. Ahmad Ridwan', status: 'Selesai' },
-];
+import { reportApi, dashboardApi } from '../utils/api';
 
 const FinancialReportPage = ({ Layout = MainLayout }) => {
-  const [selectedMonth, setSelectedMonth] = useState('Agustus 2025');
-  const totalSaldoAktif = 10000000;
+  const [rows, setRows] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [totalSaldoAktif, setTotalSaldoAktif] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    Promise.all([reportApi.summary(), dashboardApi.get()])
+      .then(([sum, dash]) => {
+        const list = (sum.data || []).map((m) => ({
+          periode: m.label,
+          bulan: m.bulan,
+          totalMasuk: m.pemasukan,
+          totalKeluar: m.pengeluaran,
+          net: m.net,
+          jmlTrx: m.jumlah_transaksi ?? 0,
+          staff: m.staff || '\u2014',
+          status: m.status || 'Selesai',
+        }));
+        setRows(list);
+        if (list.length) setSelectedMonth(list[0].periode);
+        setTotalSaldoAktif(dash?.total_saldo ?? 0);
+      })
+      .catch((e) => setError(e.message || 'Gagal memuat laporan.'))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Active month data item
   const activeMonthReport = useMemo(() => {
-    return (
-      mockMonthlyData.find((d) => d.periode === selectedMonth) || mockMonthlyData[0]
-    );
-  }, [selectedMonth]);
+    return rows.find((d) => d.periode === selectedMonth) || rows[0];
+  }, [rows, selectedMonth]);
 
   // Export PDF Handler
   const handleExportPDF = () => {
     window.print();
   };
 
-  // Export Excel Handler
+  // Export Excel Handler (via API)
   const handleExportExcel = () => {
-    const headers = ['Periode', 'Total Masuk', 'Total Keluar', 'Selisih Dana', 'Jumlah Transaksi', 'Staff Petugas', 'Status'];
-    const rows = mockMonthlyData.map((d) => [
-      d.periode,
-      d.totalMasuk,
-      d.totalKeluar,
-      d.net,
-      d.jmlTrx,
-      `"${d.staff || 'Ust. Miftahul Huda'}"`,
-      d.status,
-    ]);
-
-    const csvContent =
-      'data:text/csv;charset=utf-8,\uFEFF' +
-      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `rekap_laporan_keuangan_${selectedMonth.replace(' ', '_')}.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const bulan = rows.find((r) => r.periode === selectedMonth)?.bulan;
+    reportApi.export(bulan).catch((e) => setError(e.message || 'Gagal mengekspor laporan.'));
   };
 
   return (
@@ -72,29 +66,45 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
         <ExportButtons
           selectedMonth={selectedMonth}
           onMonthChange={setSelectedMonth}
-          months={mockMonthlyData.map((m) => m.periode)}
+          months={rows.map((m) => m.periode)}
           onExportPDF={handleExportPDF}
           onExportExcel={handleExportExcel}
         />
       </div>
 
-      {/* KPI Ringkasan 4 Kartu */}
-      <FinancialSummaryCards
-        totalSaldo={totalSaldoAktif}
-        totalMasuk={activeMonthReport.totalMasuk}
-        totalKeluar={activeMonthReport.totalKeluar}
-        netBulanIni={activeMonthReport.net}
-        selectedMonth={selectedMonth}
-      />
+      {error && (
+        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
+      )}
 
-      {/* Tabel Rekap Laporan Bulanan */}
-      <MonthlyReportTable
-        data={mockMonthlyData}
-        selectedMonth={selectedMonth}
-        onSelectMonth={setSelectedMonth}
-        onDownloadRowPDF={handleExportPDF}
-        onDownloadRowExcel={handleExportExcel}
-      />
+      {loading && (
+        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+          Memuat laporan keuangan...
+        </div>
+      )}
+
+      {!loading && rows.length > 0 && (
+        <>
+          {/* KPI Ringkasan 4 Kartu */}
+          <FinancialSummaryCards
+            totalSaldo={totalSaldoAktif}
+            totalMasuk={activeMonthReport.totalMasuk}
+            totalKeluar={activeMonthReport.totalKeluar}
+            netBulanIni={activeMonthReport.net}
+            selectedMonth={selectedMonth}
+          />
+
+          {/* Tabel Rekap Laporan Bulanan */}
+          <MonthlyReportTable
+            data={rows}
+            selectedMonth={selectedMonth}
+            onSelectMonth={setSelectedMonth}
+            onDownloadRowPDF={handleExportPDF}
+            onDownloadRowExcel={handleExportExcel}
+          />
+        </>
+      )}
     </Layout>
   );
 };
