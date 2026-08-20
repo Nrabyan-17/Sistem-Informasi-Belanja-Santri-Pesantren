@@ -25,7 +25,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
   const [customNis, setCustomNis] = useState('');
   const [nominal, setNominal] = useState('');
-  const [keterangan, setKeterangan] = useState('Penarikan Koin (Rumah Koin)');
   const [isSuccessModal, setIsSuccessModal] = useState(false);
   const [isInsufficientModal, setIsInsufficientModal] = useState(false);
   const [insufficientData, setInsufficientData] = useState(null);
@@ -37,8 +36,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     nama: 'Santri Terpilih',
     saldo: 100000,
   };
-
-  const quickAmounts = [5000, 10000, 20000, 30000];
 
   const handleProcessWithdrawal = (e) => {
     e.preventDefault();
@@ -211,56 +208,20 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
           {/* Right Column: Nominal Penarikan & Action */}
           <div className="lg:col-span-7 flex flex-col gap-6">
-            <div className="form-group flex flex-col gap-2.5">
+            <div className="form-group flex flex-col gap-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                <span>Pilih Nominal Penarikan (Cepat)</span>
+                <span>Nominal Penarikan (RP)</span>
                 <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb</span>
               </label>
-              <div className="grid grid-cols-4 gap-3 max-w-lg sm:max-w-xl">
-                {quickAmounts.map((amt) => (
-                  <button
-                    type="button"
-                    key={amt}
-                    onClick={() => setNominal(amt.toString())}
-                    className={`quick-amt-btn h-12 sm:h-13 py-3 px-2 rounded-xl text-xs sm:text-sm font-extrabold border transition-all cursor-pointer flex items-center justify-center ${
-                      nominal === amt.toString()
-                        ? 'quick-amt-btn--active bg-[#0e5d26] text-white border-[#0e5d26] shadow-sm scale-[1.02]'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {amt >= 1000 ? `${amt / 1000}rb` : amt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="form-group flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  Nominal Penarikan (RP)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Contoh: 30000"
-                  max="30000"
-                  value={nominal}
-                  onChange={(e) => setNominal(e.target.value)}
-                  className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
-                  required
-                />
-              </div>
-
-              <div className="form-group flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  Keterangan
-                </label>
-                <input
-                  type="text"
-                  value={keterangan}
-                  onChange={(e) => setKeterangan(e.target.value)}
-                  className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-600"
-                />
-              </div>
+              <input
+                type="number"
+                placeholder="Contoh: 30000"
+                max="30000"
+                value={nominal}
+                onChange={(e) => setNominal(e.target.value)}
+                className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
+                required
+              />
             </div>
 
             {/* Pengingat Batas Penarikan Santri (Tanpa Background) */}
