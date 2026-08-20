@@ -1,26 +1,35 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePopup } from '../context/PopupContext';
 import logoPesantren from '../assets/logo-pesantren.png';
-import { IconEye, IconEyeOff } from '../components/common/Icons';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showPopup } = usePopup();
 
-  const [noHp, setNoHp] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (login) {
-      // Deteksi role berdasarkan input atau default ke admin
-      login({ noHp, role: 'admin', nama: 'Ustadzah Ina Wahdiah' });
+    setIsLoading(true);
+    setErrorMsg('');
+    try {
+      const role = await login(username, password);
+      if (role === 'admin') navigate('/admin');
+      else if (role === 'staff') navigate('/staff');
+      else if (role === 'wali') navigate('/wali');
+      else navigate('/');
+    } catch (err) {
+      setErrorMsg(err.message || 'Username atau password salah.');
+    } finally {
+      setIsLoading(false);
     }
-    navigate('/admin');
   };
-
 
   return (
     <div className="login-page min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -37,15 +46,15 @@ const LoginPage = () => {
         {/* Form Card */}
         <div className="login-card bg-white w-full rounded-3xl p-7 sm:p-9 border border-slate-200 shadow-xl">
           <form onSubmit={handleSubmit} className="login-form flex flex-col gap-5">
-            {/* Username / Nomor Handphone Input */}
+            {/* NIP / Username / NIS Input */}
             <div className="login-form-group flex flex-col gap-2">
-              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">USERNAME / NOMOR HP</label>
+              <label className="login-label text-xs font-bold tracking-wider text-slate-500 uppercase">NIP / USERNAME / NIS</label>
               <input
                 type="text"
                 className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                placeholder="Masukkan username atau nomor HP..."
-                value={noHp}
-                onChange={(e) => setNoHp(e.target.value)}
+                placeholder="Masukkan NIP, username, atau NIS santri..."
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
@@ -59,46 +68,35 @@ const LoginPage = () => {
                   className="login-forgot-link text-xs font-semibold text-emerald-700 hover:text-emerald-900 hover:underline transition-colors"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert('Silakan hubungi administrator untuk mereset password.');
+                    showPopup('Lupa Password', 'Silakan hubungi administrator untuk mereset password.', 'info');
                   }}
                 >
                   Lupa password?
                 </a>
               </div>
-              <div className="relative flex items-center">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className="login-input w-full px-4 py-3 pr-12 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3.5 p-1 text-slate-400 hover:text-slate-700 focus:outline-none transition-colors cursor-pointer flex items-center justify-center"
-                  title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
-                  aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
-                >
-                  {showPassword ? (
-                    <IconEyeOff className="w-5 h-5" />
-                  ) : (
-                    <IconEye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <input
+                type="password"
+                className="login-input w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:border-emerald-600 focus:bg-white focus:ring-3 focus:ring-emerald-600/10 transition-all"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
+
+            {errorMsg && (
+              <p className="text-rose-600 text-sm font-semibold text-center mt-2">{errorMsg}</p>
+            )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="login-btn-submit w-full py-3.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-950/20 transition-all mt-1 cursor-pointer"
+              disabled={isLoading}
+              className="login-btn-submit w-full py-3.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-950/20 transition-all mt-1 cursor-pointer disabled:opacity-60"
             >
-              Masuk ke Sistem
+              {isLoading ? 'Memproses...' : 'Masuk ke Sistem'}
             </button>
           </form>
-
         </div>
 
         {/* Footer */}
