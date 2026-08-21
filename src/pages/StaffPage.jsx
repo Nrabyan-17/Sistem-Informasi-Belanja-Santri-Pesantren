@@ -150,7 +150,13 @@ const StaffPage = () => {
       </div>
 
       {/* Tabel Staff */}
-      <StaffTable data={filteredStaff} onEdit={handleEdit} onDelete={handleDelete} />
+      <StaffTable
+        loading={loading}
+        loadingText="Memuat data Staff..."
+        data={filteredStaff}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       {/* Modal Form */}
       <StaffModalForm

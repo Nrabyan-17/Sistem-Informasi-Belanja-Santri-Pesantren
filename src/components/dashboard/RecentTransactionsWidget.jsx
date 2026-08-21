@@ -1,13 +1,5 @@
-// Widget Transaksi Terbaru untuk Halaman Dashboard Utama
 const RecentTransactionsWidget = ({ transactions = [] }) => {
-  const defaultList = [
-    { id: 1, namaSantri: 'Ahmad Fauzi', nis: '2024001', waktu: '10:45 WIB', nominal: 9000, kategori: 'Penarikan Koin' },
-    { id: 2, namaSantri: 'Budi Santoso', nis: '2024004', waktu: '10:30 WIB', nominal: 15000, kategori: 'Penarikan Koin' },
-    { id: 3, namaSantri: 'Muhammad Rizki', nis: '2024003', waktu: '09:15 WIB', nominal: 30000, kategori: 'Penarikan Koin' },
-    { id: 4, namaSantri: 'Zainab Mustafa', nis: '2024007', waktu: '08:50 WIB', nominal: 50000, kategori: 'Isi Saldo VA' },
-  ];
-
-  const data = transactions.length > 0 ? transactions : defaultList;
+  const data = Array.isArray(transactions) ? transactions : [];
 
   return (
     <div className="recent-transactions bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs">

@@ -6,25 +6,42 @@ import UserTable from '../components/users/UserTable';
 import UserModalForm from '../components/users/UserModalForm';
 import UserDetailModal from '../components/users/UserDetailModal';
 import BatchActionBar from '../components/common/BatchActionBar';
-import { mockUsers } from '../data/mockUsers';
 import { adminApi, staffApi, waliUserApi } from '../utils/api';
+
+const getInitials = (name) => {
+  if (!name) return 'U';
+  const clean = name.replace(/^(Bpk\.|Ibu\.|Ust\.|Usth\.|dr\.|H\.|Hj\.)\s*/i, '').trim();
+  const parts = clean.split(' ').filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return clean.slice(0, 2).toUpperCase() || 'U';
+};
+
+const normalizeRole = (role, defaultRole) => {
+  const r = String(role || defaultRole || '').toLowerCase();
+  if (r.includes('kabid') || r === 'admin') return 'Kabid BAK & Manajerial';
+  if (r.includes('staff') || r.includes('kasir') || r.includes('koin')) return 'Staff Rumah Koin';
+  if (r.includes('wali')) return 'Wali Santri / Wali';
+  return defaultRole || 'Staff Rumah Koin';
+};
 
 const mapUserFromApi = (item, defaultRole) => ({
   id: item.id,
   nama: item.name || item.nama || '—',
   username: item.username || '',
-  role: item.role || defaultRole || 'Staff Rumah Koin',
+  role: normalizeRole(item.role, defaultRole),
   noHp: item.no_hp || item.phone || item.noHp || '—',
   email: item.email || '—',
-  status: item.is_active === 0 ? 'Non-Aktif' : (item.status || 'Aktif'),
-  createdDate: item.created_at ? item.created_at.slice(0, 10) : '2026-08-01',
+  status: item.is_active === 0 || item.is_active === false ? 'Non-Aktif' : (item.status || 'Aktif'),
+  createdDate: item.created_at ? item.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
   lastLogin: item.last_login || 'Baru saja',
   santriLinked: item.santris ? item.santris.map(s => s.nama).join(', ') : (item.santri_name || '—'),
   nis: item.santris && item.santris[0] ? item.santris[0].nis : (item.nis || ''),
 });
 
 const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, category = 'all' }) => {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('Semua Role');
@@ -64,12 +81,23 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
       .finally(() => setLoading(false));
   };
 
+  // Label memuat data dinamis sesuai sub-kategori akun yang sedang dibuka
+  const loadingLabel = useMemo(() => {
+    switch (category) {
+      case 'admin':
+        return 'Memuat data Admin...';
+      case 'staff-koin':
+        return 'Memuat data Staff...';
+      case 'wali':
+        return 'Memuat data Wali Santri...';
+      default:
+        return 'Memuat data Pengguna...';
+    }
+  }, [category]);
+
+  // Otomatis muat data baru dan reset centang saat berpindah sub-menu / kategori akun
   useEffect(() => {
     fetchUsers();
-  }, []);
-
-  // Otomatis reset centang / multi-select saat berpindah sub-menu / kategori akun
-  useEffect(() => {
     setSelectedIds([]);
   }, [category]);
 
@@ -282,73 +310,91 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   };
 
   // Submit Handler for Modal Form
-  const handleSubmitForm = (formData) => {
+  const handleSubmitForm = async (formData) => {
+    let assignedRole = formData.role || (editUser ? editUser.role : 'Staff Rumah Koin');
+    if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
+    if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
+    if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
+    if (formData.role === 'santri') assignedRole = 'Santri';
+
+    const isActiveBool = formData.status === 'aktif' || formData.status === 'Aktif' || formData.status === true;
+    const generatedUsername = formData.username || (formData.nama ? formData.nama.toLowerCase().replace(/[^a-z0-9]/g, '') : `user_${Date.now()}`);
+
+    const apiPayload = {
+      name: formData.nama || formData.name || 'Pengguna Baru',
+      username: generatedUsername,
+      phone: formData.noHp || formData.phone || '',
+      nip: formData.nip || '',
+      jabatan: assignedRole,
+      is_active: isActiveBool,
+      ...(formData.password ? { password: formData.password } : {}),
+    };
+
     if (editUser && editUser.id) {
       // Edit existing user
-      let assignedRole = formData.role || editUser.role || 'Staff Rumah Koin';
-      if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
-      if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
-      if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
-      if (formData.role === 'santri') assignedRole = 'Santri';
+      try {
+        if (assignedRole === 'Kabid BAK & Manajerial' || assignedRole === 'admin') {
+          await adminApi.update(editUser.id, apiPayload);
+        } else if (assignedRole === 'Staff Rumah Koin' || assignedRole === 'staff') {
+          await staffApi.update(editUser.id, apiPayload);
+        } else if (assignedRole === 'Wali Santri / Wali' || assignedRole === 'wali') {
+          await waliUserApi.update(editUser.id, apiPayload);
+        }
+      } catch (err) {
+        console.warn('Gagal update user ke server:', err.message);
+      }
 
       const updatedUser = {
         ...editUser,
         ...formData,
+        nama: apiPayload.name,
+        username: apiPayload.username,
+        noHp: apiPayload.phone,
         role: assignedRole,
-        status: formData.status ? (formData.status === 'aktif' ? 'Aktif' : 'Non-Aktif') : editUser.status,
+        status: isActiveBool ? 'Aktif' : 'Non-Aktif',
       };
 
-      // Call API to persist changes
-      if (assignedRole === 'Kabid BAK & Manajerial') {
-        adminApi.update(editUser.id, updatedUser).catch(() => {});
-      } else if (assignedRole === 'Staff Rumah Koin') {
-        staffApi.update(editUser.id, updatedUser).catch(() => {});
-      } else if (assignedRole === 'Wali Santri / Wali') {
-        waliUserApi.update(editUser.id, updatedUser).catch(() => {});
-      }
-
-      setUsers(
-        users.map((u) => (u.id === editUser.id ? updatedUser : u))
-      );
+      setUsers((prev) => prev.map((u) => (u.id === editUser.id ? updatedUser : u)));
       setIsModalOpen(false);
-
-      // Buka Pop-Up Form Data Pengguna Berhasil Diubah
       setEditedUserData(updatedUser);
       setIsSuccessEditedModalOpen(true);
     } else {
-      // Add new user
-      let assignedRole = formData.role || 'Staff Rumah Koin';
-      if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
-      if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
-      if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
-      if (formData.role === 'santri') assignedRole = 'Santri';
+      // Add new user (password default 123456 jika tidak diisi)
+      if (!apiPayload.password) {
+        apiPayload.password = 'password123';
+      }
 
-      const newUser = {
+      let createdUser = {
         id: Date.now(),
-        nama: formData.nama || 'Pengguna Baru',
-        noHp: formData.noHp || '081234567890',
+        nama: apiPayload.name,
+        username: apiPayload.username,
+        noHp: apiPayload.phone,
         role: assignedRole,
         status: 'Aktif',
         loginTerakhir: 'Baru saja',
         nis: formData.nis || '—',
-        username: formData.username || (formData.nama ? formData.nama.toLowerCase().replace(/\s+/g, '') : 'userbaru'),
         createdDate: new Date().toISOString().slice(0, 10),
       };
 
-      // Call API to persist new user
-      if (assignedRole === 'Kabid BAK & Manajerial') {
-        adminApi.store(newUser).catch(() => {});
-      } else if (assignedRole === 'Staff Rumah Koin') {
-        staffApi.store(newUser).catch(() => {});
-      } else if (assignedRole === 'Wali Santri / Wali') {
-        waliUserApi.store(newUser).catch(() => {});
+      try {
+        let res = null;
+        if (assignedRole === 'Kabid BAK & Manajerial' || assignedRole === 'admin') {
+          res = await adminApi.store(apiPayload);
+        } else if (assignedRole === 'Staff Rumah Koin' || assignedRole === 'staff') {
+          res = await staffApi.store(apiPayload);
+        } else if (assignedRole === 'Wali Santri / Wali' || assignedRole === 'wali') {
+          res = await waliUserApi.store(apiPayload);
+        }
+        if (res && res.data) {
+          createdUser = mapUserFromApi(res.data, assignedRole);
+        }
+      } catch (err) {
+        console.warn('Gagal simpan user ke server:', err.message);
       }
 
-      setUsers([newUser, ...users]);
+      setUsers((prev) => [createdUser, ...prev]);
       setIsModalOpen(false);
-
-      // Buka Pop-Up Form Pengguna Baru Berhasil Ditambahkan
-      setCreatedUserData(newUser);
+      setCreatedUserData(createdUser);
       setIsSuccessCreatedModalOpen(true);
     }
   };
@@ -435,6 +481,8 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
       {/* User Table Card */}
       <UserTable
         category={category}
+        loading={loading}
+        loadingText={loadingLabel}
         data={filteredUsers}
         totalCount={categoryBaseUsers.length}
         activeCount={kpiStats.penggunaAktif}
@@ -638,7 +686,7 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         </div>
       )}
 
-      {/* POP-UP FORM PENGGUNA BARU BERHASIL DITAMBAHKAN (Struktur Sesuai Modal Penarikan Koin & Upload BNI) */}
+      {/* POP-UP FORM PENGGUNA BARU BERHASIL DITAMBAHKAN */}
       {isSuccessCreatedModalOpen && createdUserData && (() => {
         const isStaffOrAdmin =
           createdUserData.role === 'Kabid BAK & Manajerial' ||
@@ -653,36 +701,52 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
             onClick={() => setIsSuccessCreatedModalOpen(false)}
           >
             <div
-              className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-              style={{ padding: '36px 28px 28px 28px' }}
+              className="success-modal-card modal-animate-pop"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Green Checkmark Badge Icon */}
-              <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
-                ✓
+              <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50/90 dark:ring-emerald-900/20">
+                <svg
+                  className="w-10 h-10 text-emerald-600 dark:text-emerald-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
               </div>
 
               {/* Title & Subtitle */}
               <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
-                Pengguna Baru Berhasil Ditambahkan!
+                Pengguna Berhasil Ditambahkan!
               </h3>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
-                Akun pengguna atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{createdUserData.nama}</strong> telah berhasil didaftarkan dan siap digunakan.
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2">
+                Akun atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{createdUserData.nama}</strong> telah berhasil didaftarkan ke dalam sistem.
               </p>
 
-              {/* Detail Breakdown Card dengan Spacing & Padding Teratur */}
-              <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Lengkap:</span>
-                  <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                    {createdUserData.nama}
-                  </strong>
+              {/* Detail Breakdown Card */}
+              <div className="success-modal-details">
+                <div className="success-modal-row items-center">
+                  <span className="success-modal-label">Pengguna:</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                      {getInitials(createdUserData.nama)}
+                    </div>
+                    <strong className="success-modal-value">
+                      {createdUserData.nama} {createdUserData.username ? `(@${createdUserData.username})` : ''}
+                    </strong>
+                  </div>
                 </div>
 
-                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                <div className="success-modal-divider"></div>
 
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Hak Akses / Role:</span>
+                <div className="success-modal-row">
+                  <span className="success-modal-label">Hak Akses / Role:</span>
                   <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
                     {createdUserData.role}
                   </span>
@@ -690,47 +754,49 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
                 {createdUserData.nis && createdUserData.nis !== '—' && (
                   <>
-                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                      <span className="text-slate-500 dark:text-slate-400 font-semibold">Tautan NIS Santri:</span>
-                      <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                    <div className="success-modal-divider"></div>
+                    <div className="success-modal-row">
+                      <span className="success-modal-label">Tautan NIS:</span>
+                      <strong className="success-modal-value font-mono text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                         {createdUserData.nis}
                       </strong>
                     </div>
                   </>
                 )}
 
-                {/* No. Handphone HANYA tampil untuk Wali & Santri (Dihilangkan untuk Admin & Staff Rumah Koin) */}
                 {!isStaffOrAdmin && createdUserData.noHp && createdUserData.noHp !== '—' && (
                   <>
-                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                      <span className="text-slate-500 dark:text-slate-400 font-semibold">No. Handphone:</span>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    <div className="success-modal-divider"></div>
+                    <div className="success-modal-row">
+                      <span className="success-modal-label">No. Handphone:</span>
+                      <span className="success-modal-value font-semibold">
                         {createdUserData.noHp}
                       </span>
                     </div>
                   </>
                 )}
 
-                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                <div className="success-modal-divider"></div>
 
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Akun:</span>
-                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                <div className="success-modal-row">
+                  <span className="success-modal-label">Status Akun:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Aktif &amp; Siap Diterapkan
+                    Aktif &amp; Siap Digunakan
                   </span>
                 </div>
               </div>
+
+              {/* Garis Pembatas */}
+              <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-6"></div>
 
               {/* Button Tutup & Selesai */}
               <button
                 type="button"
                 onClick={() => setIsSuccessCreatedModalOpen(false)}
-                className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+                className="w-full h-13 py-3.5 bg-[#0e5d26] hover:bg-[#0b471d] text-white font-extrabold rounded-xl text-sm sm:text-base shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center active:scale-[0.99]"
               >
-                Selesai &amp; Lihat Daftar Pengguna
+                Tutup &amp; Selesai
               </button>
             </div>
           </div>
@@ -752,36 +818,52 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
             onClick={() => setIsSuccessEditedModalOpen(false)}
           >
             <div
-              className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-              style={{ padding: '36px 28px 28px 28px' }}
+              className="success-modal-card modal-animate-pop"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Green Checkmark Badge Icon */}
-              <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
-                ✓
+              <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50/90 dark:ring-emerald-900/20">
+                <svg
+                  className="w-10 h-10 text-emerald-600 dark:text-emerald-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
               </div>
 
               {/* Title & Subtitle */}
               <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
                 Data Pengguna Berhasil Diubah!
               </h3>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2">
                 Perubahan data akun atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{editedUserData.nama}</strong> telah berhasil diperbarui ke dalam sistem.
               </p>
 
               {/* Detail Breakdown Card */}
-              <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Lengkap:</span>
-                  <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                    {editedUserData.nama}
-                  </strong>
+              <div className="success-modal-details">
+                <div className="success-modal-row items-center">
+                  <span className="success-modal-label">Pengguna:</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                      {getInitials(editedUserData.nama)}
+                    </div>
+                    <strong className="success-modal-value">
+                      {editedUserData.nama} {editedUserData.username ? `(@${editedUserData.username})` : ''}
+                    </strong>
+                  </div>
                 </div>
 
-                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                <div className="success-modal-divider"></div>
 
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Hak Akses / Role:</span>
+                <div className="success-modal-row">
+                  <span className="success-modal-label">Hak Akses / Role:</span>
                   <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
                     {editedUserData.role}
                   </span>
@@ -789,10 +871,10 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
                 {editedUserData.nis && editedUserData.nis !== '—' && (
                   <>
-                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                      <span className="text-slate-500 dark:text-slate-400 font-semibold">Tautan NIS Santri:</span>
-                      <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                    <div className="success-modal-divider"></div>
+                    <div className="success-modal-row">
+                      <span className="success-modal-label">Tautan NIS:</span>
+                      <strong className="success-modal-value font-mono text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                         {editedUserData.nis}
                       </strong>
                     </div>
@@ -801,34 +883,37 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
                 {!isStaffOrAdmin && editedUserData.noHp && editedUserData.noHp !== '—' && (
                   <>
-                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                      <span className="text-slate-500 dark:text-slate-400 font-semibold">No. Handphone:</span>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    <div className="success-modal-divider"></div>
+                    <div className="success-modal-row">
+                      <span className="success-modal-label">No. Handphone:</span>
+                      <span className="success-modal-value font-semibold">
                         {editedUserData.noHp}
                       </span>
                     </div>
                   </>
                 )}
 
-                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                <div className="success-modal-divider"></div>
 
-                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Perubahan:</span>
-                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                <div className="success-modal-row">
+                  <span className="success-modal-label">Status:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     Perubahan Tersimpan
                   </span>
                 </div>
               </div>
 
-              {/* Button Tutup */}
+              {/* Garis Pembatas */}
+              <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-6"></div>
+
+              {/* Button Tutup & Selesai */}
               <button
                 type="button"
                 onClick={() => setIsSuccessEditedModalOpen(false)}
-                className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+                className="w-full h-13 py-3.5 bg-[#0e5d26] hover:bg-[#0b471d] text-white font-extrabold rounded-xl text-sm sm:text-base shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center active:scale-[0.99]"
               >
-                Selesai &amp; Lihat Daftar Pengguna
+                Tutup &amp; Selesai
               </button>
             </div>
           </div>
@@ -842,41 +927,57 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
           onClick={() => setIsSuccessDeletedModalOpen(false)}
         >
           <div
-            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-            style={{ padding: '36px 28px 28px 28px' }}
+            className="success-modal-card modal-animate-pop"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Green Checkmark Badge Icon */}
-            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
-              ✓
+            <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50/90 dark:ring-emerald-900/20">
+              <svg
+                className="w-10 h-10 text-emerald-600 dark:text-emerald-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
             </div>
 
             {/* Title & Subtitle */}
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
               Data Pengguna Berhasil Dihapus!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2">
               {deletedUserPayload.count > 1 ? (
-                <>Sebanyak <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.count} data pengguna</strong> telah berhasil dihapus dari sistem.</>
+                <>Sebanyak <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.count} data akun pengguna</strong> telah berhasil dihapus dari sistem.</>
               ) : (
-                <>Data pengguna atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.nama}</strong> telah berhasil dihapus dari sistem.</>
+                <>Data akun atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.nama}</strong> telah berhasil dihapus dari sistem.</>
               )}
             </p>
 
             {/* Detail Breakdown Card */}
-            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Keterangan:</span>
-                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                  {deletedUserPayload.count > 1 ? `${deletedUserPayload.count} Pengguna Terpilih` : deletedUserPayload.nama}
-                </strong>
+            <div className="success-modal-details">
+              <div className="success-modal-row items-center">
+                <span className="success-modal-label">Pengguna:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                    {getInitials(deletedUserPayload.nama)}
+                  </div>
+                  <strong className="success-modal-value">
+                    {deletedUserPayload.count > 1 ? `${deletedUserPayload.count} Pengguna Terpilih` : deletedUserPayload.nama}
+                  </strong>
+                </div>
               </div>
 
               {deletedUserPayload.role && (
                 <>
-                  <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Role:</span>
+                  <div className="success-modal-divider"></div>
+                  <div className="success-modal-row">
+                    <span className="success-modal-label">Hak Akses / Role:</span>
                     <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
                       {deletedUserPayload.role}
                     </span>
@@ -884,24 +985,27 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
                 </>
               )}
 
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+              <div className="success-modal-divider"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+              <div className="success-modal-row">
+                <span className="success-modal-label">Status:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Telah Dihapus dari Database
+                  Telah Dihapus dari Sistem
                 </span>
               </div>
             </div>
 
-            {/* Button Tutup */}
+            {/* Garis Pembatas */}
+            <div className="w-full h-px bg-slate-200 dark:bg-slate-800 mb-6"></div>
+
+            {/* Button Tutup & Selesai */}
             <button
               type="button"
               onClick={() => setIsSuccessDeletedModalOpen(false)}
-              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              className="w-full h-13 py-3.5 bg-[#0e5d26] hover:bg-[#0b471d] text-white font-extrabold rounded-xl text-sm sm:text-base shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center active:scale-[0.99]"
             >
-              Selesai &amp; Lihat Daftar Pengguna
+              Tutup &amp; Selesai
             </button>
           </div>
         </div>

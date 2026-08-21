@@ -10,6 +10,37 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ==========================================
+   GLOBAL HIDE ALL SCROLLBARS (Universal)
+   Menghilangkan scrollbar visual di seluruh elemen & halaman,
+   fungsi scrolling tetap aktif dan berjalan normal.
+   ========================================== */
+html,
+body,
+*,
+*::before,
+*::after {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-thumb {
+  display: none !important;
+  background: transparent !important;
+}
+
 /* ── CSS Variables / Design Tokens ── */
 :root {
   /* Primary Green Palette */
@@ -3774,7 +3805,7 @@ html.dark .data-table tbody tr:hover,
 }
 
 /* ========================================
-   RESPONSIVE TABLE SCROLLBAR STYLING
+   RESPONSIVE TABLE SCROLL (NO SCROLLBAR)
    ======================================== */
 
 .overflow-x-auto,
@@ -3783,93 +3814,17 @@ html.dark .data-table tbody tr:hover,
 .rekap-table-wrapper {
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: #059669 #cbd5e1 !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-.dark .overflow-x-auto,
-.dark .user-table-wrapper,
-.dark .data-table-wrapper,
-.dark .rekap-table-wrapper {
-  scrollbar-color: #10b981 #334155 !important;
-}
-
-/* Custom WebKit Scrollbar (Chrome, Safari, Edge, Mobile WebKit) */
 .overflow-x-auto::-webkit-scrollbar,
 .user-table-wrapper::-webkit-scrollbar,
 .data-table-wrapper::-webkit-scrollbar,
 .rekap-table-wrapper::-webkit-scrollbar {
-  display: block !important;
-  height: 8px !important;
-  width: 8px !important;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track,
-.user-table-wrapper::-webkit-scrollbar-track,
-.data-table-wrapper::-webkit-scrollbar-track,
-.rekap-table-wrapper::-webkit-scrollbar-track {
-  display: block !important;
-  background: #cbd5e1 !important;
-  border-radius: 9999px !important;
-  margin: 0 4px !important;
-}
-
-.dark .overflow-x-auto::-webkit-scrollbar-track,
-.dark .user-table-wrapper::-webkit-scrollbar-track,
-.dark .data-table-wrapper::-webkit-scrollbar-track,
-.dark .rekap-table-wrapper::-webkit-scrollbar-track {
-  display: block !important;
-  background: #334155 !important;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb,
-.user-table-wrapper::-webkit-scrollbar-thumb,
-.data-table-wrapper::-webkit-scrollbar-thumb,
-.rekap-table-wrapper::-webkit-scrollbar-thumb {
-  display: block !important;
-  background: #059669 !important;
-  border-radius: 9999px !important;
-}
-
-.dark .overflow-x-auto::-webkit-scrollbar-thumb,
-.dark .user-table-wrapper::-webkit-scrollbar-thumb,
-.dark .data-table-wrapper::-webkit-scrollbar-thumb,
-.dark .rekap-table-wrapper::-webkit-scrollbar-thumb {
-  display: block !important;
-  background: #10b981 !important;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover,
-.user-table-wrapper::-webkit-scrollbar-thumb:hover,
-.data-table-wrapper::-webkit-scrollbar-thumb:hover,
-.rekap-table-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #047857 !important;
-}
-
-@media (max-width: 768px) {
-  .overflow-x-auto::-webkit-scrollbar,
-  .user-table-wrapper::-webkit-scrollbar,
-  .data-table-wrapper::-webkit-scrollbar,
-  .rekap-table-wrapper::-webkit-scrollbar {
-    display: block !important;
-    height: 9px !important;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-track,
-  .user-table-wrapper::-webkit-scrollbar-track,
-  .data-table-wrapper::-webkit-scrollbar-track,
-  .rekap-table-wrapper::-webkit-scrollbar-track {
-    display: block !important;
-    background: #cbd5e1 !important;
-  }
-
-  .overflow-x-auto::-webkit-scrollbar-thumb,
-  .user-table-wrapper::-webkit-scrollbar-thumb,
-  .data-table-wrapper::-webkit-scrollbar-thumb,
-  .rekap-table-wrapper::-webkit-scrollbar-thumb {
-    display: block !important;
-    background: #059669 !important;
-  }
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ========================================
@@ -6461,49 +6416,21 @@ html.dark .wali-table-title,
 }
 
 /* ========================================
-   IMPORT BATCH SANTRI TABLE SCROLLBAR & STICKY HEADER
+   IMPORT BATCH SANTRI TABLE SCROLL & STICKY HEADER
    ======================================== */
 .import-batch-table-container {
-  overflow-x: scroll !important;
+  overflow-x: auto !important;
   overflow-y: auto !important;
   max-height: 380px !important;
   border-radius: 1rem;
-  scrollbar-width: thin !important;
-  scrollbar-color: #059669 #cbd5e1 !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-.dark .import-batch-table-container {
-  scrollbar-color: #059669 #1e293b !important;
-}
-
-/* Force Visible Webkit Scrollbar */
 .import-batch-table-container::-webkit-scrollbar {
-  width: 10px !important;
-  height: 10px !important;
-  display: block !important;
-}
-
-.import-batch-table-container::-webkit-scrollbar-track {
-  background: #cbd5e1 !important;
-  border-radius: 9999px !important;
-}
-
-.dark .import-batch-table-container::-webkit-scrollbar-track {
-  background: #1e293b !important;
-}
-
-.import-batch-table-container::-webkit-scrollbar-thumb {
-  background: #059669 !important;
-  border-radius: 9999px !important;
-  border: 2px solid #ffffff !important;
-}
-
-.dark .import-batch-table-container::-webkit-scrollbar-thumb {
-  border-color: #0f172a !important;
-}
-
-.import-batch-table-container::-webkit-scrollbar-thumb:hover {
-  background: #047857 !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Sticky Header for Import Batch Table */

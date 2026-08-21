@@ -4,23 +4,24 @@ import DailySummaryBanner from '../components/dashboard/DailySummaryBanner';
 import StatCards from '../components/dashboard/StatCards';
 import SalesChart from '../components/dashboard/SalesChart';
 import RecentTransactionsWidget from '../components/dashboard/RecentTransactionsWidget';
-import { dashboardApi, santriApi } from '../utils/api';
+import { dashboardApi, santriApi, transactionApi } from '../utils/api';
 import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 // API → bentuk yang dibaca komponen dashboard
 const mapRecent = (trx) => ({
   id: trx.id,
-  namaSantri: trx.santri?.nama || '—',
-  nis: trx.santri?.nis || '',
-  kategori: trx.tipe === 'topup' ? 'Isi Saldo VA' : 'Penarikan Koin',
+  namaSantri: trx.santri?.nama || trx.nama_santri || trx.namaSantri || '—',
+  nis: trx.santri?.nis || trx.nis || '',
+  kategori: (trx.tipe === 'topup' || trx.kategori === 'topup' || trx.kategori === 'Isi Saldo VA') ? 'Isi Saldo VA' : (trx.kategori || 'Penarikan Koin'),
   waktu: trx.created_at
     ? new Date(trx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-    : '—',
-  nominal: Math.abs(trx.nominal || 0),
+    : (trx.waktu || '—'),
+  nominal: Math.abs(trx.nominal ?? trx.total ?? trx.jumlah ?? 0),
 });
 
 const DashboardPage = ({ Layout = MainLayout }) => {
   const [stats, setStats] = useState(null);
+  const [recentTransactions, setRecentTransactions] = useState([]);
   const [activeSantriCount, setActiveSantriCount] = useState(0);
   const [localTotalSaldo, setLocalTotalSaldo] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -38,9 +39,24 @@ const DashboardPage = ({ Layout = MainLayout }) => {
         console.warn('Gagal mengambil data santri:', err);
         return null;
       }),
+      transactionApi.list({ per_page: 5 }).catch((err) => {
+        console.warn('Gagal mengambil transaksi terbaru:', err);
+        return null;
+      }),
     ])
-      .then(([dashData, santriRes]) => {
-        if (dashData) setStats(dashData);
+      .then(([dashData, santriRes, trxRes]) => {
+        if (dashData) {
+          setStats(dashData);
+          if (Array.isArray(dashData.transaksi_terbaru) && dashData.transaksi_terbaru.length > 0) {
+            setRecentTransactions(dashData.transaksi_terbaru);
+          }
+        }
+        if (trxRes) {
+          const rawTrx = trxRes.data || (Array.isArray(trxRes) ? trxRes : []);
+          if (Array.isArray(rawTrx) && rawTrx.length > 0) {
+            setRecentTransactions(rawTrx);
+          }
+        }
         if (santriRes) {
           const rawData = santriRes.data || (Array.isArray(santriRes) ? santriRes : []);
           const merged = mergeSantriSaldos(rawData);
@@ -100,7 +116,7 @@ const DashboardPage = ({ Layout = MainLayout }) => {
               selectedYear={selectedYear}
               onTimeframeChange={handleTimeframeChange}
             />
-            <RecentTransactionsWidget transactions={(stats?.transaksi_terbaru ?? []).map(mapRecent)} />
+            <RecentTransactionsWidget transactions={(recentTransactions.length > 0 ? recentTransactions : (stats?.transaksi_terbaru ?? [])).map(mapRecent)} />
           </div>
         </>
       )}

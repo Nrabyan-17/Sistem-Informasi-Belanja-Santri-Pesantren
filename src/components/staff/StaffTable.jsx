@@ -2,7 +2,7 @@ import DataTable from '../common/DataTable';
 import Badge from '../common/Badge';
 
 // Tabel Daftar Staff Rumah Koin
-const StaffTable = ({ data = [], onEdit, onDelete }) => {
+const StaffTable = ({ data = [], loading = false, loadingText = 'Memuat data Staff...', onEdit, onDelete }) => {
   const columns = [
     { key: 'no',       label: 'No',       render: (_, idx) => idx + 1 },
     { key: 'nip',      label: 'NIP' },
@@ -23,7 +23,7 @@ const StaffTable = ({ data = [], onEdit, onDelete }) => {
     },
   ];
 
-  return <DataTable columns={columns} data={data} emptyText="Tidak ada data staff." />;
+  return <DataTable columns={columns} data={data} loading={loading} loadingText={loadingText} emptyText="Tidak ada data staff." />;
 };
 
 export default StaffTable;

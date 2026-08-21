@@ -2,12 +2,6 @@ import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
 import { getSantriHistory, addSantriHistory } from '../../utils/saldoStorage';
 
-const initialSantriHistory = [
-  { id: 1, tanggal: '01 Agts 2025', keterangan: 'Tarik Koin (Rumah Koin)', nominal: -30000 },
-  { id: 2, tanggal: '28 Jul 2025', keterangan: 'Setor BNI Virtual Account', nominal: 100000 },
-  { id: 3, tanggal: '25 Jul 2025', keterangan: 'Tarik Koin (Rumah Koin)', nominal: -30000 },
-];
-
 const SaldoDetailModal = ({
   isOpen,
   onClose,
@@ -29,7 +23,7 @@ const SaldoDetailModal = ({
   useEffect(() => {
     if (isOpen && santri?.id) {
       setCurrentSaldo(santri.saldo !== undefined ? santri.saldo : 0);
-      setHistoryList(getSantriHistory(santri.id, initialSantriHistory));
+      setHistoryList(getSantriHistory(santri.id, []));
       setAdjustSuccessMsg('');
       setAdjustNominal('');
       setAdjustKeterangan('');

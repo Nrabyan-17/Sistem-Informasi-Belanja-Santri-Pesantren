@@ -1,6 +1,4 @@
-import { handleMockApi } from './mockStorage';
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://nata-api.islab.web.id/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 function getToken() {
   return localStorage.getItem('token') || '';
@@ -11,65 +9,63 @@ async function apiFetch(endpoint, options = {}) {
   const opts = { ...options };
   delete opts._blob;
 
-  try {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-        ...(opts.headers || {}),
-      },
-      ...opts,
-    });
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+      ...(opts.headers || {}),
+    },
+    ...opts,
+  });
 
-    if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-      // If server responds with 404, 500, 502, 503, fall back to mock storage during offline testing
-      if (res.status >= 500 || res.status === 404) {
-        return await handleMockApi(endpoint, opts);
-      }
-      const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-      throw new Error(err.message || 'Request gagal.');
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
-
-    if (isBlob) return res.blob();
-    return res.json();
-  } catch (networkError) {
-    console.warn(`[API Offline Fallback] ${endpoint}:`, networkError.message);
-    if (isBlob) {
-      return new Blob(['Data export dummy offline'], { type: 'text/plain' });
+    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan pada server.' }));
+    let errorMsg = err.message || 'Request gagal.';
+    if (err.errors) {
+      const firstKey = Object.keys(err.errors)[0];
+      if (firstKey && err.errors[firstKey][0]) {
+        errorMsg = err.errors[firstKey][0];
+      }
     }
-    return await handleMockApi(endpoint, opts);
+    throw new Error(errorMsg);
   }
+
+  if (isBlob) return res.blob();
+  return res.json();
 }
 
 async function apiFetchForm(endpoint, formData, method = 'POST') {
-  try {
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-      method,
-      headers: { Authorization: `Bearer ${getToken()}` },
-      body: formData,
-    });
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method,
+    headers: {
+      'Accept': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: formData,
+  });
 
-    if (!res.ok) {
-      if (res.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-      if (res.status >= 500 || res.status === 404) {
-        return await handleMockApi(endpoint, { method }, formData);
-      }
-      const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-      throw new Error(err.message || 'Request gagal.');
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
     }
-
-    return res.json();
-  } catch (networkError) {
-    console.warn(`[API Form Offline Fallback] ${endpoint}:`, networkError.message);
-    return await handleMockApi(endpoint, { method }, formData);
+    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan pada server.' }));
+    let errorMsg = err.message || 'Request gagal.';
+    if (err.errors) {
+      const firstKey = Object.keys(err.errors)[0];
+      if (firstKey && err.errors[firstKey][0]) {
+        errorMsg = err.errors[firstKey][0];
+      }
+    }
+    throw new Error(errorMsg);
   }
+
+  return res.json();
 }
 
 function downloadBlob(blob, filename) {
@@ -97,8 +93,18 @@ export const santriApi = {
   byNis: (nis) => apiFetch(`/santris/by-nis?nis=${nis}`),
   show: (id) => apiFetch(`/santris/${id}`),
   mutasi: (id) => apiFetch(`/santris/${id}/mutasi`),
-  store: (formData) => apiFetchForm('/santris', formData, 'POST'),
-  update: (id, formData) => apiFetchForm(`/santris/${id}`, formData, 'POST'),
+  store: (data) => {
+    if (data instanceof FormData) {
+      return apiFetchForm('/santris', data, 'POST');
+    }
+    return apiFetch('/santris', { method: 'POST', body: JSON.stringify(data) });
+  },
+  update: (id, data) => {
+    if (data instanceof FormData) {
+      return apiFetchForm(`/santris/${id}`, data, 'POST');
+    }
+    return apiFetch(`/santris/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
   destroy: (id) => apiFetch(`/santris/${id}`, { method: 'DELETE' }),
   import: (formData) => apiFetchForm('/santris/import', formData, 'POST'),
   importPreview: (formData) => apiFetchForm('/santris/import-preview', formData, 'POST'),

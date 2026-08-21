@@ -27,7 +27,7 @@ const mapSantriFromApi = (item) => ({
 });
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
-  const [santriList, setSantriList] = useState(() => mergeSantriSaldos(mockSantri));
+  const [santriList, setSantriList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
@@ -59,15 +59,13 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     setLoading(true);
     santriApi.list({ per_page: 500 })
       .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : null);
-        if (rawData && rawData.length >= 0) {
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(rawData)) {
           setSantriList(mergeSantriSaldos(rawData.map(mapSantriFromApi)));
-        } else {
-          setSantriList(mergeSantriSaldos(mockSantri));
         }
       })
-      .catch(() => {
-        setSantriList(mergeSantriSaldos(mockSantri));
+      .catch((err) => {
+        console.warn('Gagal memuat data santri:', err.message);
       })
       .finally(() => setLoading(false));
   };
@@ -78,7 +76,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   // Daftar kelas unik dari data santri
   const kelasOptions = useMemo(() => {
-    const kelasSet = new Set(santriList.map((s) => s.kelas));
+    const kelasSet = new Set(santriList.map((s) => s.kelas).filter(Boolean));
     return Array.from(kelasSet).sort();
   }, [santriList]);
 
@@ -98,24 +96,24 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     });
   }, [santriList, search, kelasFilter, statusFilter]);
 
-  // Compute KPI
+  // Compute KPI secara dinamis dan real-time dari data santri
   const kpiStats = useMemo(() => {
     const totalSantri = santriList.length;
-    const santriAktif = santriList.filter((s) => s.status === 'aktif').length;
-    const santriNonAktif = santriList.filter((s) => s.status === 'nonaktif').length;
-    const totalSaldoSantri = santriList.reduce((acc, curr) => acc + (curr.saldo || 0), 0);
+    const santriAktif = santriList.filter((s) => (s.status || '').toLowerCase() === 'aktif').length;
+    const santriNonaktif = santriList.filter((s) => (s.status || '').toLowerCase() === 'nonaktif').length;
+    const totalSaldo = santriList.reduce((acc, curr) => acc + Number(curr.saldo || 0), 0);
 
     return {
       totalSantri,
       santriAktif,
-      santriNonAktif,
-      totalSaldoSantri,
+      santriNonaktif,
+      totalSaldo,
     };
   }, [santriList]);
 
   // Multi-Select Handlers
   const toggleSelectAll = () => {
-    if (selectedIds.length === filteredSantri.length) {
+    if (selectedIds.length === filteredSantri.length && filteredSantri.length > 0) {
       setSelectedIds([]);
     } else {
       setSelectedIds(filteredSantri.map((s) => s.id));
@@ -128,9 +126,14 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     );
   };
 
-  const handleBatchStatusChange = (status) => {
+  const handleBatchStatusChange = (newStatus) => {
+    selectedIds.forEach((id) => {
+      santriApi.update(id, { status: newStatus }).catch(() => {});
+    });
     setSantriList((prev) =>
-      prev.map((s) => (selectedIds.includes(s.id) ? { ...s, status } : s))
+      prev.map((s) =>
+        selectedIds.includes(s.id) ? { ...s, status: newStatus } : s
+      )
     );
     setSelectedIds([]);
   };
@@ -145,6 +148,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       nama: `${deletedCount} Santri Terpilih`,
       count: deletedCount,
     };
+
+    selectedIds.forEach((id) => {
+      santriApi.destroy(id).catch(() => {});
+    });
+
     setSantriList((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
     setSelectedIds([]);
     setIsBatchDeleteOpen(false);
@@ -198,51 +206,56 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   };
 
   // Submit Form (Single Add/Edit)
-  const handleSubmitForm = (formData) => {
-    const dataToSend = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== undefined && formData[key] !== null) {
-        dataToSend.append(key, formData[key]);
+  const handleSubmitForm = async (formData) => {
+    const payload = {
+      nis: formData.nis,
+      nama: formData.nama,
+      jenis_kelamin: formData.jenisKelamin || formData.jenis_kelamin || 'L',
+      tanggal_lahir: formData.tglLahir || formData.tanggal_lahir || null,
+      kelas: formData.kelas || null,
+      unit: formData.unit || null,
+      va_jajan: formData.vaJajan || formData.va_jajan || null,
+      status: (formData.status || 'aktif').toLowerCase(),
+      alamat: formData.alamat || null,
+    };
+
+    try {
+      if (editSantri && editSantri.id) {
+        // Edit existing
+        if (formData.foto && formData.foto instanceof File) {
+          const dataToSend = new FormData();
+          Object.keys(payload).forEach((k) => {
+            if (payload[k] !== null && payload[k] !== undefined) dataToSend.append(k, payload[k]);
+          });
+          dataToSend.append('foto', formData.foto);
+          dataToSend.append('_method', 'PUT');
+          await santriApi.update(editSantri.id, dataToSend);
+        } else {
+          await santriApi.update(editSantri.id, payload);
+        }
+
+        const updated = { ...editSantri, ...formData };
+        setEditedSantriData(updated);
+        setIsSuccessEditedSantriOpen(true);
+      } else {
+        // Add new
+        if (formData.foto && formData.foto instanceof File) {
+          const dataToSend = new FormData();
+          Object.keys(payload).forEach((k) => {
+            if (payload[k] !== null && payload[k] !== undefined) dataToSend.append(k, payload[k]);
+          });
+          dataToSend.append('foto', formData.foto);
+          await santriApi.store(dataToSend);
+        } else {
+          await santriApi.store(payload);
+        }
+
+        setCreatedSantriData({ ...formData, saldo: 0 });
+        setIsSuccessSantriCreatedOpen(true);
       }
-    });
-
-    if (editSantri && editSantri.id) {
-      // Edit existing
-      const updatedSantri = { ...editSantri, ...formData };
-      santriApi.update(editSantri.id, dataToSend)
-        .then(() => loadSantriData())
-        .catch(() => {
-          setSantriList(
-            santriList.map((s) => (s.id === editSantri.id ? updatedSantri : s))
-          );
-        });
-
-      setEditedSantriData(updatedSantri);
-      setIsSuccessEditedSantriOpen(true);
-    } else {
-      // Add new
-      const newSantri = {
-        id: Date.now(),
-        nis: formData.nis || '2024999',
-        nama: formData.nama || 'Santri Baru',
-        kelas: formData.kelas || 'VII A',
-        tglLahir: formData.tglLahir || '1 Jan 2012',
-        namaWali: formData.namaWali || 'Wali Santri',
-        noHpWali: formData.noHpWali || '081234567890',
-        vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
-        vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
-        status: 'aktif',
-        saldo: 0,
-      };
-
-      santriApi.store(dataToSend)
-        .then(() => loadSantriData())
-        .catch(() => {
-          setSantriList([newSantri, ...santriList]);
-        });
-
-      setCreatedSantriData(newSantri);
-      setIsSuccessSantriCreatedOpen(true);
+      await loadSantriData();
+    } catch (err) {
+      console.warn('Gagal simpan santri ke server:', err.message);
     }
     setIsModalOpen(false);
   };
@@ -277,11 +290,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         </p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards Ringkasan Data Santri (Real-time) */}
       <SantriKpiCards
-        totalSantri={kpiStats.total}
-        santriAktif={kpiStats.aktif}
-        santriNonaktif={kpiStats.nonaktif}
+        totalSantri={kpiStats.totalSantri}
+        santriAktif={kpiStats.santriAktif}
+        santriNonaktif={kpiStats.santriNonaktif}
         totalSaldo={kpiStats.totalSaldo}
       />
 
@@ -309,10 +322,12 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
       {/* Tabel Data Santri */}
       <SantriTable
+        loading={loading}
+        loadingText="Memuat data Santri..."
         data={filteredSantri}
-        totalCount={santriList.length}
-        activeCount={kpiStats.aktif}
-        nonactiveCount={kpiStats.nonaktif}
+        totalCount={kpiStats.totalSantri}
+        activeCount={kpiStats.santriAktif}
+        nonactiveCount={kpiStats.santriNonaktif}
         selectedIds={selectedIds}
         onToggleSelectAll={toggleSelectAll}
         onToggleSelectRow={toggleSelectRow}
