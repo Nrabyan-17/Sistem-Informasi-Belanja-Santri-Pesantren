@@ -39,12 +39,14 @@ const WaliSaldoPage = () => {
 
   const vaNumber = santri?.va_jajan || '—';
 
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+
   const handleCopyVA = () => {
     if (!santri?.va_jajan) return;
     navigator.clipboard?.writeText(vaNumber.replace(/\s+/g, ''));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    showPopup('Berhasil', `Nomor VA ${vaNumber} berhasil disalin!`, 'success');
+    setIsCopyModalOpen(true);
   };
 
   return (
@@ -149,6 +151,70 @@ const WaliSaldoPage = () => {
                   {copied ? 'Nomor VA Berhasil Disalin!' : 'Salin Nomor VA BNI'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* POP-UP MODAL SALIN VA BERHASIL (DESAIN PERSIS POP-UP BERHASIL TAMBAH DATA) */}
+        {isCopyModalOpen && santri && (
+          <div
+            className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+            onClick={() => setIsCopyModalOpen(false)}
+          >
+            <div
+              className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+              style={{ padding: '36px 28px 28px 28px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Green Checkmark Badge Icon dengan Efek Ring & Bounce */}
+              <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+                ✓
+              </div>
+
+              {/* Title & Subtitle */}
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+                Nomor VA Berhasil Disalin!
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+                Nomor Virtual Account telah disalin ke papan klip Anda. Silakan tempel pada aplikasi mobile banking atau ATM BNI.
+              </p>
+
+              {/* Detail Breakdown Card dengan Spacing Teratur */}
+              <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Santri:</span>
+                  <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    {santri.nama}
+                  </strong>
+                </div>
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Metode:</span>
+                  <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
+                    BNI Virtual Account (Uang Jajan)
+                  </span>
+                </div>
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nomor VA:</span>
+                  <strong className="font-mono font-extrabold text-emerald-800 dark:text-emerald-400 text-sm sm:text-base tracking-wider bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
+                    {vaNumber}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Button Selesai */}
+              <button
+                type="button"
+                onClick={() => setIsCopyModalOpen(false)}
+                className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              >
+                Mengerti &amp; Tutup
+              </button>
             </div>
           </div>
         )}
