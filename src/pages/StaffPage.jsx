@@ -4,16 +4,6 @@ import StaffTable from '../components/staff/StaffTable';
 import StaffModalForm from '../components/staff/StaffModalForm';
 import { staffApi } from '../utils/api';
 
-// Data mock staff
-const mockStaff = [
-  { id: 1, nip: 'STF-001', nama: 'Ustadz Ahmad',     jabatan: 'Supervisor', noHp: '0812-3456-7890', status: 'aktif',    shift: 'Full' },
-  { id: 2, nip: 'STF-002', nama: 'Ustadz Hasan',      jabatan: 'Admin',      noHp: '0813-4567-8901', status: 'aktif',    shift: 'Pagi' },
-  { id: 3, nip: 'STF-003', nama: 'Ustadzah Fatimah',   jabatan: 'Kasir',      noHp: '0821-5678-9012', status: 'aktif',    shift: 'Pagi' },
-  { id: 4, nip: 'STF-004', nama: 'Ustadz Yusuf',       jabatan: 'Kasir',      noHp: '0857-6789-0123', status: 'aktif',    shift: 'Siang' },
-  { id: 5, nip: 'STF-005', nama: 'Ustadzah Aisyah',    jabatan: 'Kasir',      noHp: '0878-7890-1234', status: 'nonaktif', shift: 'Pagi' },
-  { id: 6, nip: 'STF-006', nama: 'Ustadz Rahman',      jabatan: 'Manajer',    noHp: '0856-8901-2345', status: 'aktif',    shift: 'Full' },
-];
-
 const mapStaffFromApi = (s) => ({
   id: s.id,
   nip: s.nip || `STF-00${s.id}`,
@@ -25,7 +15,7 @@ const mapStaffFromApi = (s) => ({
 });
 
 const StaffPage = () => {
-  const [staffList, setStaffList] = useState(mockStaff);
+  const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState({});
@@ -37,13 +27,16 @@ const StaffPage = () => {
     setLoading(true);
     staffApi.list({ per_page: 200 })
       .then((res) => {
-        const raw = res.data || (Array.isArray(res) ? res : null);
-        if (raw && raw.length >= 0) {
+        const raw = res.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(raw)) {
           setStaffList(raw.map(mapStaffFromApi));
+        } else {
+          setStaffList([]);
         }
       })
       .catch((err) => {
-        console.warn('Menggunakan data staff lokal:', err.message);
+        console.warn('Gagal memuat data staff:', err.message);
+        setStaffList([]);
       })
       .finally(() => setLoading(false));
   };

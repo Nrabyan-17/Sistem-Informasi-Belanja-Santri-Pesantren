@@ -1,0 +1,4835 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Sistem Informasi Belanja Santri — API",
+    "version": "1.0.0",
+    "description": "Backend REST API PP Nazhatut Thullab. Tiga portal: admin (CRUD santri/staff, laporan, penyesuaian), staff Rumah Koin (penarikan koin, upload & apply mutasi BNI), wali (saldo & riwayat anak). Semua route kecuali /auth/login butuh Authorization: Bearer {token}."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000/api"
+    }
+  ],
+  "security": [
+    {
+      "http": []
+    }
+  ],
+  "paths": {
+    "/admins": {
+      "get": {
+        "operationId": "admin.index",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jabatan",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated set of `UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserResource"
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "first": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "prev": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "next": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first",
+                        "last",
+                        "prev",
+                        "next"
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "from",
+                        "last_page",
+                        "links",
+                        "path",
+                        "per_page",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "admin.store",
+        "tags": [
+          "Admin"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/admins/{user}": {
+      "put": {
+        "operationId": "admin.update",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "admin.destroy",
+        "tags": [
+          "Admin"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Akun admin dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "User bukan admin."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "auth.login",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "role": {
+                          "type": "string"
+                        },
+                        "nama": {
+                          "type": "string"
+                        },
+                        "jabatan": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "role",
+                        "nama",
+                        "jabatan"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "auth.logout",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Berhasil keluar."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "auth.me",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/UserResource"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "santris"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "put": {
+        "operationId": "auth.changePassword",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password_lama": {
+                    "type": "string"
+                  },
+                  "password_baru": {
+                    "type": "string",
+                    "minLength": 6
+                  },
+                  "konfirmasi": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "password_lama",
+                  "password_baru",
+                  "konfirmasi"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Password berhasil diperbarui."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/bni-uploads": {
+      "get": {
+        "operationId": "bniUpload.index",
+        "tags": [
+          "BniUpload"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LengthAwarePaginator"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "bniUpload.store",
+        "summary": "Upload mutasi → parse + cocok VA → preview",
+        "tags": [
+          "BniUpload"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "contentMediaType": "application/octet-stream"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "File diproses. Silakan cek preview sebelum apply."
+                    },
+                    "upload": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "nama_file": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "jumlah_total": {
+                          "type": "integer"
+                        },
+                        "jumlah_valid": {
+                          "type": "integer"
+                        },
+                        "jumlah_invalid": {
+                          "type": "integer"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "uploaded_by": {
+                          "type": "string"
+                        },
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "va": {
+                                "type": "string"
+                              },
+                              "nama": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "nominal": {
+                                "type": "integer"
+                              },
+                              "tanggal": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "journal": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "billing_id": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "status_valid": {
+                                "type": "boolean"
+                              },
+                              "catatan": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "diterapkan": {
+                                "type": "boolean"
+                              },
+                              "santri": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "nis": {
+                                    "type": "string"
+                                  },
+                                  "nama": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "nis",
+                                  "nama"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "va",
+                              "nama",
+                              "nominal",
+                              "tanggal",
+                              "journal",
+                              "billing_id",
+                              "status_valid",
+                              "catatan",
+                              "diterapkan",
+                              "santri"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "nama_file",
+                        "status",
+                        "jumlah_total",
+                        "jumlah_valid",
+                        "jumlah_invalid",
+                        "created_at",
+                        "uploaded_by",
+                        "items"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "upload"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/bni-uploads/{upload}": {
+      "get": {
+        "operationId": "bniUpload.show",
+        "tags": [
+          "BniUpload"
+        ],
+        "parameters": [
+          {
+            "name": "upload",
+            "in": "path",
+            "required": true,
+            "description": "The upload ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "nama_file": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "jumlah_total": {
+                      "type": "integer"
+                    },
+                    "jumlah_valid": {
+                      "type": "integer"
+                    },
+                    "jumlah_invalid": {
+                      "type": "integer"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "uploaded_by": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "va": {
+                            "type": "string"
+                          },
+                          "nama": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "nominal": {
+                            "type": "integer"
+                          },
+                          "tanggal": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "journal": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "billing_id": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "status_valid": {
+                            "type": "boolean"
+                          },
+                          "catatan": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "diterapkan": {
+                            "type": "boolean"
+                          },
+                          "santri": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "nis": {
+                                "type": "string"
+                              },
+                              "nama": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nis",
+                              "nama"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "va",
+                          "nama",
+                          "nominal",
+                          "tanggal",
+                          "journal",
+                          "billing_id",
+                          "status_valid",
+                          "catatan",
+                          "diterapkan",
+                          "santri"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "nama_file",
+                    "status",
+                    "jumlah_total",
+                    "jumlah_valid",
+                    "jumlah_invalid",
+                    "created_at",
+                    "uploaded_by",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/bni-uploads/{upload}/apply": {
+      "post": {
+        "operationId": "bniUpload.apply",
+        "summary": "Kredit saldo item valid (atau hanya item_ids yang dipilih) dalam satu transaksi DB (atomik)",
+        "tags": [
+          "BniUpload"
+        ],
+        "parameters": [
+          {
+            "name": "upload",
+            "in": "path",
+            "required": true,
+            "description": "The upload ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "item_ids": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/bni-uploads/{upload}/items/{item}": {
+      "put": {
+        "operationId": "bniUpload.updateItem",
+        "summary": "Update item sebelum disimpan (misal perbaiki nominal/nama/santri_id)",
+        "tags": [
+          "BniUpload"
+        ],
+        "parameters": [
+          {
+            "name": "upload",
+            "in": "path",
+            "required": true,
+            "description": "The upload ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "description": "The item ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nama": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 255
+                  },
+                  "nominal": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 1
+                  },
+                  "santri_id": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "status_valid": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Item berhasil diperbarui."
+                    },
+                    "item": {
+                      "$ref": "#/components/schemas/BniUploadItem"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "item"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "bniUpload.destroyItem",
+        "summary": "Hapus item dari preview sebelum disimpan",
+        "tags": [
+          "BniUpload"
+        ],
+        "parameters": [
+          {
+            "name": "upload",
+            "in": "path",
+            "required": true,
+            "description": "The upload ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "description": "The item ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Item berhasil dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Upload sudah diproses, item tidak dapat dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "operationId": "dashboard.index",
+        "tags": [
+          "Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_saldo": {
+                      "type": "integer"
+                    },
+                    "total_pemasukan": {
+                      "type": "integer"
+                    },
+                    "total_penarikan": {
+                      "type": "integer"
+                    },
+                    "total_transaksi": {
+                      "type": "integer"
+                    },
+                    "santri_aktif": {
+                      "type": "integer"
+                    },
+                    "total_santri_aktif": {
+                      "type": "integer"
+                    },
+                    "tren_transaksi": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tanggal": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "pemasukan": {
+                            "type": "integer"
+                          },
+                          "penarikan": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "transaksi": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "tanggal",
+                          "label",
+                          "pemasukan",
+                          "penarikan",
+                          "total",
+                          "transaksi"
+                        ]
+                      }
+                    },
+                    "tren_mingguan": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tanggal": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "pemasukan": {
+                            "type": "integer"
+                          },
+                          "penarikan": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "transaksi": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "tanggal",
+                          "label",
+                          "pemasukan",
+                          "penarikan",
+                          "total",
+                          "transaksi"
+                        ]
+                      }
+                    },
+                    "tren_bulanan": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "bulan": {},
+                          "label": {
+                            "type": "string"
+                          },
+                          "pemasukan": {
+                            "type": "integer"
+                          },
+                          "penarikan": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "transaksi": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "bulan",
+                          "label",
+                          "pemasukan",
+                          "penarikan",
+                          "total",
+                          "transaksi"
+                        ]
+                      }
+                    },
+                    "tren_tahunan": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tahun": {},
+                          "label": {
+                            "type": "string"
+                          },
+                          "pemasukan": {
+                            "type": "integer"
+                          },
+                          "penarikan": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "transaksi": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "tahun",
+                          "label",
+                          "pemasukan",
+                          "penarikan",
+                          "total",
+                          "transaksi"
+                        ]
+                      }
+                    },
+                    "transaksi_terbaru": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "tipe": {
+                            "type": "string"
+                          },
+                          "nominal": {
+                            "type": "integer"
+                          },
+                          "keterangan": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "santri": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "nis": {
+                                "type": "string"
+                              },
+                              "nama": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "nis",
+                              "nama"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "tipe",
+                          "nominal",
+                          "keterangan",
+                          "created_at",
+                          "santri"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "total_saldo",
+                    "total_pemasukan",
+                    "total_penarikan",
+                    "total_transaksi",
+                    "santri_aktif",
+                    "total_santri_aktif",
+                    "tren_transaksi",
+                    "tren_mingguan",
+                    "tren_bulanan",
+                    "tren_tahunan",
+                    "transaksi_terbaru"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/penarikan": {
+      "post": {
+        "operationId": "penarikan.store",
+        "summary": "Penarikan koin di loket Rumah Koin.\nWajib: foto santri sudah ada (verifikasi identitas), nominal dalam batas 2 hari,\nsaldo cukup. Semua dalam satu transaksi DB",
+        "tags": [
+          "Penarikan"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PenarikanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Penarikan berhasil."
+                    },
+                    "transaction": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/TransactionResource"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "santri",
+                            "created_by"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "transaction"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/reports/financial": {
+      "get": {
+        "operationId": "report.financial",
+        "tags": [
+          "Report"
+        ],
+        "parameters": [
+          {
+            "name": "bulan",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bulan": {},
+                    "pemasukan": {
+                      "type": "integer"
+                    },
+                    "pengeluaran": {
+                      "type": "integer"
+                    },
+                    "saldo_akhir": {
+                      "type": "integer"
+                    },
+                    "detail": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Transaction"
+                          }
+                        },
+                        "first_page_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "next_page_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "prev_page_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "data",
+                        "first_page_url",
+                        "from",
+                        "last_page_url",
+                        "last_page",
+                        "links",
+                        "next_page_url",
+                        "path",
+                        "per_page",
+                        "prev_page_url",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "bulan",
+                    "pemasukan",
+                    "pengeluaran",
+                    "saldo_akhir",
+                    "detail"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Format bulan tidak valid. Gunakan YYYY-MM."
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "bulan": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 0,
+                          "maxItems": 0,
+                          "additionalItems": false
+                        }
+                      },
+                      "required": [
+                        "bulan"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/financial/summary": {
+      "get": {
+        "operationId": "report.summary",
+        "summary": "Ringkasan pemasukan/pengeluaran 12 bulan terakhir untuk grafik dan rekap laporan",
+        "tags": [
+          "Report"
+        ],
+        "responses": {
+          "200": {
+            "description": "Hanya bulan yang punya transaksi (masuk/keluar) — bulan kosong disembunyikan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "bulan": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "pemasukan": {
+                            "type": "integer"
+                          },
+                          "pengeluaran": {
+                            "type": "integer"
+                          },
+                          "net": {
+                            "type": "string"
+                          },
+                          "jumlah_transaksi": {
+                            "type": "integer"
+                          },
+                          "staff": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "Berjalan",
+                              "Selesai"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "bulan",
+                          "label",
+                          "pemasukan",
+                          "pengeluaran",
+                          "net",
+                          "jumlah_transaksi",
+                          "staff",
+                          "status"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/reports/financial/export": {
+      "get": {
+        "operationId": "report.export",
+        "tags": [
+          "Report"
+        ],
+        "parameters": [
+          {
+            "name": "bulan",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Format bulan tidak valid. Gunakan YYYY-MM."
+                    },
+                    "errors": {
+                      "type": "object",
+                      "properties": {
+                        "bulan": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 0,
+                          "maxItems": 0,
+                          "additionalItems": false
+                        }
+                      },
+                      "required": [
+                        "bulan"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/santris": {
+      "get": {
+        "operationId": "santri.index",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kelas",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated set of `SantriResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SantriResource"
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "first": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "prev": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "next": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first",
+                        "last",
+                        "prev",
+                        "next"
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "from",
+                        "last_page",
+                        "links",
+                        "path",
+                        "per_page",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "santri.store",
+        "tags": [
+          "Santri"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SantriRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`SantriResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SantriResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/santris/by-nis": {
+      "get": {
+        "operationId": "santri.byNis",
+        "summary": "Pencarian cepat untuk verifikasi penarikan koin di loket.\nWajib menyertakan foto_url",
+        "tags": [
+          "Santri"
+        ],
+        "responses": {
+          "200": {
+            "description": "`SantriResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SantriResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/santris/{santri}": {
+      "get": {
+        "operationId": "santri.show",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`SantriResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SantriResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      },
+      "put": {
+        "operationId": "santri.update",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SantriRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`SantriResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SantriResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "santri.destroy",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Santri dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/santris/{santri}/mutasi": {
+      "get": {
+        "operationId": "santri.mutasi",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of `TransactionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/TransactionResource"
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "santri",
+                              "created_by"
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/santris/import": {
+      "post": {
+        "operationId": "santri.import",
+        "tags": [
+          "Santri"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "contentMediaType": "application/octet-stream"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "diproses": {
+                      "type": "integer"
+                    },
+                    "ditambah": {
+                      "type": "integer"
+                    },
+                    "diupdate": {
+                      "type": "integer"
+                    },
+                    "foto_terpasang": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "diproses",
+                    "ditambah",
+                    "diupdate",
+                    "foto_terpasang",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/santris/import-preview": {
+      "post": {
+        "operationId": "santri.importPreview",
+        "tags": [
+          "Santri"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "contentMediaType": "application/octet-stream"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "temp_id": {
+                            "type": "string"
+                          },
+                          "nis": {
+                            "type": "string"
+                          },
+                          "nis2": {
+                            "type": "string"
+                          },
+                          "nama": {
+                            "type": "string"
+                          },
+                          "tempat_lahir": {
+                            "type": "string"
+                          },
+                          "tanggal_lahir": {
+                            "type": "string"
+                          },
+                          "jenis_kelamin": {
+                            "type": "string",
+                            "enum": [
+                              "P",
+                              "L"
+                            ]
+                          },
+                          "alamat": {
+                            "type": "string"
+                          },
+                          "tags": {
+                            "type": "string"
+                          },
+                          "note": {
+                            "type": "string"
+                          },
+                          "unit": {
+                            "type": "string"
+                          },
+                          "va_jajan": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "const": "aktif"
+                          },
+                          "is_exists": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "temp_id",
+                          "nis",
+                          "nis2",
+                          "nama",
+                          "tempat_lahir",
+                          "tanggal_lahir",
+                          "jenis_kelamin",
+                          "alamat",
+                          "tags",
+                          "note",
+                          "unit",
+                          "va_jajan",
+                          "status",
+                          "is_exists"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "total",
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/santris/import-confirm": {
+      "post": {
+        "operationId": "santri.importConfirm",
+        "tags": [
+          "Santri"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nis": {
+                          "type": "string"
+                        },
+                        "nama": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "nis",
+                        "nama"
+                      ]
+                    },
+                    "minItems": 1
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "diproses": {
+                      "type": "integer"
+                    },
+                    "ditambah": {
+                      "type": "integer"
+                    },
+                    "diupdate": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "diproses",
+                    "ditambah",
+                    "diupdate",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/santris/{santri}/penyesuaian": {
+      "post": {
+        "operationId": "santri.penyesuaian",
+        "tags": [
+          "Santri"
+        ],
+        "parameters": [
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PenyesuaianRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Penyesuaian saldo berhasil."
+                    },
+                    "transaction": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/TransactionResource"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "santri",
+                            "created_by"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "transaction"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/staff": {
+      "get": {
+        "operationId": "staff.index",
+        "tags": [
+          "Staff"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jabatan",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated set of `UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserResource"
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "first": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "prev": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "next": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first",
+                        "last",
+                        "prev",
+                        "next"
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "from",
+                        "last_page",
+                        "links",
+                        "path",
+                        "per_page",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "staff.store",
+        "tags": [
+          "Staff"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/staff/{user}": {
+      "put": {
+        "operationId": "staff.update",
+        "tags": [
+          "Staff"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "staff.destroy",
+        "tags": [
+          "Staff"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Staff dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "User bukan staff."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "operationId": "transaction.index",
+        "tags": [
+          "Transaction"
+        ],
+        "parameters": [
+          {
+            "name": "kategori",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dari",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sampai",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated set of `TransactionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TransactionResource"
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "first": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "prev": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "next": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first",
+                        "last",
+                        "prev",
+                        "next"
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "from",
+                        "last_page",
+                        "links",
+                        "path",
+                        "per_page",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/transactions/export": {
+      "get": {
+        "operationId": "transaction.export",
+        "tags": [
+          "Transaction"
+        ],
+        "parameters": [
+          {
+            "name": "kategori",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dari",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sampai",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/transactions/{transaction}": {
+      "get": {
+        "operationId": "transaction.show",
+        "tags": [
+          "Transaction"
+        ],
+        "parameters": [
+          {
+            "name": "transaction",
+            "in": "path",
+            "required": true,
+            "description": "The transaction ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`TransactionResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/TransactionResource"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "santri",
+                            "created_by"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          }
+        }
+      }
+    },
+    "/wali/dashboard": {
+      "get": {
+        "operationId": "wali.dashboard",
+        "summary": "Dashboard wali: daftar anak (santri terpaut) + saldo, VA, statistik.\n?santri_id= fokus pada satu anak",
+        "tags": [
+          "Wali"
+        ],
+        "parameters": [
+          {
+            "name": "santri_id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "santris": {
+                      "type": "string"
+                    },
+                    "santri_terpilih": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "nis": {
+                          "type": "string"
+                        },
+                        "nama": {
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        },
+                        "kelas": {
+                          "type": "string"
+                        },
+                        "saldo": {
+                          "type": "integer"
+                        },
+                        "va_jajan": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "nis",
+                        "nama",
+                        "unit",
+                        "kelas",
+                        "saldo",
+                        "va_jajan"
+                      ]
+                    },
+                    "statistik": {
+                      "type": "object",
+                      "properties": {
+                        "total_isi": {
+                          "type": "integer"
+                        },
+                        "total_tarik": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "total_isi",
+                        "total_tarik"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "santris",
+                    "santri_terpilih",
+                    "statistik"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/wali/transactions": {
+      "get": {
+        "operationId": "wali.transactions",
+        "summary": "Riwayat transaksi anak-anak wali, filter tipe masuk/keluar/semua",
+        "tags": [
+          "Wali"
+        ],
+        "parameters": [
+          {
+            "name": "dari",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sampai",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LengthAwarePaginator"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/wali/transactions/export": {
+      "get": {
+        "operationId": "wali.export",
+        "tags": [
+          "Wali"
+        ],
+        "parameters": [
+          {
+            "name": "dari",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sampai",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      }
+    },
+    "/wali-users": {
+      "get": {
+        "operationId": "waliUser.index",
+        "tags": [
+          "WaliUser"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated set of `UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserResource"
+                      }
+                    },
+                    "links": {
+                      "type": "object",
+                      "properties": {
+                        "first": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "last": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "prev": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "next": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "first",
+                        "last",
+                        "prev",
+                        "next"
+                      ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "current_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "from": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": 1
+                        },
+                        "last_page": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "links": {
+                          "type": "array",
+                          "description": "Generated paginator links.",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "url",
+                              "label",
+                              "active"
+                            ]
+                          }
+                        },
+                        "path": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "description": "Base path for paginator generated URLs."
+                        },
+                        "per_page": {
+                          "type": "integer",
+                          "description": "Number of items shown per page.",
+                          "minimum": 0
+                        },
+                        "to": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Number of the last item in the slice.",
+                          "minimum": 1
+                        },
+                        "total": {
+                          "type": "integer",
+                          "description": "Total number of items being paginated.",
+                          "minimum": 0
+                        }
+                      },
+                      "required": [
+                        "current_page",
+                        "from",
+                        "last_page",
+                        "links",
+                        "path",
+                        "per_page",
+                        "to",
+                        "total"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          }
+        }
+      },
+      "post": {
+        "operationId": "waliUser.store",
+        "tags": [
+          "WaliUser"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 30
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  },
+                  "is_active": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      }
+    },
+    "/wali-users/{user}": {
+      "put": {
+        "operationId": "waliUser.update",
+        "tags": [
+          "WaliUser"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 30
+                  },
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 6
+                  },
+                  "is_active": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "username"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "`UserResource`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationException"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "waliUser.destroy",
+        "tags": [
+          "WaliUser"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Akun wali dihapus."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "User bukan wali."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wali-users/{user}/santri/{santri}": {
+      "post": {
+        "operationId": "waliUser.linkSantri",
+        "tags": [
+          "WaliUser"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "Santri sudah terhubung ke akun ini."
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "User bukan wali."
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "waliUser.unlinkSantri",
+        "tags": [
+          "WaliUser"
+        ],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "description": "The user ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "santri",
+            "in": "path",
+            "required": true,
+            "description": "The santri ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationException"
+          },
+          "404": {
+            "$ref": "#/components/responses/ModelNotFoundException"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "User bukan wali."
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "http": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "BniUploadItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "upload_id": {
+            "type": "integer"
+          },
+          "va": {
+            "type": "string"
+          },
+          "journal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "billing_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dedup_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nominal": {
+            "type": "integer"
+          },
+          "tanggal": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "santri_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "status_valid": {
+            "type": "boolean"
+          },
+          "catatan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diterapkan": {
+            "type": "boolean"
+          },
+          "applied_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "upload_id",
+          "va",
+          "journal",
+          "billing_id",
+          "dedup_key",
+          "nama",
+          "nominal",
+          "tanggal",
+          "santri_id",
+          "status_valid",
+          "catatan",
+          "diterapkan",
+          "applied_at"
+        ],
+        "title": "BniUploadItem"
+      },
+      "LengthAwarePaginator": {
+        "type": "object",
+        "properties": {
+          "current_page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "first_page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "last_page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "links": {
+            "type": "array",
+            "description": "Generated paginator links.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "url",
+                "label",
+                "active"
+              ]
+            }
+          },
+          "next_page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Base path for paginator generated URLs."
+          },
+          "per_page": {
+            "type": "integer",
+            "description": "Number of items shown per page.",
+            "minimum": 0
+          },
+          "prev_page_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Number of the last item in the slice.",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of items being paginated.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "current_page",
+          "data",
+          "first_page_url",
+          "from",
+          "last_page_url",
+          "last_page",
+          "links",
+          "next_page_url",
+          "path",
+          "per_page",
+          "prev_page_url",
+          "to",
+          "total"
+        ],
+        "title": "LengthAwarePaginator"
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "PenarikanRequest": {
+        "type": "object",
+        "properties": {
+          "santri_id": {
+            "type": "integer"
+          },
+          "nominal": {
+            "type": "integer",
+            "minimum": 1000
+          }
+        },
+        "required": [
+          "santri_id",
+          "nominal"
+        ],
+        "title": "PenarikanRequest"
+      },
+      "PenyesuaianRequest": {
+        "type": "object",
+        "properties": {
+          "aksi": {
+            "type": "string",
+            "enum": [
+              "tambah",
+              "kurangi"
+            ]
+          },
+          "nominal": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "keterangan": {
+            "type": "string",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "aksi",
+          "nominal",
+          "keterangan"
+        ],
+        "title": "PenyesuaianRequest"
+      },
+      "SantriRequest": {
+        "type": "object",
+        "properties": {
+          "nis": {
+            "type": "string"
+          },
+          "nis2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "tempat_lahir": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "tanggal_lahir": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "jenis_kelamin": {
+            "type": "string",
+            "enum": [
+              "L",
+              "P"
+            ]
+          },
+          "alamat": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kelas": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "kelas_detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "tags": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MTS",
+              "MA",
+              "SMP",
+              "SMA",
+              "SMK",
+              "BARU",
+              null
+            ]
+          },
+          "va_jajan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "aktif",
+              "nonaktif",
+              null
+            ]
+          },
+          "foto": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "binary",
+            "contentMediaType": "application/octet-stream",
+            "description": "Maximum file size: 2048 kilobytes."
+          }
+        },
+        "title": "SantriRequest"
+      },
+      "SantriResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nis": {
+            "type": "string"
+          },
+          "nis2": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "nama": {
+            "type": "string"
+          },
+          "tempat_lahir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tanggal_lahir": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jenis_kelamin": {
+            "type": "string"
+          },
+          "alamat": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kelas": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kelas_detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "va_jajan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "saldo": {
+            "type": "integer"
+          },
+          "foto_url": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nis",
+          "nis2",
+          "nama",
+          "tempat_lahir",
+          "tanggal_lahir",
+          "jenis_kelamin",
+          "alamat",
+          "kelas",
+          "kelas_detail",
+          "tags",
+          "note",
+          "unit",
+          "va_jajan",
+          "status",
+          "saldo",
+          "foto_url",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SantriResource"
+      },
+      "StaffRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "username": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 30
+          },
+          "nip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "jabatan": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "shift": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100
+          },
+          "is_active": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6
+          }
+        },
+        "required": [
+          "name",
+          "password"
+        ],
+        "title": "StaffRequest"
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "santri_id": {
+            "type": "integer"
+          },
+          "bni_upload_item_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "tipe": {
+            "type": "string"
+          },
+          "nominal": {
+            "type": "integer"
+          },
+          "saldo_sebelum": {
+            "type": "integer"
+          },
+          "saldo_setelah": {
+            "type": "integer"
+          },
+          "keterangan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_by": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "santri_id",
+          "bni_upload_item_id",
+          "tipe",
+          "nominal",
+          "saldo_sebelum",
+          "saldo_setelah",
+          "keterangan",
+          "created_by",
+          "created_at"
+        ],
+        "title": "Transaction"
+      },
+      "TransactionResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "tipe": {
+            "type": "string"
+          },
+          "nominal": {
+            "type": "integer"
+          },
+          "saldo_sebelum": {
+            "type": "integer"
+          },
+          "saldo_setelah": {
+            "type": "integer"
+          },
+          "keterangan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "santri": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "nis": {
+                "type": "string"
+              },
+              "nama": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "nis",
+              "nama"
+            ]
+          },
+          "created_by": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "tipe",
+          "nominal",
+          "saldo_sebelum",
+          "saldo_setelah",
+          "keterangan",
+          "created_at"
+        ],
+        "title": "TransactionResource"
+      },
+      "UserResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "username": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "nip": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "jabatan": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "shift": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "santris": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "nis": {
+                  "type": "string"
+                },
+                "nama": {
+                  "type": "string"
+                },
+                "va_jajan": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "nis",
+                "nama",
+                "va_jajan"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "role",
+          "phone",
+          "is_active",
+          "nip",
+          "jabatan",
+          "shift",
+          "created_at"
+        ],
+        "title": "UserResource"
+      }
+    },
+    "responses": {
+      "ValidationException": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Errors overview."
+                },
+                "errors": {
+                  "type": "object",
+                  "description": "A detailed description of each field that failed validation.",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "message",
+                "errors"
+              ]
+            }
+          }
+        }
+      },
+      "AuthenticationException": {
+        "description": "Unauthenticated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Error overview."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          }
+        }
+      },
+      "ModelNotFoundException": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Error overview."
+                }
+              },
+              "required": [
+                "message"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,8 +20,16 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
 
         {/* ── Avatar & Identitas ─────────────────────────── */}
         <div className="flex items-center gap-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-          <div className="w-16 h-16 rounded-2xl bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-2xl font-black text-white shrink-0 shadow-md">
-            {initialLetter}
+          <div className="w-16 h-16 min-w-[64px] min-h-[64px] rounded-full bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-2xl font-black text-white shrink-0 overflow-hidden shadow-md aspect-square border-2 border-amber-400/40">
+            {santri.foto ? (
+              <img
+                src={santri.foto}
+                alt={santri.nama}
+                className="w-full h-full object-cover rounded-full aspect-square block"
+              />
+            ) : (
+              initialLetter
+            )}
           </div>
           <div className="flex flex-col gap-1.5 flex-1">
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">

@@ -35,7 +35,7 @@ const UserKpiCards = ({
   if (category === 'staff-koin') {
     const nonAktif = totalPengguna - penggunaAktif;
     return (
-      <div className="user-kpi-grid">
+      <div className="user-kpi-grid user-kpi-grid--3">
         <div className="user-kpi-card user-kpi-card--total">
           <span className="user-kpi-label">TOTAL STAFF RUMAH KOIN</span>
           <h3 className="user-kpi-value">{totalPengguna} akun</h3>
@@ -47,10 +47,6 @@ const UserKpiCards = ({
         <div className="user-kpi-card user-kpi-card--keluar">
           <span className="user-kpi-label user-kpi-label--keluar">STAFF NONAKTIF</span>
           <h3 className="user-kpi-value user-kpi-value--keluar">{nonAktif} akun</h3>
-        </div>
-        <div className="user-kpi-card user-kpi-card--staff">
-          <span className="user-kpi-label user-kpi-label--staff">PENUGASAN UTAMA</span>
-          <h3 className="user-kpi-value user-kpi-value--staff">Loket Rumah Koin</h3>
         </div>
       </div>
     );

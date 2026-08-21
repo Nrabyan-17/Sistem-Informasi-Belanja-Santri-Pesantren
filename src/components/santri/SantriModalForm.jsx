@@ -19,12 +19,12 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     if (isOpen) {
       setNis(initialData.nis || '');
       setNama(initialData.nama || '');
-      setJenisKelamin(initialData.jenisKelamin || 'L');
-      setTglLahir(initialData.tglLahir || '');
-      setVaJajan(initialData.vaJajan || '');
+      setJenisKelamin(initialData.jenisKelamin || initialData.jenis_kelamin || 'L');
+      setTglLahir(initialData.tglLahir || initialData.tanggal_lahir || '');
+      setVaJajan(initialData.vaJajan || initialData.va_jajan || '');
       setStatus(initialData.status || 'aktif');
       setFoto(null);
-      setFotoPreview('');
+      setFotoPreview(initialData.foto || initialData.foto_url || '');
     }
   }, [isOpen, initialData]);
 
@@ -120,8 +120,18 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         <div className="form-group-section flex flex-col gap-1.5">
           <label className={labelClass}>FOTO SANTRI <span className="normal-case font-medium text-slate-400 dark:text-slate-500">(Opsional — bisa diunggah nanti)</span></label>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-black text-slate-400 shrink-0">
-              {(nama || 'S').charAt(0).toUpperCase()}
+            <div className="w-16 h-16 min-w-[64px] min-h-[64px] rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-emerald-500/30 dark:border-emerald-600/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm aspect-square">
+              {fotoPreview ? (
+                <img
+                  src={fotoPreview}
+                  alt={nama || 'Foto Santri'}
+                  className="w-full h-full object-cover rounded-full aspect-square block"
+                />
+              ) : (
+                <span className="text-2xl font-black text-slate-400">
+                  {(nama || 'S').charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <button

@@ -5,16 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { santriApi } from '../utils/api';
 import { setSantriSaldo, mergeSantriSaldos } from '../utils/saldoStorage';
 
-const mockSantriList = [
-  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 0 },
-  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',   saldo: 0 },
-  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',   saldo: 0 },
-  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 0 },
-  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 0 },
-  { id: 6, nis: '2024004', nama: 'Budi Santoso',    saldo: 0 },
-  { id: 7, nis: '2024005', nama: 'Citra Dewi',      saldo: 0 },
-];
-
 const mapSantriForSaldo = (s) => ({
   id: s.id,
   nis: s.nis || '',
@@ -38,16 +28,16 @@ const TopUpPage = ({ Layout = MainLayout }) => {
     setLoading(true);
     santriApi.list({ per_page: 500 })
       .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : null);
-        if (rawData && rawData.length >= 0) {
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(rawData)) {
           setSantriList(mergeSantriSaldos(rawData.map(mapSantriForSaldo)));
         } else {
-          setSantriList(mergeSantriSaldos(mockSantriList));
+          setSantriList([]);
         }
       })
       .catch((err) => {
-        console.warn('Menggunakan data saldo santri lokal:', err.message);
-        setSantriList(mergeSantriSaldos(mockSantriList));
+        console.warn('Gagal memuat data saldo santri:', err.message);
+        setSantriList([]);
       })
       .finally(() => setLoading(false));
   };
@@ -221,17 +211,17 @@ const TopUpPage = ({ Layout = MainLayout }) => {
                     <td className="font-mono text-slate-500 font-semibold">{santri.nis}</td>
                     <td className="py-3">
                       <div className="flex items-center gap-3">
-                        {santri.foto ? (
-                          <img
-                            src={santri.foto}
-                            alt={santri.nama}
-                            className="w-9 h-9 rounded-xl object-cover border border-emerald-600/40 shadow-2xs shrink-0"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {(santri.nama || 'S').charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <div className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-2xs aspect-square border border-emerald-600/30">
+                          {santri.foto ? (
+                            <img
+                              src={santri.foto}
+                              alt={santri.nama}
+                              className="w-full h-full object-cover rounded-full aspect-square block"
+                            />
+                          ) : (
+                            (santri.nama || 'S').charAt(0).toUpperCase()
+                          )}
+                        </div>
                         <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                           {santri.nama}
                         </span>

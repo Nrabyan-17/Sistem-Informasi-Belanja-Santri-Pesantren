@@ -29,7 +29,6 @@ const MonthlyReportTable = ({
               <th className="text-left">SELISIH DANA</th>
               <th className="text-left">JUMLAH TRANSAKSI</th>
               <th className="text-left">STAFF PETUGAS</th>
-              <th className="text-left">STATUS</th>
               <th className="text-center">AKSI</th>
             </tr>
           </thead>
@@ -59,17 +58,6 @@ const MonthlyReportTable = ({
                   </td>
                   <td className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
                     {row.staff || '—'}
-                  </td>
-                  <td>
-                    <span
-                      className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold ${
-                        row.status === 'Berjalan'
-                          ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300'
-                          : 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300'
-                      }`}
-                    >
-                      {row.status}
-                    </span>
                   </td>
                   <td>
                     <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>

@@ -3,13 +3,6 @@ import StaffLayout from '../components/layout/StaffLayout';
 import { bniApi } from '../utils/api';
 import { getSantriSaldos, setSantriSaldo, addSantriHistory } from '../utils/saldoStorage';
 
-const mockParsedTransactions = [
-  { id: 1, va: '9881234567890001', nis: '123456', nama: 'Ahmad Fauzi', nominal: 100000, tanggal: '2026-08-01 08:30', status: 'valid', billingId: 'JJNJULI26/123456', isJajan: true, isDuplicate: true },
-  { id: 2, va: '9881234567890002', nis: '123457', nama: 'Budi Santoso', nominal: 50000, tanggal: '2026-08-01 09:15', status: 'valid', billingId: 'JJNJULI26/123457', isJajan: true, isDuplicate: false },
-  { id: 3, va: '9881234567890003', nis: '123458', nama: 'Citra Dewi', nominal: 75000, tanggal: '2026-08-01 10:45', status: 'valid', billingId: 'JJNJULI26/123458', isJajan: true, isDuplicate: false },
-  { id: 4, va: '9881234567899999', nis: '-', nama: 'Tidak Ditemukan', nominal: 25000, tanggal: '2026-08-01 11:20', status: 'invalid', billingId: 'KLINIK/001', isJajan: false, isDuplicate: false },
-];
-
 // Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
 const cleanCell = (val) => {
   if (!val) return '';
@@ -197,12 +190,14 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
           if (parsed.length > 0) {
             setParsedData(parsed);
           } else {
-            setParsedData(mockParsedTransactions);
+            setErrorMessage('File mutasi tidak memuat baris data transaksi yang valid.');
+            setParsedData([]);
           }
         }
       } catch (err) {
         console.error('Gagal parsing CSV:', err);
-        setParsedData(mockParsedTransactions);
+        setErrorMessage('Gagal memproses struktur file CSV/Excel.');
+        setParsedData([]);
       } finally {
         setIsUploading(false);
       }

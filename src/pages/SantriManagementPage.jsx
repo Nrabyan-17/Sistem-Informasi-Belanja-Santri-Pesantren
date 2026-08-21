@@ -7,7 +7,6 @@ import SantriModalForm from '../components/santri/SantriModalForm';
 import SantriDetailModal from '../components/santri/SantriDetailModal';
 import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
 import BatchActionBar from '../components/common/BatchActionBar';
-import { mockSantri } from '../data/mockSantri';
 import { santriApi } from '../utils/api';
 import { mergeSantriSaldos } from '../utils/saldoStorage';
 

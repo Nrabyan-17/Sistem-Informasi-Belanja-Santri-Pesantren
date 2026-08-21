@@ -2028,15 +2028,30 @@ html.dark .metric-divider,
   margin-bottom: 24px;
 }
 
+/* 3 KPI Grid (Pas untuk 3 kartu tanpa ruang kosong) */
+.user-kpi-grid--3 {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
 @media (max-width: 1024px) {
   .user-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .user-kpi-grid--3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-kpi-grid--3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 @media (max-width: 640px) {
-  .user-kpi-grid {
-    grid-template-columns: 1fr;
+  .user-kpi-grid,
+  .user-kpi-grid--3 {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -6445,5 +6460,81 @@ html.dark .wali-table-title,
 .dark .import-batch-table th {
   background-color: #0f172a !important;
   box-shadow: inset 0 -1px 0 #1e293b !important;
+}
+
+/* ==========================================================================
+   OFFICIAL FINANCIAL REPORT PDF & PRINT STYLES
+   ========================================================================== */
+@media screen {
+  .printable-report-document {
+    display: none !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1.2cm 1cm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Sembunyikan SEMUA elemen tampilan website/dashboard */
+  aside,
+  nav,
+  header,
+  .main-header,
+  .app-sidebar,
+  .sidebar-container,
+  .sidebar,
+  .financial-page-screen-ui,
+  .report-header-card,
+  .report-kpi-grid,
+  .report-kpi-card,
+  .rekap-report-card,
+  .rekap-table-wrapper,
+  .report-action-controls,
+  button,
+  .btn-download-pdf,
+  .btn-download-excel,
+  .header-actions,
+  .breadcrumbs {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Tampilkan hanya dokumen formal lembar PDF pesantren */
+  .printable-report-document {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .printable-report-document * {
+    visibility: visible !important;
+  }
+
+  .printable-report-document table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .printable-report-document th,
+  .printable-report-document td {
+    border: 1px solid #cbd5e1 !important;
+  }
 }
 

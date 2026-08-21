@@ -2,18 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { santriApi, penarikanApi } from '../../utils/api';
 import { mergeSantriSaldos, setSantriSaldo, addSantriHistory } from '../../utils/saldoStorage';
 
-// Form Penarikan Koin / Saldo khusus Staff Rumah Koin
-const mockSantriOptions = [
-  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  kelas: 'VII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',  kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
-  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',  kelas: 'IX A', saldo: 0, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
-  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza', kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
-  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',    kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { id: 6, nis: '2024082', nama: 'Budi Santoso',   kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { id: 7, nis: '2024084', nama: 'Dani Pratama',   kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { id: 8, nis: '2024085', nama: 'Eka Rahmawati',  kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
-];
-
 const getInitials = (name) => {
   if (!name) return 'S';
   const parts = name.trim().split(' ');
@@ -22,8 +10,8 @@ const getInitials = (name) => {
 };
 
 const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
-  const [santriOptions, setSantriOptions] = useState(() => mergeSantriSaldos(mockSantriOptions));
-  const [selectedNis, setSelectedNis] = useState('2024003');
+  const [santriOptions, setSantriOptions] = useState([]);
+  const [selectedNis, setSelectedNis] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -39,8 +27,8 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   useEffect(() => {
     santriApi.list({ per_page: 500 })
       .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : null);
-        if (rawData && rawData.length > 0) {
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(rawData) && rawData.length > 0) {
           const mapped = rawData.map((s) => ({
             id: s.id,
             nis: s.nis || '',
@@ -49,13 +37,18 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             saldo: Number(s.saldo || 0),
             foto: s.foto || s.foto_url || null,
           }));
-          setSantriOptions(mergeSantriSaldos(mapped));
+          const merged = mergeSantriSaldos(mapped);
+          setSantriOptions(merged);
+          if (merged.length > 0 && !selectedNis) {
+            setSelectedNis(merged[0].nis);
+          }
         } else {
-          setSantriOptions(mergeSantriSaldos(mockSantriOptions));
+          setSantriOptions([]);
         }
       })
-      .catch(() => {
-        setSantriOptions(mergeSantriSaldos(mockSantriOptions));
+      .catch((err) => {
+        console.warn('Gagal memuat data santri untuk penarikan koin:', err.message);
+        setSantriOptions([]);
       });
   }, []);
 
@@ -335,10 +328,18 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           <div className="lg:col-span-6">
             <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-3 my-0 w-full">
               <div className="flex items-center gap-3 min-w-0">
-                {/* Inisial Profil Santri */}
+                {/* Foto / Inisial Profil Santri */}
                 <div className="relative shrink-0">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-base sm:text-lg flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40">
-                    {getInitials(activeSantri.nama)}
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 min-w-[48px] min-h-[48px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-base sm:text-lg flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40 overflow-hidden aspect-square">
+                    {activeSantri.foto ? (
+                      <img
+                        src={activeSantri.foto}
+                        alt={activeSantri.nama}
+                        className="w-full h-full object-cover rounded-full aspect-square block"
+                      />
+                    ) : (
+                      getInitials(activeSantri.nama)
+                    )}
                   </div>
                   <span
                     className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-2xs"

@@ -108,8 +108,8 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
   const handleExportXLSX = () => {
     transactionApi
       .export({
-        search: search || undefined,
-        kategori: jenis !== 'Semua' ? (jenis === 'Masuk' ? 'topup' : 'tarik_koin') : undefined,
+        search: search.trim() || undefined,
+        tipe: jenis !== 'Semua' ? (jenis === 'Masuk' ? 'masuk' : 'keluar') : undefined,
         dari: dari || undefined,
         sampai: sampai || undefined,
       })

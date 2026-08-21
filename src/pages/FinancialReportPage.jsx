@@ -3,6 +3,7 @@ import MainLayout from '../components/layout/MainLayout';
 import FinancialSummaryCards from '../components/reports/FinancialSummaryCards';
 import ExportButtons from '../components/reports/ExportButtons';
 import MonthlyReportTable from '../components/reports/MonthlyReportTable';
+import PrintableFinancialReport from '../components/reports/PrintableFinancialReport';
 import { reportApi, dashboardApi } from '../utils/api';
 
 const FinancialReportPage = ({ Layout = MainLayout }) => {
@@ -39,71 +40,91 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
   }, [rows, selectedMonth]);
 
   // Export PDF Handler
-  const handleExportPDF = () => {
-    window.print();
+  const handleExportPDF = (rowMonth) => {
+    if (rowMonth && typeof rowMonth === 'string') {
+      setSelectedMonth(rowMonth);
+    }
+    // Sedikit delay agar DOM terseleksi sebelum dialog print terbuka
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   // Export Excel Handler (via API)
-  const handleExportExcel = () => {
-    const bulan = rows.find((r) => r.periode === selectedMonth)?.bulan;
+  const handleExportExcel = (rowMonth) => {
+    const targetMonth = typeof rowMonth === 'string' ? rowMonth : selectedMonth;
+    const bulan = rows.find((r) => r.periode === targetMonth)?.bulan || rows.find((r) => r.periode === selectedMonth)?.bulan;
     reportApi.export(bulan).catch((e) => setError(e.message || 'Gagal mengekspor laporan.'));
   };
 
   return (
     <Layout pageTitle="Laporan Keuangan">
-      {/* Header Halaman Laporan & Bar Kontrol Actions */}
-      <div className="report-header-card flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="report-main-title text-2xl font-extrabold text-slate-900 dark:text-slate-100">
-            Laporan Keuangan
-          </h1>
-          <p className="report-main-subtitle text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Rekap bulanan keuangan PP Nazhatut Thullab
-          </p>
+      {/* UI LAYAR WEBSITE (Otomatis Disembunyikan Saat Cetak PDF) */}
+      <div className="financial-page-screen-ui">
+        {/* Header Halaman Laporan & Bar Kontrol Actions */}
+        <div className="report-header-card flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="report-main-title text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+              Laporan Keuangan
+            </h1>
+            <p className="report-main-subtitle text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Rekap bulanan keuangan PP Nazhatut Thullab
+            </p>
+          </div>
+
+          {/* Action Controls: Dropdown Periode + Tombol Unduh PDF + Tombol Unduh Excel */}
+          <ExportButtons
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
+            months={rows.map((m) => m.periode)}
+            onExportPDF={() => handleExportPDF()}
+            onExportExcel={() => handleExportExcel()}
+          />
         </div>
 
-        {/* Action Controls: Dropdown Periode + Tombol Unduh PDF + Tombol Unduh Excel */}
-        <ExportButtons
-          selectedMonth={selectedMonth}
-          onMonthChange={setSelectedMonth}
-          months={rows.map((m) => m.periode)}
-          onExportPDF={handleExportPDF}
-          onExportExcel={handleExportExcel}
-        />
+        {error && (
+          <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
+            Memuat laporan keuangan...
+          </div>
+        )}
+
+        {!loading && rows.length > 0 && (
+          <>
+            {/* KPI Ringkasan 4 Kartu */}
+            <FinancialSummaryCards
+              totalSaldo={totalSaldoAktif}
+              totalMasuk={activeMonthReport?.totalMasuk || 0}
+              totalKeluar={activeMonthReport?.totalKeluar || 0}
+              netBulanIni={activeMonthReport?.net || 0}
+              selectedMonth={selectedMonth}
+            />
+
+            {/* Tabel Rekap Laporan Bulanan */}
+            <MonthlyReportTable
+              data={rows}
+              selectedMonth={selectedMonth}
+              onSelectMonth={setSelectedMonth}
+              onDownloadRowPDF={(p) => handleExportPDF(p)}
+              onDownloadRowExcel={(p) => handleExportExcel(p)}
+            />
+          </>
+        )}
       </div>
 
-      {error && (
-        <div className="mb-6 px-4 py-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-sm font-semibold text-rose-700 dark:text-rose-300">
-          {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
-          Memuat laporan keuangan...
-        </div>
-      )}
-
+      {/* DOKUMEN CETAK PDF RESMI PESANTREN (Hanya Tampil Saat Print / Save as PDF) */}
       {!loading && rows.length > 0 && (
-        <>
-          {/* KPI Ringkasan 4 Kartu */}
-          <FinancialSummaryCards
-            totalSaldo={totalSaldoAktif}
-            totalMasuk={activeMonthReport.totalMasuk}
-            totalKeluar={activeMonthReport.totalKeluar}
-            netBulanIni={activeMonthReport.net}
-            selectedMonth={selectedMonth}
-          />
-
-          {/* Tabel Rekap Laporan Bulanan */}
-          <MonthlyReportTable
-            data={rows}
-            selectedMonth={selectedMonth}
-            onSelectMonth={setSelectedMonth}
-            onDownloadRowPDF={handleExportPDF}
-            onDownloadRowExcel={handleExportExcel}
-          />
-        </>
+        <PrintableFinancialReport
+          selectedMonth={selectedMonth}
+          totalSaldoAktif={totalSaldoAktif}
+          activeMonthReport={activeMonthReport}
+          rows={rows}
+        />
       )}
     </Layout>
   );

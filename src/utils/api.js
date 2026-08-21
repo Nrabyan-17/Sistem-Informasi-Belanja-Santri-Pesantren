@@ -68,6 +68,17 @@ async function apiFetchForm(endpoint, formData, method = 'POST') {
   return res.json();
 }
 
+function buildQuery(params = {}) {
+  const filtered = {};
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && v !== '' && v !== 'undefined') {
+      filtered[k] = v;
+    }
+  }
+  const qs = new URLSearchParams(filtered).toString();
+  return qs ? `?${qs}` : '';
+}
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -85,11 +96,11 @@ export const authApi = {
 };
 
 export const dashboardApi = {
-  get: (params = {}) => apiFetch('/dashboard?' + new URLSearchParams(params)),
+  get: (params = {}) => apiFetch('/dashboard' + buildQuery(params)),
 };
 
 export const santriApi = {
-  list: (params = {}) => apiFetch('/santris?' + new URLSearchParams(params)),
+  list: (params = {}) => apiFetch('/santris' + buildQuery(params)),
   byNis: (nis) => apiFetch(`/santris/by-nis?nis=${nis}`),
   show: (id) => apiFetch(`/santris/${id}`),
   mutasi: (id) => apiFetch(`/santris/${id}/mutasi`),
@@ -113,21 +124,21 @@ export const santriApi = {
 };
 
 export const staffApi = {
-  list: (params = {}) => apiFetch('/staff?' + new URLSearchParams(params)),
+  list: (params = {}) => apiFetch('/staff' + buildQuery(params)),
   store: (data) => apiFetch('/staff', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiFetch(`/staff/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   destroy: (id) => apiFetch(`/staff/${id}`, { method: 'DELETE' }),
 };
 
 export const adminApi = {
-  list: (params = {}) => apiFetch('/admins?' + new URLSearchParams(params)),
+  list: (params = {}) => apiFetch('/admins' + buildQuery(params)),
   store: (data) => apiFetch('/admins', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiFetch(`/admins/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   destroy: (id) => apiFetch(`/admins/${id}`, { method: 'DELETE' }),
 };
 
 export const waliUserApi = {
-  list: (params = {}) => apiFetch('/wali-users?' + new URLSearchParams(params)),
+  list: (params = {}) => apiFetch('/wali-users' + buildQuery(params)),
   store: (data) => apiFetch('/wali-users', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiFetch(`/wali-users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   destroy: (id) => apiFetch(`/wali-users/${id}`, { method: 'DELETE' }),
@@ -157,10 +168,10 @@ export const bniApi = {
 };
 
 export const transactionApi = {
-  list: (params = {}) => apiFetch('/transactions?' + new URLSearchParams(params)),
+  list: (params = {}) => apiFetch('/transactions' + buildQuery(params)),
   show: (id) => apiFetch(`/transactions/${id}`),
   export: async (params = {}) => {
-    const blob = await apiFetch('/transactions/export?' + new URLSearchParams(params), { _blob: true });
+    const blob = await apiFetch('/transactions/export' + buildQuery(params), { _blob: true });
     downloadBlob(blob, `transaksi-${new Date().toISOString().slice(0, 10)}.xlsx`);
   },
 };
@@ -176,9 +187,9 @@ export const reportApi = {
 
 export const waliApi = {
   dashboard: (santriId) => apiFetch('/wali/dashboard' + (santriId ? `?santri_id=${santriId}` : '')),
-  transactions: (params = {}) => apiFetch('/wali/transactions?' + new URLSearchParams(params)),
+  transactions: (params = {}) => apiFetch('/wali/transactions' + buildQuery(params)),
   export: async (params = {}) => {
-    const blob = await apiFetch('/wali/transactions/export?' + new URLSearchParams(params), { _blob: true });
+    const blob = await apiFetch('/wali/transactions/export' + buildQuery(params), { _blob: true });
     downloadBlob(blob, 'riwayat-transaksi.xlsx');
   },
 };
