@@ -8,7 +8,7 @@ import SantriDetailModal from '../components/santri/SantriDetailModal';
 import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
 import BatchActionBar from '../components/common/BatchActionBar';
 import { santriApi } from '../utils/api';
-import { mergeSantriSaldos } from '../utils/saldoStorage';
+
 
 const formatTglIndo = (d) => {
   if (!d) return '';
@@ -33,19 +33,17 @@ const formatTglIndo = (d) => {
 
 const mapSantriFromApi = (item) => ({
   id: item.id,
-  nis: item.nis || '',
-  nama: item.nama || item.name || '',
-  kelas: item.kelas || 'VII A',
-  tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir || '',
+  nis: item.nis != null ? String(item.nis) : '',
+  nama: item.nama || item.name ? String(item.nama || item.name) : '',
+  kelas: item.kelas != null ? String(item.kelas) : 'VII A',
+  tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir ? String(item.tanggal_lahir || item.tgl_lahir || item.tglLahir) : '',
   tglLahirFormatted: formatTglIndo(item.tanggal_lahir || item.tgl_lahir || item.tglLahir),
-  namaWali: item.nama_wali || item.namaWali || item.wali_user?.name || '',
-  noHpWali: item.no_hp_wali || item.noHpWali || '',
-  vaJajan: item.va_jajan || item.vaJajan || '',
-  vaTagihan: item.va_tagihan || item.vaTagihan || '',
-  status: item.status || 'aktif',
+  vaJajan: item.va_jajan || item.vaJajan ? String(item.va_jajan || item.vaJajan) : '',
+  vaTagihan: item.va_tagihan || item.vaTagihan ? String(item.va_tagihan || item.vaTagihan) : '',
+  status: item.status != null ? String(item.status) : 'aktif',
   saldo: Number(item.saldo || 0),
   foto: item.foto || item.foto_url || null,
-  jenisKelamin: item.jenis_kelamin || item.jenisKelamin || 'L',
+  jenisKelamin: item.jenis_kelamin || item.jenisKelamin ? String(item.jenis_kelamin || item.jenisKelamin) : 'L',
 });
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
@@ -109,8 +107,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         const q = search.toLowerCase();
         const mNama = s.nama?.toLowerCase().includes(q);
         const mNis = s.nis?.toLowerCase().includes(q);
-        const mWali = s.namaWali?.toLowerCase().includes(q);
-        if (!mNama && !mNis && !mWali) return false;
+        if (!mNama && !mNis) return false;
       }
       if (kelasFilter !== 'Semua Kelas' && s.kelas !== kelasFilter) return false;
       if (statusFilter !== 'Semua Status' && s.status !== statusFilter) return false;
@@ -283,20 +280,29 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   };
 
   // Batch Upload Success Handler (Push data dari pop-up preview ke database/state)
-  const handleBatchUploadSuccess = (payload) => {
-    if (Array.isArray(payload)) {
-      santriApi.importConfirm(payload).catch(() => {});
-      setSantriList((prev) => [...payload.map(mapSantriFromApi), ...prev]);
-    } else if (payload && typeof payload === 'object') {
-      const { newSantri = [], updatedSantri = [] } = payload;
-      santriApi.importConfirm([...newSantri, ...updatedSantri]).catch(() => {});
-      setSantriList((prev) => {
-        const updatedList = prev.map((item) => {
-          const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
-          return matchedUpdate ? { ...item, ...mapSantriFromApi(matchedUpdate) } : item;
+  const handleBatchUploadSuccess = async (payload) => {
+    try {
+      if (Array.isArray(payload)) {
+        const itemsToUpload = payload.map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
+        await santriApi.importConfirm(itemsToUpload);
+        setSantriList((prev) => [...payload.map(mapSantriFromApi), ...prev]);
+      } else if (payload && typeof payload === 'object') {
+        const { newSantri = [], updatedSantri = [] } = payload;
+        const itemsToUpload = [...newSantri, ...updatedSantri].map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
+        await santriApi.importConfirm(itemsToUpload);
+        setSantriList((prev) => {
+          const updatedList = prev.map((item) => {
+            const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
+            return matchedUpdate ? { ...item, ...mapSantriFromApi(matchedUpdate) } : item;
+          });
+          return [...newSantri.map(mapSantriFromApi), ...updatedList];
         });
-        return [...newSantri.map(mapSantriFromApi), ...updatedList];
-      });
+      }
+      return true;
+    } catch (err) {
+      console.error("Gagal import data batch:", err);
+      alert("Gagal menyimpan ke database: " + err.message);
+      return false;
     }
   };
 
@@ -308,7 +314,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           Manajemen Data Santri
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          Kelola data identitas, kelas, wali, dan akun virtual seluruh santri pesantren
+          Kelola data identitas, kelas, dan akun virtual seluruh santri pesantren
         </p>
       </div>
 
@@ -587,18 +593,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                   {createdSantriData.kelas}
                 </span>
               </div>
-
-              {createdSantriData.namaWali && (
-                <>
-                  <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Wali:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">
-                      {createdSantriData.namaWali}
-                    </span>
-                  </div>
-                </>
-              )}
 
               <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
 

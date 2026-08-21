@@ -40,7 +40,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
           ...item,
           id: item.temp_id || `import-${Date.now()}-${idx}`,
           tglLahir: item.tanggal_lahir,
-          namaWali: item.nama_wali || 'Wali Santri',
           status: 'aktif'
         }));
         setPreviewList(withIds);
@@ -157,7 +156,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       nama: s.nama,
       kelas: s.kelas || 'VII A',
       tanggal_lahir: s.tglLahir || '1 Jan 2012',
-      nama_wali: s.namaWali || 'Wali Santri',
       va_jajan: s.va_jajan || s.vaJajan || '',
       va_tagihan: s.va_tagihan || s.vaTagihan || '',
       status: s.status || 'aktif',
@@ -176,15 +174,22 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
   };
 
   // Handler eksekusi simpan saldo final setelah staff meyakini di Pop-Up Form 1
-  const handleFinalConfirmSave = () => {
+  const handleFinalConfirmSave = async () => {
     if (pendingImportPayload) {
-      onImportSuccess?.({
+      const success = await onImportSuccess?.({
         newSantri: pendingImportPayload.newSantri,
         updatedSantri: pendingImportPayload.updatedSantri,
       });
+      if (success === false) return;
     }
     setIsValidationModalOpen(false);
     setIsSuccessModalOpen(true);
+  };
+
+  const handleFinalSuccessClose = () => {
+    setIsSuccessModalOpen(false);
+    setPendingImportPayload(null);
+    handleResetModal();
   };
 
   const handleResetModal = () => {
@@ -239,7 +244,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                   Tarik &amp; lepas file CSV / Excel di sini, atau <span className="text-emerald-700 dark:text-emerald-400 underline">klik untuk memilih file</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Tanggal Lahir, Nama Wali)
+                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Tanggal Lahir)
                 </p>
               </div>
 
@@ -293,7 +298,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                       <th className="import-batch-col-nis">NIS</th>
                       <th className="import-batch-col-nama">Nama Santri</th>
                       <th className="import-batch-col-kelas">Kelas</th>
-                      <th className="import-batch-col-wali">Wali Santri</th>
                       <th className="import-batch-col-action">Aksi Preview</th>
                     </tr>
                   </thead>
@@ -328,14 +332,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
                                 value={editFormData.kelas || ''}
                                 onChange={(e) => setEditFormData({ ...editFormData, kelas: e.target.value })}
-                              />
-                            </td>
-                            <td className="import-batch-col-wali">
-                              <input
-                                type="text"
-                                className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs"
-                                value={editFormData.namaWali || ''}
-                                onChange={(e) => setEditFormData({ ...editFormData, namaWali: e.target.value })}
                               />
                             </td>
                             <td className="import-batch-col-action">
@@ -384,9 +380,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                             <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-[11px]">
                               {row.kelas}
                             </span>
-                          </td>
-                          <td className="import-batch-col-wali font-medium text-slate-700 dark:text-slate-300">
-                            {row.namaWali}
                           </td>
                           <td className="import-batch-col-action">
                             <div className="flex items-center justify-center gap-2">
