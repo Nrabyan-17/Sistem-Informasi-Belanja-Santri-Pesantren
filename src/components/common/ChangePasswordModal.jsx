@@ -2,12 +2,16 @@ import { useState } from 'react';
 import Modal from './Modal';
 import { authApi } from '../../utils/api';
 import { usePopup } from '../../context/PopupContext';
+import { IconEye, IconEyeOff } from './Icons';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const { showPopup } = usePopup();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -56,42 +60,75 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
             Password Lama
           </label>
-          <input
-            type="password"
-            placeholder="Masukkan password saat ini..."
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            className="w-full px-5 sm:px-6 py-3 sm:py-3.5 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-            required
-          />
+          <div className="relative flex items-center">
+            <input
+              type={showOld ? 'text' : 'password'}
+              placeholder="Masukkan password saat ini..."
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowOld((prev) => !prev)}
+              className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors p-1"
+              aria-label={showOld ? 'Sembunyikan password' : 'Tampilkan password'}
+              title={showOld ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+              {showOld ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
             Password Baru
           </label>
-          <input
-            type="password"
-            placeholder="Minimal 6 karakter..."
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full px-5 sm:px-6 py-3 sm:py-3.5 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-            required
-          />
+          <div className="relative flex items-center">
+            <input
+              type={showNew ? 'text' : 'password'}
+              placeholder="Minimal 6 karakter..."
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew((prev) => !prev)}
+              className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors p-1"
+              aria-label={showNew ? 'Sembunyikan password' : 'Tampilkan password'}
+              title={showNew ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+              {showNew ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2">
           <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
             Konfirmasi Password Baru
           </label>
-          <input
-            type="password"
-            placeholder="Ketik ulang password baru..."
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-5 sm:px-6 py-3 sm:py-3.5 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-            required
-          />
+          <div className="relative flex items-center">
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              placeholder="Ketik ulang password baru..."
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((prev) => !prev)}
+              className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors p-1"
+              aria-label={showConfirm ? 'Sembunyikan password' : 'Tampilkan password'}
+              title={showConfirm ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+              {showConfirm ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         <div className="flex justify-end items-center gap-3 sm:gap-4 pt-4 mt-3 border-t border-slate-100 dark:border-slate-800">

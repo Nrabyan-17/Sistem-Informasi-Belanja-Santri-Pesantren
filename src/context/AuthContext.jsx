@@ -1,75 +1,95 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../utils/api';
 
 const AuthContext = createContext(null);
 
+// Daftar akun valid untuk autentikasi sistem
+const VALID_ACCOUNTS = [
+  {
+    usernames: ['admin', 'ina', 'kabid'],
+    passwords: ['password', '123456', 'admin'],
+    user: {
+      id: 1,
+      username: 'admin',
+      nama: 'Ustadzah Ina Wahdiah',
+      role: 'admin',
+      jabatan: 'Kabid BAK & Manajerial',
+    },
+  },
+  {
+    usernames: ['staff', 'huda', 'kasir', 'faris'],
+    passwords: ['password', '123456', 'staff'],
+    user: {
+      id: 2,
+      username: 'staff',
+      nama: 'Ust. Miftahul Huda',
+      role: 'staff',
+      jabatan: 'Kasir Rumah Koin',
+    },
+  },
+  {
+    usernames: ['wali', 'mahmud', '2024001', '2024002', '2024003', '2024004', '2024005'],
+    passwords: ['password', '123456', 'wali'],
+    user: {
+      id: 4,
+      username: 'wali',
+      nama: 'Bpk. Mahmud Fauzi',
+      role: 'wali',
+      jabatan: 'Wali Santri',
+    },
+  },
+];
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user') || 'null'); }
-    catch { return null; }
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || token.startsWith('demo-token-')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return null;
+      }
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const login = async (username, password, explicitRole = null) => {
+  const login = async (username, password) => {
     setLoading(true);
     setError('');
 
-    // Quick login menggunakan explicitRole bila dipilih tombol role demo
-    if (explicitRole) {
-      const mockUsers = {
-        admin: { id: 1, username: 'admin', nama: 'Administrator BAK', role: 'admin', jabatan: 'Administrator Sistem' },
-        staff: { id: 2, username: 'staff', nama: 'Ust. Miftahul Huda', role: 'staff', jabatan: 'Kasir Rumah Koin' },
-        wali: { id: 3, username: 'wali', nama: 'H. Ahmad Subagyo', role: 'wali', jabatan: 'Wali Santri' },
-      };
-      const selectedUser = mockUsers[explicitRole] || mockUsers.admin;
-      localStorage.setItem('token', 'demo-token-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(selectedUser));
-      setUser(selectedUser);
-      setLoading(false);
-      return selectedUser.role;
-    }
+    const cleanUsername = (username || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
     try {
+      // 1. Coba login ke API backend
       const data = await authApi.login({ username, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       return data.user.role;
     } catch (e) {
-      console.warn('API backend offline/unreachable, fallback ke mode akun demo:', e.message);
+      // 2. Jika API offline / tidak terjangkau, validasi kredensial lokal
+      const matchedAccount = VALID_ACCOUNTS.find((acc) =>
+        acc.usernames.includes(cleanUsername) && acc.passwords.includes(cleanPassword)
+      );
 
-      const lowerUser = (username || '').trim().toLowerCase();
-      let role = 'admin';
-      let nama = 'Administrator BAK';
-      let jabatan = 'Administrator Sistem';
-
-      if (lowerUser.includes('staff') || lowerUser.includes('kasir') || lowerUser === 'huda') {
-        role = 'staff';
-        nama = 'Ust. Miftahul Huda';
-        jabatan = 'Kasir Rumah Koin';
-      } else if (lowerUser.includes('wali') || lowerUser.includes('orangtua')) {
-        role = 'wali';
-        nama = 'H. Ahmad Subagyo';
-        jabatan = 'Wali Santri';
-      } else {
-        role = 'admin';
-        nama = username ? username.charAt(0).toUpperCase() + username.slice(1) : 'Administrator BAK';
-        jabatan = 'Administrator Sistem';
+      if (matchedAccount) {
+        const loggedUser = matchedAccount.user;
+        const localToken = 'auth-token-' + Date.now();
+        localStorage.setItem('token', localToken);
+        localStorage.setItem('user', JSON.stringify(loggedUser));
+        setUser(loggedUser);
+        return loggedUser.role;
       }
 
-      const mockUser = {
-        id: Date.now(),
-        username: username || 'admin',
-        nama: nama,
-        role: role,
-        jabatan: jabatan,
-      };
-
-      localStorage.setItem('token', 'demo-token-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      return mockUser.role;
+      // 3. Jika username atau password tidak cocok, tolak login
+      const err = new Error('Username atau password salah.');
+      setError(err.message);
+      throw err;
     } finally {
       setLoading(false);
     }

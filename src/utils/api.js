@@ -19,6 +19,10 @@ async function apiFetch(endpoint, options = {}) {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
     throw new Error(err.message || 'Request gagal.');
   }
@@ -35,6 +39,10 @@ async function apiFetchForm(endpoint, formData, method = 'POST') {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
     throw new Error(err.message || 'Request gagal.');
   }
