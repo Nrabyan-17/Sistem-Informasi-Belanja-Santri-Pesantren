@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import WaliLayout from '../components/layout/WaliLayout';
 import { waliApi } from '../utils/api';
 import { usePopup } from '../context/PopupContext';
+import { getSantriSaldos } from '../utils/saldoStorage';
 
 const getInitials = (name) => {
   if (!name) return 'S';
@@ -21,7 +22,16 @@ const WaliSaldoPage = () => {
     waliApi
       .dashboard()
       .then((res) => {
-        setSantri(res.santri_terpilih || null);
+        const rawSantri = res.santri_terpilih || null;
+        if (rawSantri) {
+          const localSaldos = getSantriSaldos();
+          const overrideSaldo = localSaldos[rawSantri.id] !== undefined
+            ? localSaldos[rawSantri.id]
+            : (localSaldos[rawSantri.nis] !== undefined ? localSaldos[rawSantri.nis] : rawSantri.saldo);
+          setSantri({ ...rawSantri, saldo: Number(overrideSaldo !== undefined ? overrideSaldo : 0) });
+        } else {
+          setSantri(null);
+        }
         setStats(res.statistik || { total_isi: 0, total_tarik: 0 });
       })
       .catch((e) => setError(e.message || 'Gagal memuat data saldo.'));

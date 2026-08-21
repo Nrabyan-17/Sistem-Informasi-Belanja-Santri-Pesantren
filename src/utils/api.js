@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 function getToken() {
   return localStorage.getItem('token') || '';
@@ -12,6 +12,7 @@ async function apiFetch(endpoint, options = {}) {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       Authorization: `Bearer ${getToken()}`,
       ...(opts.headers || {}),
     },
@@ -19,8 +20,19 @@ async function apiFetch(endpoint, options = {}) {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-    throw new Error(err.message || 'Request gagal.');
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan pada server.' }));
+    let errorMsg = err.message || 'Request gagal.';
+    if (err.errors) {
+      const firstKey = Object.keys(err.errors)[0];
+      if (firstKey && err.errors[firstKey][0]) {
+        errorMsg = err.errors[firstKey][0];
+      }
+    }
+    throw new Error(errorMsg);
   }
 
   if (isBlob) return res.blob();
@@ -30,13 +42,27 @@ async function apiFetch(endpoint, options = {}) {
 async function apiFetchForm(endpoint, formData, method = 'POST') {
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
-    headers: { Authorization: `Bearer ${getToken()}` },
+    headers: {
+      'Accept': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
     body: formData,
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-    throw new Error(err.message || 'Request gagal.');
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan pada server.' }));
+    let errorMsg = err.message || 'Request gagal.';
+    if (err.errors) {
+      const firstKey = Object.keys(err.errors)[0];
+      if (firstKey && err.errors[firstKey][0]) {
+        errorMsg = err.errors[firstKey][0];
+      }
+    }
+    throw new Error(errorMsg);
   }
 
   return res.json();
@@ -67,8 +93,18 @@ export const santriApi = {
   byNis: (nis) => apiFetch(`/santris/by-nis?nis=${nis}`),
   show: (id) => apiFetch(`/santris/${id}`),
   mutasi: (id) => apiFetch(`/santris/${id}/mutasi`),
-  store: (formData) => apiFetchForm('/santris', formData, 'POST'),
-  update: (id, formData) => apiFetchForm(`/santris/${id}`, formData, 'POST'),
+  store: (data) => {
+    if (data instanceof FormData) {
+      return apiFetchForm('/santris', data, 'POST');
+    }
+    return apiFetch('/santris', { method: 'POST', body: JSON.stringify(data) });
+  },
+  update: (id, data) => {
+    if (data instanceof FormData) {
+      return apiFetchForm(`/santris/${id}`, data, 'POST');
+    }
+    return apiFetch(`/santris/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
   destroy: (id) => apiFetch(`/santris/${id}`, { method: 'DELETE' }),
   import: (formData) => apiFetchForm('/santris/import', formData, 'POST'),
   importPreview: (formData) => apiFetchForm('/santris/import-preview', formData, 'POST'),
@@ -107,9 +143,9 @@ export const bniApi = {
   list: () => apiFetch('/bni-uploads'),
   store: (formData) => apiFetchForm('/bni-uploads', formData, 'POST'),
   show: (id) => apiFetch(`/bni-uploads/${id}`),
-  apply: (id, itemIds = null) => apiFetch(`/bni-uploads/${id}/apply`, { 
-    method: 'POST', 
-    body: itemIds ? JSON.stringify({ item_ids: itemIds }) : JSON.stringify({}) 
+  apply: (id, itemIds = null) => apiFetch(`/bni-uploads/${id}/apply`, {
+    method: 'POST',
+    body: itemIds ? JSON.stringify({ item_ids: itemIds }) : JSON.stringify({})
   }),
   updateItem: (uploadId, itemId, data) => apiFetch(`/bni-uploads/${uploadId}/items/${itemId}`, {
     method: 'PUT',

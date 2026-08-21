@@ -1,28 +1,37 @@
 import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { IconEye, IconEyeOff } from '../common/Icons';
 
 const roleOptions = [
   { id: 'kabid',   label: 'Kabid BAK & Manajerial', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0', dot: '🟢' },
   { id: 'staff',   label: 'Staff Rumah Koin',       color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', dot: '🔵' },
+  { id: 'wali',    label: 'Wali Santri / Wali',     color: '#9333ea', bg: '#faf5ff', border: '#e9d5ff', dot: '🟣' },
+  { id: 'santri',  label: 'Santri',                 color: '#ea580c', bg: '#fff7ed', border: '#ffedd5', dot: '🟠' },
 ];
 
-// Modal Form Tambah / Ubah Profil Pengguna (Admin & Staff)
+// Modal Form Tambah / Ubah Profil Pengguna (Modal 1 & Modal 2)
 const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   const isEdit = Boolean(initialData?.id);
 
-  const [role, setRole] = useState('staff');
+  const [role, setRole] = useState('wali');
   const [nama, setNama] = useState('');
   const [username, setUsername] = useState('');
+  const [noHp, setNoHp] = useState('');
+  const [nis, setNis] = useState('');
   const [status, setStatus] = useState('aktif');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setRole(initialData.role || (isEdit ? 'kabid' : 'staff'));
+      setRole(initialData.role || (isEdit ? 'kabid' : 'wali'));
       setNama(initialData.nama || '');
       setUsername(initialData.username || '');
+      setNoHp(initialData.noHp || '');
+      setNis(initialData.nis || '');
       setStatus(String(initialData.status || 'aktif').toLowerCase());
       setPassword('');
+      setShowPassword(false);
     }
   }, [isOpen, initialData, isEdit]);
 
@@ -33,6 +42,8 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       role,
       nama,
       username,
+      noHp,
+      nis,
       status,
       password,
     });
@@ -45,8 +56,8 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       title={isEdit ? 'Ubah Profil Pengguna' : 'Tambah Pengguna Baru'}
       subtitle={
         isEdit
-          ? 'Perbarui detail data, NIP / username, hak akses, atau sandi pengguna.'
-          : 'Masukkan detail pengguna admin atau staff baru ke dalam sistem.'
+          ? 'Perbarui detail data, hak akses, atau sandi pengguna.'
+          : 'Masukkan detail pengguna baru ke dalam sistem.'
       }
     >
       <form className="user-form-modal flex flex-col gap-3.5" onSubmit={handleSubmit}>
@@ -58,27 +69,28 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           <input
             type="text"
             className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-            placeholder="Contoh: Ahmad Fauzi, S.Kom."
+            placeholder="Contoh: Bpk. Ahmad Fauzi"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             required
           />
         </div>
 
-        {/* NIP / USERNAME */}
-        <div className="form-group-section flex flex-col gap-1">
-          <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-            NIP / USERNAME
-          </label>
-          <input
-            type="text"
-            className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all font-mono"
-            placeholder="Masukkan NIP atau username login..."
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
+        {/* TAUTAN NIS SANTRI (jika role wali atau santri) */}
+        {(role === 'wali' || role === 'santri') && (
+          <div className="form-group-section flex flex-col gap-1">
+            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+              TAUTAN NIS SANTRI
+            </label>
+            <input
+              type="text"
+              className="form-control-input form-control-input--highlight w-full px-3.5 py-2 bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              placeholder="Masukkan NIS..."
+              value={nis}
+              onChange={(e) => setNis(e.target.value)}
+            />
+          </div>
+        )}
 
         {/* MASUKKAN PASSWORD (Tampil Saat Tambah Pengguna Baru) */}
         {!isEdit && (
@@ -86,14 +98,25 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
             <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
               MASUKKAN PASSWORD
             </label>
-            <input
-              type="password"
-              className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-              placeholder="Masukkan password awal untuk login..."
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative flex items-center">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+                placeholder="Masukkan password awal untuk login..."
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors p-1"
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+              >
+                {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         )}
 
@@ -134,13 +157,24 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
               <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
                 GANTI PASSWORD
               </label>
-              <input
-                type="password"
-                className="form-control-input w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-                placeholder="Kosongkan jika tidak diubah..."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+                  placeholder="Kosongkan jika tidak diubah..."
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer transition-colors p-1"
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                >
+                  {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
         )}

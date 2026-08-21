@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Card KPI Ringkasan Transaksi: TOTAL TRANSAKSI, TOTAL MASUK, TOTAL KELUAR
+// Card KPI Ringkasan Transaksi: TOTAL TRANSAKSI, SALDO MASUK, SALDO KELUAR
 const TransactionKpiCards = ({ totalTransaksi = 0, totalMasuk = 0, totalKeluar = 0 }) => {
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
@@ -12,15 +12,15 @@ const TransactionKpiCards = ({ totalTransaksi = 0, totalMasuk = 0, totalKeluar =
         <h3 className="tx-kpi-value">{totalTransaksi} entri</h3>
       </div>
 
-      {/* Total Masuk */}
+      {/* Saldo Masuk */}
       <div className="tx-kpi-card tx-kpi-card--masuk">
-        <span className="tx-kpi-label tx-kpi-label--masuk">TOTAL MASUK</span>
+        <span className="tx-kpi-label tx-kpi-label--masuk">SALDO MASUK</span>
         <h3 className="tx-kpi-value tx-kpi-value--masuk">Rp {formatRupiah(totalMasuk)}</h3>
       </div>
 
-      {/* Total Keluar */}
+      {/* Saldo Keluar */}
       <div className="tx-kpi-card tx-kpi-card--keluar">
-        <span className="tx-kpi-label tx-kpi-label--keluar">TOTAL KELUAR</span>
+        <span className="tx-kpi-label tx-kpi-label--keluar">SALDO KELUAR</span>
         <h3 className="tx-kpi-value tx-kpi-value--keluar">Rp {formatRupiah(totalKeluar)}</h3>
       </div>
     </div>

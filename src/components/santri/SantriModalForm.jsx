@@ -24,7 +24,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       setVaJajan(initialData.vaJajan || '');
       setStatus(initialData.status || 'aktif');
       setFoto(null);
-      setFotoPreview(initialData.foto || '');
+      setFotoPreview('');
     }
   }, [isOpen, initialData]);
 
@@ -120,17 +120,9 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         <div className="form-group-section flex flex-col gap-1.5">
           <label className={labelClass}>FOTO SANTRI <span className="normal-case font-medium text-slate-400 dark:text-slate-500">(Opsional — bisa diunggah nanti)</span></label>
           <div className="flex items-center gap-4">
-            {fotoPreview ? (
-              <img
-                src={fotoPreview}
-                alt="Preview foto santri"
-                className="w-16 h-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-black text-slate-400 shrink-0">
-                {(nama || 'S').charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-2xl font-black text-slate-400 shrink-0">
+              {(nama || 'S').charAt(0).toUpperCase()}
+            </div>
             <div className="flex flex-col gap-1.5">
               <button
                 type="button"

@@ -1,7 +1,7 @@
 import React from 'react';
 
-// StatCards: Kartu Ringkasan Statistik (Total Saldo Mengendap, Total Koin Ditarik, Santri Aktif)
-const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, santriAktif = 0 }) => {
+// StatCards: Kartu Ringkasan Statistik (Total Saldo Mengendap, Koin Ditarik Hari Ini, Santri Aktif)
+const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, totalSantriAktif = 0 }) => {
   return (
     <div className="stat-cards">
       {/* Total Saldo Mengendap */}
@@ -14,7 +14,7 @@ const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, santriAktif = 0 }) => {
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">Rp {Number(totalSaldo || 0).toLocaleString('id-ID')}</h2>
+        <h2 className="stat-value">Rp {(Number(totalSaldo) || 0).toLocaleString('id-ID')}</h2>
       </div>
 
       {/* Koin Ditarik */}
@@ -27,7 +27,7 @@ const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, santriAktif = 0 }) => {
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">Rp {Number(totalPemasukan || 0).toLocaleString('id-ID')}</h2>
+        <h2 className="stat-value">Rp {(Number(totalPemasukan) || 0).toLocaleString('id-ID')}</h2>
       </div>
 
       {/* Santri Aktif */}
@@ -40,7 +40,7 @@ const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, santriAktif = 0 }) => {
             </svg>
           </div>
         </div>
-        <h2 className="stat-value">{Number(santriAktif || 0).toLocaleString('id-ID')} Santri</h2>
+        <h2 className="stat-value">{(Number(totalSantriAktif) || 0).toLocaleString('id-ID')}</h2>
       </div>
     </div>
   );

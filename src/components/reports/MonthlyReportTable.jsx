@@ -19,8 +19,8 @@ const MonthlyReportTable = ({
         </p>
       </div>
 
-      <div className="rekap-table-wrapper overflow-x-auto">
-        <table className="rekap-table w-full">
+      <div className="rekap-table-wrapper overflow-x-auto pb-1">
+        <table className="rekap-table w-full min-w-[700px]">
           <thead>
             <tr>
               <th className="text-left">PERIODE</th>

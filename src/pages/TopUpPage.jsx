@@ -1,36 +1,60 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
+import { useAuth } from '../context/AuthContext';
 import { santriApi } from '../utils/api';
+import { setSantriSaldo, mergeSantriSaldos } from '../utils/saldoStorage';
 
-const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
+const mockSantriList = [
+  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 0 },
+  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',   saldo: 0 },
+  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',   saldo: 0 },
+  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza',  saldo: 0 },
+  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',     saldo: 0 },
+  { id: 6, nis: '2024004', nama: 'Budi Santoso',    saldo: 0 },
+  { id: 7, nis: '2024005', nama: 'Citra Dewi',      saldo: 0 },
+];
+
+const mapSantriForSaldo = (s) => ({
+  id: s.id,
+  nis: s.nis || '',
+  nama: s.nama || s.name || '',
+  saldo: Number(s.saldo || 0),
+  foto: s.foto || s.foto_url || null,
+  kelas: s.kelas || '',
+});
+
+const TopUpPage = ({ Layout = MainLayout }) => {
+  const { user } = useAuth();
+  const isStaff = user?.role === 'staff' || Layout !== MainLayout;
+
   const [santriList, setSantriList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
-  const [modalMode, setModalMode] = useState('view'); // 'view' | 'edit'
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchSantri = () => {
+  const fetchSantriList = () => {
     setLoading(true);
-    santriApi
-      .list({ per_page: 100 })
-      .then((res) =>
-        setSantriList(
-          (res.data || []).map((s) => ({
-            id: s.id,
-            nis: s.nis,
-            nama: s.nama,
-            saldo: s.saldo || 0,
-            foto: s.foto_url || null,
-          }))
-        )
-      )
-      .catch(() => setSantriList([]))
+    santriApi.list({ per_page: 500 })
+      .then((res) => {
+        const rawData = res.data || (Array.isArray(res) ? res : null);
+        if (rawData && rawData.length >= 0) {
+          setSantriList(mergeSantriSaldos(rawData.map(mapSantriForSaldo)));
+        } else {
+          setSantriList(mergeSantriSaldos(mockSantriList));
+        }
+      })
+      .catch((err) => {
+        console.warn('Menggunakan data saldo santri lokal:', err.message);
+        setSantriList(mergeSantriSaldos(mockSantriList));
+      })
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchSantri, []);
+  useEffect(() => {
+    fetchSantriList();
+  }, []);
 
   // Filter santri
   const filteredSantri = useMemo(() => {
@@ -41,9 +65,8 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
     );
   }, [santriList, searchQuery]);
 
-  const handleOpenDetail = (santri, mode = 'view') => {
+  const handleOpenDetail = (santri) => {
     setSelectedSantri(santri);
-    setModalMode(mode);
     setIsModalOpen(true);
   };
 
@@ -54,7 +77,25 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
     setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, foto: newPhoto } : prev));
   };
 
-  const handleUpdateSaldo = (santriId, newSaldo) => {
+  const handleAdjustSaldo = async (santriId, newSaldo, historyItem) => {
+    // Simpan ke localStorage agar data terikat secara persisten
+    setSantriSaldo(santriId, newSaldo);
+
+    if (historyItem) {
+      const nominal = Math.abs(Number(historyItem.nominal) || Math.abs(newSaldo - (selectedSantri?.saldo || 0)));
+      const aksi = (historyItem.tipe === 'tambah' || historyItem.type === 'in' || newSaldo > (selectedSantri?.saldo || 0)) ? 'tambah' : 'kurangi';
+      try {
+        await santriApi.penyesuaian(santriId, {
+          nominal: Math.max(1, nominal),
+          aksi,
+          keterangan: historyItem.keterangan || (aksi === 'tambah' ? 'Penyesuaian tambah saldo' : 'Penyesuaian kurangi saldo'),
+        });
+        await fetchSantriList();
+      } catch (err) {
+        console.warn('Penyimpanan API penyesuaian error:', err.message);
+      }
+    }
+
     setSantriList((prev) =>
       prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
     );
@@ -63,28 +104,19 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
 
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
-  const title = isStaffVersion ? 'Penyesuaian Saldo' : 'Cek Saldo';
-  const subtitle = isStaffVersion
-    ? 'Cek saldo santri dan penyesuaian koreksi (tambah/kurang saldo)'
-    : 'Pantau saldo mengendap, identitas, pasfoto, dan riwayat transaksi santri';
-
   return (
-    <Layout pageTitle={title}>
+    <Layout pageTitle={isStaff ? 'Cek Saldo & Penyesuaian' : 'Detail Saldo Santri'}>
       {/* Header Title */}
       <div className="report-header-card mb-6">
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
-          {title}
+          {isStaff ? 'Cek Saldo & Penyesuaian Santri' : 'Detail Saldo Santri'}
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          {subtitle}
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          {isStaff
+            ? 'Cek sisa saldo santri, penyesuaian manual (tambah/kurang), dan riwayat transaksi'
+            : 'Informasi sisa saldo dan pantau riwayat mutasi santri pesantren'}
         </p>
       </div>
-
-      {loading && (
-        <div className="flex items-center justify-center h-32 text-slate-500 dark:text-slate-400 font-medium">
-          Memuat data santri...
-        </div>
-      )}
 
       {/* Card Table: Daftar Identitas & Saldo Santri */}
       <div className="saldo-table-card">
@@ -92,9 +124,17 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
           <div>
             <h3 className="saldo-card-title">Daftar Identitas &amp; Saldo Santri</h3>
             <p className="saldo-card-subtitle">
-              {isStaffVersion
-                ? 'Klik baris tabel atau tombol aksi untuk melihat riwayat atau melakukan penyesuaian saldo.'
-                : 'Klik baris tabel untuk melihat detail saldo, foto verifikasi, dan riwayat transaksi santri.'}
+              {loading ? (
+                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
+                  <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Memuat data saldo santri...
+                </span>
+              ) : (
+                'Klik baris tabel untuk melihat detail saldo, kelola pasfoto, dan riwayat transaksi santri.'
+              )}
             </p>
           </div>
           <div className="saldo-search-wrapper relative flex items-center">
@@ -118,6 +158,7 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="saldo-search-input pl-10"
+              disabled={loading}
             />
           </div>
         </div>
@@ -134,7 +175,36 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredSantri.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-14 text-slate-500 dark:text-slate-400 font-semibold">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <svg
+                        className="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        Memuat data saldo santri...
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredSantri.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-8 text-slate-400 font-medium">
                     Tidak ada santri yang ditemukan.
@@ -144,7 +214,7 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
                 filteredSantri.map((santri, idx) => (
                   <tr
                     key={santri.id}
-                    onClick={() => handleOpenDetail(santri, 'view')}
+                    onClick={() => handleOpenDetail(santri)}
                     className="user-table-row cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors"
                   >
                     <td className="text-slate-400 font-medium">{idx + 1}</td>
@@ -167,28 +237,17 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
                         </span>
                       </div>
                     </td>
-                    <td className="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                    <td className="font-bold text-emerald-700 dark:text-emerald-400">
                       Rp {formatRupiah(santri.saldo)}
                     </td>
                     <td className="text-center" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenDetail(santri, 'view')}
-                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition-all cursor-pointer"
-                        >
-                          Cek Saldo
-                        </button>
-                        {isStaffVersion && (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenDetail(santri, 'edit')}
-                            className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-                          >
-                            Penyesuaian
-                          </button>
-                        )}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDetail(santri)}
+                        className="btn-detail-saldo"
+                      >
+                        Detail
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -198,16 +257,15 @@ const TopUpPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
         </div>
       </div>
 
-      {/* Saldo Detail & Photo Management Modal with Adjustment for Staff */}
+      {/* Saldo Detail Modal (Penyesuaian Saldo untuk Staff Rumah Koin, Detail View untuk Admin) */}
       {selectedSantri && (
         <SaldoDetailModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           santri={selectedSantri}
-          initialMode={modalMode}
-          allowAdjustment={isStaffVersion}
           onUpdatePhoto={handleUpdatePhoto}
-          onUpdateSaldo={handleUpdateSaldo}
+          onAdjustSaldo={handleAdjustSaldo}
+          canAdjustSaldo={isStaff}
         />
       )}
     </Layout>

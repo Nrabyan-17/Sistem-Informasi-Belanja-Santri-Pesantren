@@ -22,32 +22,151 @@ import UploadBNIPage      from '../pages/UploadBNIPage';
 import WaliSaldoPage     from '../pages/WaliSaldoPage';
 import WaliRiwayatPage   from '../pages/WaliRiwayatPage';
 
+// Route Guard Protected Route
+import ProtectedRoute    from '../components/common/ProtectedRoute';
+
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Root: Login */}
+      {/* Root: Login (Public) */}
       <Route path="/" element={<LoginPage />} />
 
-      {/* Admin / Manajerial Routes */}
-      <Route path="/admin"                     element={<DashboardPage />} />
-      <Route path="/admin/transaksi"           element={<TransactionPage />} />
-      <Route path="/admin/laporan"             element={<FinancialReportPage />} />
-      <Route path="/admin/pengguna"            element={<UserManagementPage category="all" />} />
-      <Route path="/admin/pengguna/admin"      element={<UserManagementPage category="admin" />} />
-      <Route path="/admin/pengguna/staff-koin" element={<UserManagementPage category="staff-koin" />} />
-      <Route path="/admin/pengguna/santri"     element={<SantriManagementPage />} />
-      <Route path="/admin/topup"               element={<TopUpPage isStaffVersion={false} />} />
+      {/* Admin / Manajerial Routes (Protected: Admin Only) */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/transaksi"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <TransactionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/laporan"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <FinancialReportPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pengguna"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UserManagementPage category="all" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pengguna/admin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UserManagementPage category="admin" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pengguna/staff-koin"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UserManagementPage category="staff-koin" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pengguna/wali"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UserManagementPage category="wali" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/pengguna/santri"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <SantriManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/topup"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <TopUpPage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Staff Rumah Koin Routes */}
-      <Route path="/staff"            element={<DashboardPage Layout={StaffLayout} />} />
-      <Route path="/staff/transaksi"  element={<TransactionPage Layout={StaffLayout} isStaffVersion={true} />} />
-      <Route path="/staff/upload-bni" element={<UploadBNIPage Layout={StaffLayout} />} />
-      <Route path="/staff/topup"      element={<TopUpPage Layout={StaffLayout} isStaffVersion={true} />} />
+      {/* Staff Rumah Koin Routes (Protected: Staff & Admin) */}
+      <Route
+        path="/staff"
+        element={
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
+            <DashboardPage Layout={StaffLayout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/transaksi"
+        element={
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
+            <TransactionPage Layout={StaffLayout} isStaffVersion={true} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/upload-bni"
+        element={
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
+            <UploadBNIPage Layout={StaffLayout} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/topup"
+        element={
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
+            <TopUpPage Layout={StaffLayout} />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Wali Santri Portal Routes */}
-      <Route path="/wali"             element={<WaliSaldoPage />} />
-      <Route path="/wali/saldo"       element={<WaliSaldoPage />} />
-      <Route path="/wali/riwayat"     element={<WaliRiwayatPage />} />
+      {/* Wali Santri Portal Routes (Protected: Wali & Admin) */}
+      <Route
+        path="/wali"
+        element={
+          <ProtectedRoute allowedRoles={['wali', 'admin']}>
+            <WaliSaldoPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wali/saldo"
+        element={
+          <ProtectedRoute allowedRoles={['wali', 'admin']}>
+            <WaliSaldoPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wali/riwayat"
+        element={
+          <ProtectedRoute allowedRoles={['wali', 'admin']}>
+            <WaliRiwayatPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Fallback Wildcard -> Redirect ke Login */}
+      <Route path="*" element={<LoginPage />} />
     </Routes>
   );
 };

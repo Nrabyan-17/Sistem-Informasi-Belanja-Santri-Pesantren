@@ -9,6 +9,40 @@ import {
   CartesianGrid,
 } from 'recharts';
 
+// Default 0-data structures when API returns no transaction data yet
+const zeroWeeklyData = [
+  { label: 'Senin',  total: 0, transaksi: 0 },
+  { label: 'Selasa', total: 0, transaksi: 0 },
+  { label: 'Rabu',   total: 0, transaksi: 0 },
+  { label: 'Kamis',  total: 0, transaksi: 0 },
+  { label: 'Jumat',  total: 0, transaksi: 0 },
+  { label: 'Sabtu',  total: 0, transaksi: 0 },
+  { label: 'Minggu', total: 0, transaksi: 0 },
+];
+
+const zeroMonthlyData = [
+  { label: 'Jan', total: 0, transaksi: 0 },
+  { label: 'Feb', total: 0, transaksi: 0 },
+  { label: 'Mar', total: 0, transaksi: 0 },
+  { label: 'Apr', total: 0, transaksi: 0 },
+  { label: 'Mei', total: 0, transaksi: 0 },
+  { label: 'Jun', total: 0, transaksi: 0 },
+  { label: 'Jul', total: 0, transaksi: 0 },
+  { label: 'Ags', total: 0, transaksi: 0 },
+  { label: 'Sep', total: 0, transaksi: 0 },
+  { label: 'Okt', total: 0, transaksi: 0 },
+  { label: 'Nov', total: 0, transaksi: 0 },
+  { label: 'Des', total: 0, transaksi: 0 },
+];
+
+const zeroYearlyData = [
+  { label: '2022', total: 0, transaksi: 0 },
+  { label: '2023', total: 0, transaksi: 0 },
+  { label: '2024', total: 0, transaksi: 0 },
+  { label: '2025', total: 0, transaksi: 0 },
+  { label: '2026', total: 0, transaksi: 0 },
+];
+
 const CustomTooltip = ({ active, payload, label, timeframe }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -31,27 +65,56 @@ const CustomTooltip = ({ active, payload, label, timeframe }) => {
   return null;
 };
 
-const SalesChart = ({ trendData = [], monthlyData = [], yearlyData = [] }) => {
-  const currentYear = new Date().getFullYear().toString();
-  const [timeframe, setTimeframe] = useState('mingguan'); // 'mingguan' | 'bulanan' | 'tahunan'
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [customMonthly, setCustomMonthly] = useState(null);
+const SalesChart = ({
+  trendData,
+  timeframe: propTimeframe,
+  selectedYear: propSelectedYear,
+  onTimeframeChange,
+}) => {
+  const [localTimeframe, setLocalTimeframe] = useState('mingguan');
+  const [localSelectedYear, setLocalSelectedYear] = useState('2026');
 
-  // Filter Data berdasarkan timeframe
+  const timeframe = propTimeframe !== undefined ? propTimeframe : localTimeframe;
+  const selectedYear = propSelectedYear !== undefined ? propSelectedYear : localSelectedYear;
+
+  const handleSetTimeframe = (tf) => {
+    if (onTimeframeChange) {
+      onTimeframeChange(tf, selectedYear);
+    } else {
+      setLocalTimeframe(tf);
+    }
+  };
+
+  const handleSetYear = (yr) => {
+    if (onTimeframeChange) {
+      onTimeframeChange(timeframe, yr);
+    } else {
+      setLocalSelectedYear(yr);
+    }
+  };
+
+  // Format data dari API
+  const apiFormattedData = trendData && trendData.length
+    ? trendData.map((d) => ({
+        label: d.label || d.tanggal || '',
+        total: d.total !== undefined ? d.total : d.penarikan || 0,
+        transaksi: d.transaksi || 0,
+      }))
+    : null;
+
+  // Data aktif berdasarkan timeframe
   const getActiveData = () => {
+    if (apiFormattedData && apiFormattedData.length > 0) {
+      return apiFormattedData;
+    }
     switch (timeframe) {
       case 'bulanan':
-        return customMonthly || monthlyData;
+        return zeroMonthlyData;
       case 'tahunan':
-        return yearlyData;
+        return zeroYearlyData;
       case 'mingguan':
       default:
-        return trendData.map((d) => ({
-          label: d.label || d.tanggal,
-          tanggal: d.tanggal,
-          total: d.penarikan ?? d.total ?? 0,
-          transaksi: d.transaksi ?? 0,
-        }));
+        return zeroWeeklyData;
     }
   };
 
@@ -83,7 +146,7 @@ const SalesChart = ({ trendData = [], monthlyData = [], yearlyData = [] }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <h3 className="chart-title text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            📈 Grafik Penarikan Koin Santri
+            Grafik Penarikan Koin Santri
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
             {timeframe === 'mingguan' && (trendData && trendData.length ? 'Aktivitas penarikan koin 14 hari terakhir' : 'Aktivitas penarikan koin harian minggu ini')}
@@ -93,36 +156,36 @@ const SalesChart = ({ trendData = [], monthlyData = [], yearlyData = [] }) => {
         </div>
 
         {/* Filter Timeline Controls */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           {/* Timeframe Switcher Tabs */}
-          <div className="bg-slate-100/90 dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl flex items-center gap-2 sm:gap-3 border border-slate-200/80 dark:border-slate-700">
+          <div className="bg-slate-100/90 dark:bg-slate-800/90 p-1.5 sm:p-2.5 rounded-xl sm:rounded-3xl flex items-center gap-1.5 sm:gap-3 border border-slate-200/80 dark:border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
             <button
-              className={`px-5 sm:px-6 py-2.5 sm:py-3 h-11 sm:h-12 min-w-[105px] flex items-center justify-center rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 min-w-[70px] sm:min-w-[105px] flex items-center justify-center rounded-lg sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
                 timeframe === 'mingguan'
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('mingguan')}
+              onClick={() => handleSetTimeframe('mingguan')}
             >
               Mingguan
             </button>
             <button
-              className={`px-5 sm:px-6 py-2.5 sm:py-3 h-11 sm:h-12 min-w-[105px] flex items-center justify-center rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 min-w-[70px] sm:min-w-[105px] flex items-center justify-center rounded-lg sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
                 timeframe === 'bulanan'
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('bulanan')}
+              onClick={() => handleSetTimeframe('bulanan')}
             >
               Bulanan
             </button>
             <button
-              className={`px-5 sm:px-6 py-2.5 sm:py-3 h-11 sm:h-12 min-w-[105px] flex items-center justify-center rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 min-w-[70px] sm:min-w-[105px] flex items-center justify-center rounded-lg sm:rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${
                 timeframe === 'tahunan'
                   ? 'bg-emerald-800 text-white shadow-xs'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
-              onClick={() => setTimeframe('tahunan')}
+              onClick={() => handleSetTimeframe('tahunan')}
             >
               Tahunan
             </button>
@@ -132,8 +195,8 @@ const SalesChart = ({ trendData = [], monthlyData = [], yearlyData = [] }) => {
           {timeframe === 'bulanan' && (
             <select
               value={selectedYear}
-              onChange={(e) => handleYearChange(e.target.value)}
-              className="px-4 sm:px-5 py-2.5 sm:py-3 h-11 sm:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-600 cursor-pointer shadow-xs"
+              onChange={(e) => handleSetYear(e.target.value)}
+              className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-3 h-10 sm:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-600 cursor-pointer shadow-xs"
             >
               <option value="2026">Tahun 2026</option>
               <option value="2025">Tahun 2025</option>

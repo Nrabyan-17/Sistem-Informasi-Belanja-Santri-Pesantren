@@ -30,10 +30,6 @@ const StaffModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </select>
         </div>
         <div className="form-group">
-          <label>No. Handphone</label>
-          <input name="noHp" type="tel" defaultValue={initialData.noHp} placeholder="08xx-xxxx-xxxx" />
-        </div>
-        <div className="form-group">
           <label>Shift</label>
           <select name="shift" defaultValue={initialData.shift || 'Pagi'}>
             <option value="Pagi">Pagi (07:00 - 14:00)</option>
