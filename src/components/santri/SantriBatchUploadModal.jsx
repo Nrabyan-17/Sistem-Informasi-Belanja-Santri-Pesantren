@@ -80,7 +80,13 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
   const [cleanNewItems, setCleanNewItems] = useState([]);
   const [globalResolution, setGlobalResolution] = useState('skip'); // 'skip' | 'update' | 'custom'
 
-  if (!isOpen) return null;
+  // States untuk Dua Pop-Up Form (Pop-Up 1: Crosscheck/Validasi & Pop-Up 2: Berhasil)
+  const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [pendingImportPayload, setPendingImportPayload] = useState(null);
+  const [isConfirmedCheck, setIsConfirmedCheck] = useState(true);
+
+  if (!isOpen && !isValidationModalOpen && !isSuccessModalOpen) return null;
 
   const handleFileProcess = (selectedFile) => {
     if (!selectedFile) return;
@@ -170,7 +176,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       setGlobalResolution('skip');
       setIsDuplicateModalOpen(true);
     } else {
-      // Tidak ada data ganda, langsung simpan
+      // Tidak ada data ganda, langsung ke Pop-Up 1 (Crosscheck & Validasi)
       executePush(previewList, []);
     }
   };
@@ -202,10 +208,11 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       }
     });
 
-    executePush(itemsToAdd, itemsToUpdate);
     setIsDuplicateModalOpen(false);
+    executePush(itemsToAdd, itemsToUpdate);
   };
 
+  // Siapkan data & Buka Pop-Up Form 1 (Crosscheck & Validasi)
   const executePush = (newItemsList, updatedItemsList) => {
     const formattedNew = newItemsList.map(s => ({
       id: Date.now() + Math.random(),
@@ -220,11 +227,32 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       saldo: 0,
     }));
 
-    onImportSuccess?.({
+    setPendingImportPayload({
       newSantri: formattedNew,
       updatedSantri: updatedItemsList,
+      totalCount: formattedNew.length + updatedItemsList.length,
+      newCount: formattedNew.length,
+      updateCount: updatedItemsList.length,
     });
+    setIsConfirmedCheck(true);
+    setIsValidationModalOpen(true);
+  };
 
+  // Handler eksekusi simpan saldo final setelah staff meyakini di Pop-Up Form 1
+  const handleFinalConfirmSave = () => {
+    if (pendingImportPayload) {
+      onImportSuccess?.({
+        newSantri: pendingImportPayload.newSantri,
+        updatedSantri: pendingImportPayload.updatedSantri,
+      });
+    }
+    setIsValidationModalOpen(false);
+    setIsSuccessModalOpen(true);
+  };
+
+  const handleFinalSuccessClose = () => {
+    setIsSuccessModalOpen(false);
+    setPendingImportPayload(null);
     handleResetModal();
   };
 
@@ -234,6 +262,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
     setEditingRowId(null);
     setEditFormData({});
     setIsDuplicateModalOpen(false);
+    setIsValidationModalOpen(false);
+    setIsSuccessModalOpen(false);
     setDuplicateItems([]);
     setCleanNewItems([]);
     onClose();
@@ -243,7 +273,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
     <>
       {/* Modal Utama Import Batch */}
       <Modal
-        isOpen={isOpen && !isDuplicateModalOpen}
+        isOpen={isOpen && !isDuplicateModalOpen && !isValidationModalOpen && !isSuccessModalOpen}
         onClose={handleResetModal}
         title="Import Batch Data Santri"
         subtitle="Import data banyak santri sekaligus via CSV/Excel, tinjau, ubah, atau hapus sebelum disimpan ke database."
@@ -631,6 +661,234 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
           </div>
         </div>
       </Modal>
+
+      {/* POP-UP FORM 1: CROSSCHECK & VALIDASI KONFIRMASI */}
+      {isValidationModalOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsValidationModalOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Shield Icon Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-amber-600 dark:text-amber-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Crosscheck &amp; Validasi Import
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '350px', marginBottom: '20px' }}
+            >
+              Apakah Anda sudah yakin data santri ini sudah benar &amp; siap dimasukkan ke dalam database sistem?
+            </p>
+
+            {/* Ringkasan Box (Sama Persis Seperti Modal Upload BNI) */}
+            {pendingImportPayload && (
+              <div
+                className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
+                style={{ padding: '18px 20px', marginBottom: '20px', gap: '10px' }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Santri Diimpor:</span>
+                  <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
+                    {pendingImportPayload.totalCount} santri
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Data Santri Baru:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+                    + {pendingImportPayload.newCount} santri
+                  </span>
+                </div>
+                {pendingImportPayload.updateCount > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Data Santri Ditimpa:</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-400 font-mono text-sm">
+                      {pendingImportPayload.updateCount} santri
+                    </span>
+                  </div>
+                )}
+                <div
+                  className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80"
+                  style={{ paddingTop: '10px' }}
+                >
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Status Konfirmasi:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Menunggu Konfirmasi Petugas
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Checkbox Crosscheck */}
+            <label className="flex items-start gap-2.5 text-left mb-6 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={isConfirmedCheck}
+                onChange={(e) => setIsConfirmedCheck(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-emerald-700 focus:ring-emerald-600 border-slate-300 dark:border-slate-700 cursor-pointer"
+              />
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-normal group-hover:text-slate-900 dark:group-hover:text-slate-100">
+                Saya telah memeriksa kelengkapan data santri ini dan menyatakan data sudah sesuai &amp; valid.
+              </span>
+            </label>
+
+            {/* Action Buttons (Dua Tombol: Batal & Ya, Saya Yakin) */}
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setIsValidationModalOpen(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all cursor-pointer flex items-center justify-center"
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={!isConfirmedCheck}
+                onClick={handleFinalConfirmSave}
+                className={`w-full font-bold rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  isConfirmedCheck
+                    ? 'bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white shadow-emerald-900/20'
+                    : 'bg-slate-300 dark:bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
+                }`}
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                <span>Ya, Saya Yakin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP FORM 2: NOTIFIKASI BERHASIL IMPORT BATCH */}
+      {isSuccessModalOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={handleFinalSuccessClose}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Emerald Check Icon Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-emerald-600 dark:text-emerald-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Import Batch Santri Berhasil!
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '20px' }}
+            >
+              Data santri telah berhasil diproses dan disimpan ke dalam database sistem.
+            </p>
+
+            {/* Ringkasan Box (Sama Persis Seperti Modal Upload BNI) */}
+            {pendingImportPayload && (
+              <div
+                className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
+                style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Santri Diimpor:</span>
+                  <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+                    {pendingImportPayload.totalCount} santri
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Santri Baru Ditambahkan:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-sm">
+                    {pendingImportPayload.newCount} santri
+                  </span>
+                </div>
+                {pendingImportPayload.updateCount > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Santri Diperbarui (Ditimpa):</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-sm">
+                      {pendingImportPayload.updateCount} santri
+                    </span>
+                  </div>
+                )}
+                <div
+                  className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80"
+                  style={{ paddingTop: '10px' }}
+                >
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Status:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Tersimpan di Database
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={handleFinalSuccessClose}
+              className="w-full bg-emerald-800 hover:bg-emerald-900 active:scale-95 hover:scale-[1.01] text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center"
+              style={{ height: '50px', fontSize: '15px' }}
+            >
+              Selesai &amp; Lihat Data Santri
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

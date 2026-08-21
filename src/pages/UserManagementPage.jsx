@@ -82,6 +82,16 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // State untuk Pop-Up Modal Sukses (Tambah, Edit, & Hapus Pengguna)
+  const [isSuccessCreatedModalOpen, setIsSuccessCreatedModalOpen] = useState(false);
+  const [createdUserData, setCreatedUserData] = useState(null);
+
+  const [isSuccessEditedModalOpen, setIsSuccessEditedModalOpen] = useState(false);
+  const [editedUserData, setEditedUserData] = useState(null);
+
+  const [isSuccessDeletedModalOpen, setIsSuccessDeletedModalOpen] = useState(false);
+  const [deletedUserPayload, setDeletedUserPayload] = useState(null);
+
   // Kategori data dasar berdasarkan sub-menu
   const categoryBaseUsers = useMemo(() => {
     if (category === 'admin') {
@@ -171,9 +181,18 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   // Confirm delete user handler
   const confirmDeleteUser = () => {
     if (deleteUserTarget) {
+      const deletedInfo = {
+        nama: deleteUserTarget.nama,
+        role: deleteUserTarget.role,
+        count: 1,
+      };
       setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
       setIsDeleteModalOpen(false);
       setDeleteUserTarget(null);
+
+      // Buka Pop-Up Form Data Pengguna Berhasil Dihapus
+      setDeletedUserPayload(deletedInfo);
+      setIsSuccessDeletedModalOpen(true);
     }
   };
 
@@ -214,24 +233,52 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   };
 
   const confirmBatchDelete = () => {
+    const deletedCount = validSelectedIds.length;
+    const deletedInfo = {
+      nama: `${deletedCount} Pengguna Terpilih`,
+      count: deletedCount,
+    };
     setUsers((prev) => prev.filter((u) => !validSelectedIds.includes(u.id)));
     setSelectedIds([]);
     setIsBatchDeleteOpen(false);
+
+    // Buka Pop-Up Form Data Pengguna Berhasil Dihapus
+    setDeletedUserPayload(deletedInfo);
+    setIsSuccessDeletedModalOpen(true);
   };
 
   // Submit Handler for Modal Form
   const handleSubmitForm = (formData) => {
     if (editUser && editUser.id) {
       // Edit existing user
+      let assignedRole = formData.role || editUser.role || 'Staff Rumah Koin';
+      if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
+      if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
+      if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
+      if (formData.role === 'santri') assignedRole = 'Santri';
+
+      const updatedUser = {
+        ...editUser,
+        ...formData,
+        role: assignedRole,
+        status: formData.status ? (formData.status === 'aktif' ? 'Aktif' : 'Non-Aktif') : editUser.status,
+      };
+
       setUsers(
-        users.map((u) => (u.id === editUser.id ? { ...u, ...formData } : u))
+        users.map((u) => (u.id === editUser.id ? updatedUser : u))
       );
+      setIsModalOpen(false);
+
+      // Buka Pop-Up Form Data Pengguna Berhasil Diubah
+      setEditedUserData(updatedUser);
+      setIsSuccessEditedModalOpen(true);
     } else {
       // Add new user
       let assignedRole = formData.role || 'Staff Rumah Koin';
       if (formData.role === 'kabid') assignedRole = 'Kabid BAK & Manajerial';
       if (formData.role === 'staff') assignedRole = 'Staff Rumah Koin';
       if (formData.role === 'wali') assignedRole = 'Wali Santri / Wali';
+      if (formData.role === 'santri') assignedRole = 'Santri';
 
       const newUser = {
         id: Date.now(),
@@ -241,10 +288,16 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         status: 'Aktif',
         loginTerakhir: 'Baru saja',
         nis: formData.nis || '—',
+        username: formData.username || (formData.nama ? formData.nama.toLowerCase().replace(/\s+/g, '') : 'userbaru'),
+        createdDate: new Date().toISOString().slice(0, 10),
       };
       setUsers([newUser, ...users]);
+      setIsModalOpen(false);
+
+      // Buka Pop-Up Form Pengguna Baru Berhasil Ditambahkan
+      setCreatedUserData(newUser);
+      setIsSuccessCreatedModalOpen(true);
     }
-    setIsModalOpen(false);
   };
 
   // Metadata Judul & Subtitle Halaman
@@ -406,12 +459,27 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
             </h3>
 
             {/* Description Body Text */}
-            <p
-              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
-              style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
-            >
-              Apakah Anda yakin ingin menghapus akun <strong className="text-slate-900 dark:text-slate-100 font-bold">{deleteUserTarget.nama}</strong> ({deleteUserTarget.noHp})? Tindakan ini tidak dapat dibatalkan.
-            </p>
+            {(() => {
+              const isTargetStaffOrAdmin =
+                deleteUserTarget.role === 'Kabid BAK & Manajerial' ||
+                deleteUserTarget.role === 'Staff Rumah Koin' ||
+                deleteUserTarget.role === 'admin' ||
+                deleteUserTarget.role === 'staff' ||
+                deleteUserTarget.role === 'kabid';
+
+              const phoneText = !isTargetStaffOrAdmin && deleteUserTarget.noHp && deleteUserTarget.noHp !== '—'
+                ? ` (${deleteUserTarget.noHp})`
+                : '';
+
+              return (
+                <p
+                  className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+                  style={{ fontSize: '15px', maxWidth: '340px', marginBottom: '28px' }}
+                >
+                  Apakah Anda yakin ingin menghapus akun <strong className="text-slate-900 dark:text-slate-100 font-bold">{deleteUserTarget.nama}</strong>{phoneText}? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              );
+            })()}
 
             {/* Garis Pembatas (Divider Line) */}
             <div
@@ -513,6 +581,275 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
                 Ya, Hapus Semua
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP FORM PENGGUNA BARU BERHASIL DITAMBAHKAN (Struktur Sesuai Modal Penarikan Koin & Upload BNI) */}
+      {isSuccessCreatedModalOpen && createdUserData && (() => {
+        const isStaffOrAdmin =
+          createdUserData.role === 'Kabid BAK & Manajerial' ||
+          createdUserData.role === 'Staff Rumah Koin' ||
+          createdUserData.role === 'admin' ||
+          createdUserData.role === 'staff' ||
+          createdUserData.role === 'kabid';
+
+        return (
+          <div
+            className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+            onClick={() => setIsSuccessCreatedModalOpen(false)}
+          >
+            <div
+              className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+              style={{ padding: '36px 28px 28px 28px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Green Checkmark Badge Icon */}
+              <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+                ✓
+              </div>
+
+              {/* Title & Subtitle */}
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+                Pengguna Baru Berhasil Ditambahkan!
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+                Akun pengguna atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{createdUserData.nama}</strong> telah berhasil didaftarkan dan siap digunakan.
+              </p>
+
+              {/* Detail Breakdown Card dengan Spacing & Padding Teratur */}
+              <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Lengkap:</span>
+                  <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    {createdUserData.nama}
+                  </strong>
+                </div>
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Hak Akses / Role:</span>
+                  <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
+                    {createdUserData.role}
+                  </span>
+                </div>
+
+                {createdUserData.nis && createdUserData.nis !== '—' && (
+                  <>
+                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">Tautan NIS Santri:</span>
+                      <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                        {createdUserData.nis}
+                      </strong>
+                    </div>
+                  </>
+                )}
+
+                {/* No. Handphone HANYA tampil untuk Wali & Santri (Dihilangkan untuk Admin & Staff Rumah Koin) */}
+                {!isStaffOrAdmin && createdUserData.noHp && createdUserData.noHp !== '—' && (
+                  <>
+                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">No. Handphone:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        {createdUserData.noHp}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Akun:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Aktif &amp; Siap Diterapkan
+                  </span>
+                </div>
+              </div>
+
+              {/* Button Tutup & Selesai */}
+              <button
+                type="button"
+                onClick={() => setIsSuccessCreatedModalOpen(false)}
+                className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              >
+                Selesai &amp; Lihat Daftar Pengguna
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* POP-UP FORM DATA PENGGUNA BERHASIL DIUBAH */}
+      {isSuccessEditedModalOpen && editedUserData && (() => {
+        const isStaffOrAdmin =
+          editedUserData.role === 'Kabid BAK & Manajerial' ||
+          editedUserData.role === 'Staff Rumah Koin' ||
+          editedUserData.role === 'admin' ||
+          editedUserData.role === 'staff' ||
+          editedUserData.role === 'kabid';
+
+        return (
+          <div
+            className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+            onClick={() => setIsSuccessEditedModalOpen(false)}
+          >
+            <div
+              className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+              style={{ padding: '36px 28px 28px 28px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Green Checkmark Badge Icon */}
+              <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+                ✓
+              </div>
+
+              {/* Title & Subtitle */}
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+                Data Pengguna Berhasil Diubah!
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+                Perubahan data akun atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{editedUserData.nama}</strong> telah berhasil diperbarui ke dalam sistem.
+              </p>
+
+              {/* Detail Breakdown Card */}
+              <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Lengkap:</span>
+                  <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    {editedUserData.nama}
+                  </strong>
+                </div>
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Hak Akses / Role:</span>
+                  <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
+                    {editedUserData.role}
+                  </span>
+                </div>
+
+                {editedUserData.nis && editedUserData.nis !== '—' && (
+                  <>
+                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">Tautan NIS Santri:</span>
+                      <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                        {editedUserData.nis}
+                      </strong>
+                    </div>
+                  </>
+                )}
+
+                {!isStaffOrAdmin && editedUserData.noHp && editedUserData.noHp !== '—' && (
+                  <>
+                    <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                    <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                      <span className="text-slate-500 dark:text-slate-400 font-semibold">No. Handphone:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        {editedUserData.noHp}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+                <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Perubahan:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Perubahan Tersimpan
+                  </span>
+                </div>
+              </div>
+
+              {/* Button Tutup */}
+              <button
+                type="button"
+                onClick={() => setIsSuccessEditedModalOpen(false)}
+                className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              >
+                Selesai &amp; Lihat Daftar Pengguna
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* POP-UP FORM DATA PENGGUNA BERHASIL DIHAPUS */}
+      {isSuccessDeletedModalOpen && deletedUserPayload && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setIsSuccessDeletedModalOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Green Checkmark Badge Icon */}
+            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+              ✓
+            </div>
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+              Data Pengguna Berhasil Dihapus!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              {deletedUserPayload.count > 1 ? (
+                <>Sebanyak <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.count} data pengguna</strong> telah berhasil dihapus dari sistem.</>
+              ) : (
+                <>Data pengguna atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedUserPayload.nama}</strong> telah berhasil dihapus dari sistem.</>
+              )}
+            </p>
+
+            {/* Detail Breakdown Card */}
+            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Keterangan:</span>
+                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  {deletedUserPayload.count > 1 ? `${deletedUserPayload.count} Pengguna Terpilih` : deletedUserPayload.nama}
+                </strong>
+              </div>
+
+              {deletedUserPayload.role && (
+                <>
+                  <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Role:</span>
+                    <span className="inline-block px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-xs">
+                      {deletedUserPayload.role}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Telah Dihapus dari Database
+                </span>
+              </div>
+            </div>
+
+            {/* Button Tutup */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessDeletedModalOpen(false)}
+              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Selesai &amp; Lihat Daftar Pengguna
+            </button>
           </div>
         </div>
       )}

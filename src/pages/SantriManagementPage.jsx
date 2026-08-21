@@ -43,6 +43,15 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [detailTarget, setDetailTarget] = useState(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  const [isSuccessSantriCreatedOpen, setIsSuccessSantriCreatedOpen] = useState(false);
+  const [createdSantriData, setCreatedSantriData] = useState(null);
+
+  const [isSuccessEditedSantriOpen, setIsSuccessEditedSantriOpen] = useState(false);
+  const [editedSantriData, setEditedSantriData] = useState(null);
+
+  const [isSuccessDeletedSantriOpen, setIsSuccessDeletedSantriOpen] = useState(false);
+  const [deletedSantriPayload, setDeletedSantriPayload] = useState(null);
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -57,8 +66,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           setSantriList(mergeSantriSaldos(mockSantri));
         }
       })
-      .catch((err) => {
-        console.warn('Menggunakan data santri lokal (gagal terhubung ke API):', err.message);
+      .catch(() => {
         setSantriList(mergeSantriSaldos(mockSantri));
       })
       .finally(() => setLoading(false));
@@ -74,39 +82,35 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     return Array.from(kelasSet).sort();
   }, [santriList]);
 
-  // Filter data santri
+  // Filter santri
   const filteredSantri = useMemo(() => {
     return santriList.filter((s) => {
-      // 1. Search (NIS atau Nama)
       if (search.trim()) {
-        const query = search.toLowerCase();
-        const matchesNama = s.nama.toLowerCase().includes(query);
-        const matchesNis = s.nis.toLowerCase().includes(query);
-        const matchesWali = s.namaWali ? s.namaWali.toLowerCase().includes(query) : false;
-        if (!matchesNama && !matchesNis && !matchesWali) return false;
+        const q = search.toLowerCase();
+        const mNama = s.nama?.toLowerCase().includes(q);
+        const mNis = s.nis?.toLowerCase().includes(q);
+        const mWali = s.namaWali?.toLowerCase().includes(q);
+        if (!mNama && !mNis && !mWali) return false;
       }
-
-      // 2. Filter Kelas
-      if (kelasFilter !== 'Semua Kelas') {
-        if (s.kelas !== kelasFilter) return false;
-      }
-
-      // 3. Filter Status
-      if (statusFilter !== 'Semua Status') {
-        if (s.status !== statusFilter) return false;
-      }
-
+      if (kelasFilter !== 'Semua Kelas' && s.kelas !== kelasFilter) return false;
+      if (statusFilter !== 'Semua Status' && s.status !== statusFilter) return false;
       return true;
     });
   }, [santriList, search, kelasFilter, statusFilter]);
 
-  // KPI metrics
+  // Compute KPI
   const kpiStats = useMemo(() => {
-    const total = santriList.length;
-    const aktif = santriList.filter((s) => s.status === 'aktif').length;
-    const nonaktif = total - aktif;
-    const totalSaldo = santriList.reduce((sum, s) => sum + (s.saldo || 0), 0);
-    return { total, aktif, nonaktif, totalSaldo };
+    const totalSantri = santriList.length;
+    const santriAktif = santriList.filter((s) => s.status === 'aktif').length;
+    const santriNonAktif = santriList.filter((s) => s.status === 'nonaktif').length;
+    const totalSaldoSantri = santriList.reduce((acc, curr) => acc + (curr.saldo || 0), 0);
+
+    return {
+      totalSantri,
+      santriAktif,
+      santriNonAktif,
+      totalSaldoSantri,
+    };
   }, [santriList]);
 
   // Multi-Select Handlers
@@ -136,24 +140,30 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   };
 
   const confirmBatchDelete = () => {
+    const deletedCount = selectedIds.length;
+    const deletedInfo = {
+      nama: `${deletedCount} Santri Terpilih`,
+      count: deletedCount,
+    };
     setSantriList((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
     setSelectedIds([]);
     setIsBatchDeleteOpen(false);
+
+    setDeletedSantriPayload(deletedInfo);
+    setIsSuccessDeletedSantriOpen(true);
   };
 
-  // View Detail
+  // Actions
   const handleViewDetail = (santri) => {
     setDetailTarget(santri);
     setIsDetailOpen(true);
   };
 
-  // Add New Single
   const handleAddSantri = () => {
-    setEditSantri({});
+    setEditSantri(null);
     setIsModalOpen(true);
   };
 
-  // Edit Single
   const handleEditSantri = (santri) => {
     setEditSantri(santri);
     setIsModalOpen(true);
@@ -167,6 +177,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const confirmDelete = () => {
     if (deleteTarget) {
+      const deletedInfo = {
+        nama: deleteTarget.nama,
+        nis: deleteTarget.nis,
+        count: 1,
+      };
       santriApi.destroy(deleteTarget.id)
         .then(() => loadSantriData())
         .catch(() => {
@@ -176,6 +191,9 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           setIsDeleteOpen(false);
           setDeleteTarget(null);
         });
+
+      setDeletedSantriPayload(deletedInfo);
+      setIsSuccessDeletedSantriOpen(true);
     }
   };
 
@@ -190,33 +208,41 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
     if (editSantri && editSantri.id) {
       // Edit existing
+      const updatedSantri = { ...editSantri, ...formData };
       santriApi.update(editSantri.id, dataToSend)
         .then(() => loadSantriData())
         .catch(() => {
           setSantriList(
-            santriList.map((s) => (s.id === editSantri.id ? { ...s, ...formData } : s))
+            santriList.map((s) => (s.id === editSantri.id ? updatedSantri : s))
           );
         });
+
+      setEditedSantriData(updatedSantri);
+      setIsSuccessEditedSantriOpen(true);
     } else {
       // Add new
+      const newSantri = {
+        id: Date.now(),
+        nis: formData.nis || '2024999',
+        nama: formData.nama || 'Santri Baru',
+        kelas: formData.kelas || 'VII A',
+        tglLahir: formData.tglLahir || '1 Jan 2012',
+        namaWali: formData.namaWali || 'Wali Santri',
+        noHpWali: formData.noHpWali || '081234567890',
+        vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
+        vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
+        status: 'aktif',
+        saldo: 0,
+      };
+
       santriApi.store(dataToSend)
         .then(() => loadSantriData())
         .catch(() => {
-          const newSantri = {
-            id: Date.now(),
-            nis: formData.nis || '',
-            nama: formData.nama || 'Santri Baru',
-            kelas: formData.kelas || 'VII A',
-            tglLahir: formData.tglLahir || '',
-            namaWali: formData.namaWali || '',
-            noHpWali: formData.noHpWali || '',
-            vaJajan: formData.vaJajan || `8808 0990 ${formData.nis?.slice(0, 4) || '2024'} ${formData.nis?.slice(4) || '0001'}`,
-            vaTagihan: formData.vaTagihan || `8808 0990 9${formData.nis?.slice(1, 4) || '024'} ${formData.nis?.slice(4) || '0001'}`,
-            status: 'aktif',
-            saldo: 0,
-          };
           setSantriList([newSantri, ...santriList]);
         });
+
+      setCreatedSantriData(newSantri);
+      setIsSuccessSantriCreatedOpen(true);
     }
     setIsModalOpen(false);
   };
@@ -468,6 +494,238 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                 Ya, Hapus Semua
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP FORM SANTRI BARU BERHASIL DITAMBAHKAN */}
+      {isSuccessSantriCreatedOpen && createdSantriData && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setIsSuccessSantriCreatedOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Green Checkmark Badge Icon */}
+            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+              ✓
+            </div>
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+              Data Santri Berhasil Ditambahkan!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              Data santri atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{createdSantriData.nama}</strong> telah berhasil didaftarkan dan disimpan.
+            </p>
+
+            {/* Detail Breakdown Card dengan Spacing Teratur */}
+            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Santri:</span>
+                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  {createdSantriData.nama}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
+                <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+                  {createdSantriData.nis}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Kelas:</span>
+                <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-xs">
+                  {createdSantriData.kelas}
+                </span>
+              </div>
+
+              {createdSantriData.namaWali && (
+                <>
+                  <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Wali:</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {createdSantriData.namaWali}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Tersimpan di Database
+                </span>
+              </div>
+            </div>
+
+            {/* Button Tutup & Selesai */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessSantriCreatedOpen(false)}
+              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Selesai &amp; Lihat Data Santri
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP FORM DATA SANTRI BERHASIL DIUBAH */}
+      {isSuccessEditedSantriOpen && editedSantriData && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setIsSuccessEditedSantriOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Green Checkmark Badge Icon */}
+            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+              ✓
+            </div>
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+              Data Santri Berhasil Diubah!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              Perubahan data santri atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{editedSantriData.nama}</strong> telah berhasil diperbarui ke dalam sistem.
+            </p>
+
+            {/* Detail Breakdown Card */}
+            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Santri:</span>
+                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  {editedSantriData.nama}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
+                <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+                  {editedSantriData.nis}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Kelas:</span>
+                <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-xs">
+                  {editedSantriData.kelas}
+                </span>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Perubahan:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Perubahan Tersimpan
+                </span>
+              </div>
+            </div>
+
+            {/* Button Tutup */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessEditedSantriOpen(false)}
+              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Selesai &amp; Lihat Data Santri
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP FORM DATA SANTRI BERHASIL DIHAPUS */}
+      {isSuccessDeletedSantriOpen && deletedSantriPayload && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setIsSuccessDeletedSantriOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Green Checkmark Badge Icon */}
+            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+              ✓
+            </div>
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+              Data Santri Berhasil Dihapus!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              {deletedSantriPayload.count > 1 ? (
+                <>Sebanyak <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedSantriPayload.count} data santri</strong> telah berhasil dihapus dari sistem.</>
+              ) : (
+                <>Data santri atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedSantriPayload.nama}</strong> telah berhasil dihapus dari sistem.</>
+              )}
+            </p>
+
+            {/* Detail Breakdown Card */}
+            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Keterangan:</span>
+                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  {deletedSantriPayload.count > 1 ? `${deletedSantriPayload.count} Santri Terpilih` : deletedSantriPayload.nama}
+                </strong>
+              </div>
+
+              {deletedSantriPayload.nis && (
+                <>
+                  <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                    <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
+                    <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
+                      {deletedSantriPayload.nis}
+                    </strong>
+                  </div>
+                </>
+              )}
+
+              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  Telah Dihapus dari Database
+                </span>
+              </div>
+            </div>
+
+            {/* Button Tutup */}
+            <button
+              type="button"
+              onClick={() => setIsSuccessDeletedSantriOpen(false)}
+              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Selesai &amp; Lihat Data Santri
+            </button>
           </div>
         </div>
       )}
