@@ -35,7 +35,6 @@ const mapSantriFromApi = (item) => ({
   id: item.id,
   nis: item.nis != null ? String(item.nis) : '',
   nama: item.nama || item.name ? String(item.nama || item.name) : '',
-  kelas: item.kelas != null ? String(item.kelas) : 'VII A',
   tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir ? String(item.tanggal_lahir || item.tgl_lahir || item.tglLahir) : '',
   tglLahirFormatted: formatTglIndo(item.tanggal_lahir || item.tgl_lahir || item.tglLahir),
   vaJajan: item.va_jajan || item.vaJajan ? String(item.va_jajan || item.vaJajan) : '',
@@ -50,7 +49,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const [santriList, setSantriList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
 
   const [selectedIds, setSelectedIds] = useState([]);
@@ -94,12 +92,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     loadSantriData();
   }, []);
 
-  // Daftar kelas unik dari data santri
-  const kelasOptions = useMemo(() => {
-    const kelasSet = new Set(santriList.map((s) => s.kelas).filter(Boolean));
-    return Array.from(kelasSet).sort();
-  }, [santriList]);
-
   // Filter santri
   const filteredSantri = useMemo(() => {
     return santriList.filter((s) => {
@@ -109,11 +101,10 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         const mNis = s.nis?.toLowerCase().includes(q);
         if (!mNama && !mNis) return false;
       }
-      if (kelasFilter !== 'Semua Kelas' && s.kelas !== kelasFilter) return false;
       if (statusFilter !== 'Semua Status' && s.status !== statusFilter) return false;
       return true;
     });
-  }, [santriList, search, kelasFilter, statusFilter]);
+  }, [santriList, search, statusFilter]);
 
   // Compute KPI secara dinamis dan real-time dari data santri
   const kpiStats = useMemo(() => {
@@ -231,7 +222,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       nama: formData.nama,
       jenis_kelamin: formData.jenisKelamin || formData.jenis_kelamin || 'L',
       tanggal_lahir: formData.tglLahir || formData.tanggal_lahir || null,
-      kelas: formData.kelas || null,
       unit: formData.unit || null,
       va_jajan: formData.vaJajan || formData.va_jajan || null,
       status: (formData.status || 'aktif').toLowerCase(),
@@ -314,7 +304,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           Manajemen Data Santri
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
-          Kelola data identitas, kelas, dan akun virtual seluruh santri pesantren
+          Kelola data identitas dan akun virtual seluruh santri pesantren
         </p>
       </div>
 
@@ -330,13 +320,10 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       <SantriFilterBar
         search={search}
         onSearchChange={setSearch}
-        kelas={kelasFilter}
-        onKelasChange={setKelasFilter}
         status={statusFilter}
         onStatusChange={setStatusFilter}
         onAddSantri={handleAddSantri}
         onUploadBatch={() => setIsBatchUploadOpen(true)}
-        kelasOptions={kelasOptions}
       />
 
       {/* Batch Action Bar (Model B: Tampil tepat di atas tabel saat checkbox dicentang) */}
@@ -588,15 +575,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
               <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
 
               <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Kelas:</span>
-                <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-xs">
-                  {createdSantriData.kelas}
-                </span>
-              </div>
-
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
                 <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
                 <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -657,15 +635,6 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                 <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
                   {editedSantriData.nis}
                 </strong>
-              </div>
-
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Kelas:</span>
-                <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-xs">
-                  {editedSantriData.kelas}
-                </span>
               </div>
 
               <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>

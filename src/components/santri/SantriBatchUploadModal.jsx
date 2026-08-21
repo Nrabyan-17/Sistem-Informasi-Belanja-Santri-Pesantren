@@ -11,6 +11,33 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
   const [editingRowId, setEditingRowId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
 
+  const handleDownloadTemplate = (e) => {
+    e.stopPropagation();
+    const headers = ['NIS', 'Nama', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin'];
+    const rows = [
+      ['2024001', 'Ahmad Santri', 'Jl. Contoh 1', '17-08-2005', 'L'],
+      ['2024002', 'Siti Santriwati', 'Jl. Contoh 2', '01-12-2006', 'P']
+    ];
+    
+    // Create CSV string
+    const csvContent = headers.join(",") + "\n" + rows.map(e => e.map(item => `"${item}"`).join(",")).join("\n");
+    
+    // Create a Blob from the CSV string
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Create a download link
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Template_Data_Santri.csv");
+    
+    // Append link to body, click it, and remove it
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // States untuk Pop-Up Resolusi Data Ganda (Duplicate Resolution Handler)
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   const [duplicateItems, setDuplicateItems] = useState([]); // { newItem, existingItem, action: 'skip' | 'update' }
@@ -153,9 +180,10 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
     const formattedNew = newItemsList.map(s => ({
       id: Date.now() + Math.random(),
       nis: s.nis,
-      nama: s.nama,
-      kelas: s.kelas || 'VII A',
-      tanggal_lahir: s.tglLahir || '1 Jan 2012',
+      nama: s.nama || s.name || '',
+      alamat: s.alamat || '',
+      jenis_kelamin: s.jenisKelamin || s.jenis_kelamin || 'L',
+      tanggal_lahir: s.tglLahir || '',
       va_jajan: s.va_jajan || s.vaJajan || '',
       va_tagihan: s.va_tagihan || s.vaTagihan || '',
       status: s.status || 'aktif',
@@ -213,7 +241,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
         onClose={handleResetModal}
         title="Import Batch Data Santri"
         subtitle="Import data banyak santri sekaligus via CSV/Excel, tinjau, ubah, atau hapus sebelum disimpan ke database."
-        maxWidth="max-w-4xl"
+        maxWidth=""
+        style={{ width: '95vw', maxWidth: '1200px' }}
       >
         <div className="flex flex-col gap-6 pt-1">
           {/* Upload Dropzone */}
@@ -244,21 +273,25 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                   Tarik &amp; lepas file CSV / Excel di sini, atau <span className="text-emerald-700 dark:text-emerald-400 underline">klik untuk memilih file</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Tanggal Lahir)
+                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Alamat, Tanggal Lahir, Jenis Kelamin)
                 </p>
               </div>
 
               {/* Tombol Template Excel untuk Input Data Santri di Dalam Kotak Dashed (Hiasan/Visual Saja) */}
               <div className="mt-4">
-                <button
-                  type="button"
+                <a
+                  href="/Template_Data_Santri.xlsx"
+                  download="Template_Data_Santri.xlsx"
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
-                  className="px-10 sm:px-12 py-3.5 min-h-[46px] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-sm rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs hover:shadow-sm transition-all cursor-default inline-flex items-center justify-center tracking-tight"
+                  className="px-10 sm:px-12 py-3.5 min-h-[46px] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-sm rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs hover:shadow-sm active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center tracking-tight gap-2"
                 >
-                  Template Excel untuk input data santri
-                </button>
+                  <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download Template Excel/CSV
+                </a>
               </div>
             </div>
           ) : (
@@ -297,7 +330,9 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                       <th className="import-batch-col-no">No</th>
                       <th className="import-batch-col-nis">NIS</th>
                       <th className="import-batch-col-nama">Nama Santri</th>
-                      <th className="import-batch-col-kelas">Kelas</th>
+                      <th className="import-batch-col-alamat">Alamat</th>
+                      <th className="import-batch-col-tgl">Tanggal Lahir</th>
+                      <th className="import-batch-col-jk">L/P</th>
                       <th className="import-batch-col-action">Aksi Preview</th>
                     </tr>
                   </thead>
@@ -326,13 +361,31 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 onChange={(e) => setEditFormData({ ...editFormData, nama: e.target.value })}
                               />
                             </td>
-                            <td className="import-batch-col-kelas">
+                            <td className="import-batch-col-alamat">
                               <input
                                 type="text"
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
-                                value={editFormData.kelas || ''}
-                                onChange={(e) => setEditFormData({ ...editFormData, kelas: e.target.value })}
+                                value={editFormData.alamat || ''}
+                                onChange={(e) => setEditFormData({ ...editFormData, alamat: e.target.value })}
                               />
+                            </td>
+                            <td className="import-batch-col-tgl">
+                              <input
+                                type="date"
+                                className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
+                                value={editFormData.tglLahir || editFormData.tanggal_lahir || ''}
+                                onChange={(e) => setEditFormData({ ...editFormData, tglLahir: e.target.value, tanggal_lahir: e.target.value })}
+                              />
+                            </td>
+                            <td className="import-batch-col-jk">
+                              <select
+                                className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
+                                value={editFormData.jenisKelamin || editFormData.jenis_kelamin || 'L'}
+                                onChange={(e) => setEditFormData({ ...editFormData, jenisKelamin: e.target.value, jenis_kelamin: e.target.value })}
+                              >
+                                <option value="L">L</option>
+                                <option value="P">P</option>
+                              </select>
                             </td>
                             <td className="import-batch-col-action">
                               <div className="flex items-center justify-center gap-1.5">
@@ -376,9 +429,19 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                               {row.nama}
                             </span>
                           </td>
-                          <td className="import-batch-col-kelas">
-                            <span className="inline-block px-2.5 py-1 rounded-lg bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 font-extrabold text-[11px]">
-                              {row.kelas}
+                          <td className="import-batch-col-alamat">
+                            <span className="import-batch-cell-text" title={row.alamat}>
+                              {row.alamat || '—'}
+                            </span>
+                          </td>
+                          <td className="import-batch-col-tgl">
+                            <span className="import-batch-cell-text" title={row.tglLahirFormatted || row.tglLahir || row.tanggal_lahir}>
+                              {row.tglLahirFormatted || row.tglLahir || row.tanggal_lahir || '—'}
+                            </span>
+                          </td>
+                          <td className="import-batch-col-jk">
+                            <span className="import-batch-cell-text font-bold">
+                              {(row.jenisKelamin || row.jenis_kelamin || 'L').toUpperCase()}
                             </span>
                           </td>
                           <td className="import-batch-col-action">
@@ -442,7 +505,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
         onClose={() => setIsDuplicateModalOpen(false)}
         title="Deteksi Data Santri Ganda"
         subtitle="Ditemukan data dengan NIS yang sudah terdaftar di database. Tentukan tindakan untuk data ganda ini."
-        maxWidth="max-w-3xl"
+        maxWidth=""
+        style={{ width: '90vw', maxWidth: '1000px' }}
       >
         <div className="flex flex-col gap-5 pt-1">
           {/* Warning Banner */}
@@ -537,13 +601,13 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                     <td className="py-3 px-3.5">
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-700 dark:text-slate-300">{dup.existingItem.nama}</span>
-                        <span className="text-[11px] text-slate-400">{dup.existingItem.kelas}</span>
+                        <span className="text-[11px] text-slate-400">Tgl: {dup.existingItem.tglLahirFormatted || dup.existingItem.tglLahir || '—'}</span>
                       </div>
                     </td>
                     <td className="py-3 px-3.5">
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-900 dark:text-slate-100">{dup.newItem.nama}</span>
-                        <span className="text-[11px] text-slate-500">{dup.newItem.kelas}</span>
+                        <span className="text-[11px] text-slate-500">Tgl: {dup.newItem.tglLahirFormatted || dup.newItem.tanggal_lahir || dup.newItem.tgl_lahir || '—'}</span>
                       </div>
                     </td>
                     <td className="py-3 px-3.5 text-center">
