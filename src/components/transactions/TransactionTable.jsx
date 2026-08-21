@@ -5,8 +5,39 @@ import Badge from '../common/Badge';
 // Tabel daftar transaksi pada halaman Manajemen Transaksi
 const TransactionTable = ({ data = [] }) => {
   const columns = [
-    { key: 'no',          label: 'NO', render: (_, idx) => idx + 1 },
-    { key: 'tanggal',     label: 'TANGGAL' },
+    { key: 'no', label: 'NO', render: (_, idx) => idx + 1 },
+    {
+      key: 'waktu_transaksi',
+      label: 'WAKTU TRANSAKSI',
+      render: (row) => {
+        const raw = row.created_at || row.tanggal;
+        if (!raw) return <span className="text-slate-400 font-mono text-xs">—</span>;
+
+        const d = new Date(raw);
+        const isValidDate = !isNaN(d.getTime());
+
+        const dateStr = isValidDate
+          ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          : (row.tanggal || '-');
+
+        const timeStr = isValidDate
+          ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB'
+          : (row.waktu || '');
+
+        return (
+          <div className="flex flex-col gap-0.5 whitespace-nowrap">
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
+              {dateStr}
+            </span>
+            {timeStr ? (
+              <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 font-medium">
+                {timeStr}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
+    },
     { key: 'nis',         label: 'NIS', render: (row) => row.nis || '-' },
     { key: 'namaSantri',  label: 'SANTRI' },
     {

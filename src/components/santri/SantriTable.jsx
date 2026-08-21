@@ -56,8 +56,8 @@ const SantriTable = ({
                 />
               </th>
               <th className="text-left">SANTRI</th>
-              <th className="text-left">KELAS</th>
-              <th className="text-left">WALI SANTRI</th>
+              <th className="text-left">TANGGAL LAHIR</th>
+              <th className="text-left">VA</th>
               <th className="text-left">SALDO</th>
               <th className="text-left">STATUS</th>
               <th className="text-center">AKSI</th>
@@ -138,14 +138,14 @@ const SantriTable = ({
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                        {santri.kelas}
+                    <td className="py-3">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                        {santri.tglLahirFormatted || santri.tglLahir || '—'}
                       </span>
                     </td>
                     <td className="py-3">
-                      <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                        {santri.namaWali || '—'}
+                      <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                        {santri.vaJajan || (santri.nis ? `8808 0990 ${santri.nis}` : '—')}
                       </span>
                     </td>
                     <td>

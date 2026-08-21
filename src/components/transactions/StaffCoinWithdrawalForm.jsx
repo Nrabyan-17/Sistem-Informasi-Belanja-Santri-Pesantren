@@ -112,14 +112,31 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     const santriKey = activeSantri.id || activeSantri.nis;
 
     // Panggil API penarikan backend
+    let savedTx = null;
     try {
       const apiRes = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
-      if (apiRes?.transaction) {
-        // Backend record successfully saved
-      }
+      savedTx = apiRes?.data || apiRes?.transaction || apiRes;
     } catch (err) {
       console.warn('Gagal panggil API penarikan:', err.message);
     }
+
+    // Refresh daftar santri dari API agar saldo santri selalu sinkron
+    santriApi.list({ per_page: 500 })
+      .then((res) => {
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(rawData) && rawData.length > 0) {
+          const mapped = rawData.map((s) => ({
+            id: s.id,
+            nis: s.nis || '',
+            nama: s.nama || s.name || '',
+            kelas: s.kelas || 'VII A',
+            saldo: Number(s.saldo || 0),
+            foto: s.foto || s.foto_url || null,
+          }));
+          setSantriOptions(mergeSantriSaldos(mapped));
+        }
+      })
+      .catch(() => {});
 
     // Update state options lokal
     setSantriOptions((prev) =>
@@ -127,7 +144,8 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     );
 
     const txData = {
-      id: Date.now(),
+      id: savedTx?.id || Date.now(),
+      created_at: savedTx?.created_at || new Date().toISOString(),
       tanggal: new Date().toISOString().slice(0, 10),
       waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       nis: activeSantri.nis,
@@ -136,14 +154,14 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       jenis: 'Keluar',
       nominal: amount,
       sisaSaldo: newSaldo,
-      staff: 'Ust. Miftahul Huda',
+      staff: savedTx?.creator?.name || savedTx?.created_by?.name || 'Staff Rumah Koin',
       status: 'sukses',
     };
 
     setIsConfirmWithdrawalModalOpen(false);
     setLastTxData(txData);
     setIsSuccessModal(true);
-    onWithdrawalSuccess?.(txData);
+    onWithdrawalSuccess?.(savedTx || txData);
 
     // Reset form
     setNominal('');

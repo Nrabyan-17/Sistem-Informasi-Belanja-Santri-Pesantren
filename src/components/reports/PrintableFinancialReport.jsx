@@ -124,7 +124,6 @@ const PrintableFinancialReport = ({
               <th className="border border-slate-300 p-2 text-right">Selisih (Net)</th>
               <th className="border border-slate-300 p-2 text-center">Jumlah Trx</th>
               <th className="border border-slate-300 p-2 text-left">Petugas Staff</th>
-              <th className="border border-slate-300 p-2 text-center">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -137,7 +136,6 @@ const PrintableFinancialReport = ({
                 <td className="border border-slate-300 p-2 text-right font-bold text-slate-900">{formatRupiah(row.net)}</td>
                 <td className="border border-slate-300 p-2 text-center font-medium">{row.jmlTrx} trx</td>
                 <td className="border border-slate-300 p-2 text-slate-700">{row.staff}</td>
-                <td className="border border-slate-300 p-2 text-center font-semibold text-emerald-800">{row.status}</td>
               </tr>
             ))}
           </tbody>
@@ -150,7 +148,7 @@ const PrintableFinancialReport = ({
               <td className="border border-slate-300 p-2.5 text-right text-rose-800">-{formatRupiah(totalKeluarAll)}</td>
               <td className="border border-slate-300 p-2.5 text-right text-slate-950 font-extrabold">{formatRupiah(totalNetAll)}</td>
               <td className="border border-slate-300 p-2.5 text-center">{totalTrxAll} trx</td>
-              <td colSpan="2" className="border border-slate-300 p-2.5 text-center text-slate-500 italic">Terverifikasi Database</td>
+              <td className="border border-slate-300 p-2.5 text-center text-slate-500 italic">Terverifikasi Database</td>
             </tr>
           </tfoot>
         </table>

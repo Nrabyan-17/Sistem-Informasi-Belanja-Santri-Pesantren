@@ -123,82 +123,82 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* POP-UP MODAL LUPA PASSWORD (DESAIN RAPI & MODERN) */}
+      {/* POP-UP MODAL LUPA PASSWORD (LAYOUT PERSIS MODAL SUKSES TAMBAH DATA) */}
       {isForgotModalOpen && (
         <div
-          className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
           onClick={() => setIsForgotModalOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 sm:p-8 border border-slate-100 flex flex-col gap-6 animate-scaleUp text-left"
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Modal */}
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 flex items-center justify-center shadow-xs">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Lupa Kata Sandi?
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-1">
-                  Panduan bantuan &amp; pemulihan akses akun sistem pesantren
-                </p>
-              </div>
+            {/* Lock Badge Icon dengan Ring & Bounce (Diberi Jarak Bawah yang Lapang) */}
+            <div
+              className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20"
+              style={{ marginBottom: '26px' }}
+            >
+              <svg className="w-9 h-9 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
 
-            {/* Content Cards */}
-            <div className="flex flex-col gap-3">
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex gap-3.5 items-start">
-                <div className="w-8 h-8 rounded-xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center shrink-0 text-sm font-bold mt-0.5">
+            {/* Title & Subtitle (Diberikan Jarak Margin yang Pas) */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight" style={{ marginBottom: '8px' }}>
+              Lupa Kata Sandi?
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2" style={{ marginBottom: '24px' }}>
+              Panduan bantuan &amp; pemulihan akses akun sistem pesantren
+            </p>
+
+            {/* Detail Breakdown Card dengan Spacing Dalam dan Luar yang Lapang */}
+            <div
+              className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col gap-4"
+              style={{ padding: '22px 20px', marginBottom: '26px' }}
+            >
+              {/* Item 1 */}
+              <div className="flex gap-3.5 items-start">
+                <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                   1
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Verifikasi Akun</span>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Siapkan <strong>NIP/Username</strong> (untuk Staff &amp; Admin) atau <strong>NIS Santri</strong> (untuk Wali Santri) yang terdaftar.
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                    Verifikasi Akun
+                  </span>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Siapkan <strong className="text-slate-800 dark:text-slate-100">NIP/Username</strong> (untuk Staff &amp; Admin) atau <strong className="text-slate-800 dark:text-slate-100">NIS Santri</strong> (untuk Wali Santri) yang terdaftar.
                   </p>
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex gap-3.5 items-start">
-                <div className="w-8 h-8 rounded-xl bg-emerald-100/80 text-emerald-800 flex items-center justify-center shrink-0 text-sm font-bold mt-0.5">
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/80"></div>
+
+              {/* Item 2 */}
+              <div className="flex gap-3.5 items-start">
+                <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                   2
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Hubungi Administrator</span>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                    Hubungi Administrator
+                  </span>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Silakan hubungi bagian administrasi (BAK) atau loket Rumah Koin untuk melakukan pengaturan ulang (*reset*) kata sandi.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Tombol Aksi */}
-            <div className="flex flex-col gap-2.5 mt-1">
-              <a
-                href="https://wa.me/6281234567890?text=Assalamu%27alaikum%20Admin,%20saya%20memerlukan%20bantuan%20reset%20kata%20sandi%20akun%20Sistem%20Koin%20Pesantren."
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow-sm transition-all"
-              >
-                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
-                </svg>
-                Hubungi Admin via WhatsApp
-              </a>
-
-              <button
-                type="button"
-                onClick={() => setIsForgotModalOpen(false)}
-                className="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-              >
-                Kembali ke Halaman Login
-              </button>
-            </div>
+            {/* Button Selesai / Kembali ke Halaman Login (Diberikan Jarak Margin yang Jelas) */}
+            <button
+              type="button"
+              onClick={() => setIsForgotModalOpen(false)}
+              style={{ height: '48px' }}
+              className="w-full py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Mengerti &amp; Kembali ke Login
+            </button>
           </div>
         </div>
       )}
@@ -207,3 +207,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

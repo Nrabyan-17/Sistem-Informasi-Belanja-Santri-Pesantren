@@ -16,14 +16,15 @@ const apiToUi = (t) => {
 
   return {
     id: t.id,
-    tanggal: t.created_at ? t.created_at.slice(0, 10) : '',
-    nis: t.santri?.nis || '',
-    namaSantri: t.santri?.nama || '—',
+    created_at: t.created_at || '',
+    tanggal: t.created_at ? t.created_at.slice(0, 10) : (t.tanggal || ''),
+    nis: t.santri?.nis || t.nis || '',
+    namaSantri: t.santri?.nama || t.namaSantri || t.nama_santri || '—',
     jenis: isMasuk ? 'Masuk' : 'Keluar',
     kategori: kat,
-    nominal: Math.abs(Number(t.nominal || 0)),
-    staff: t.creator?.name || t.created_by?.name || '—',
-    status: 'sukses',
+    nominal: Math.abs(Number(t.nominal || t.total || 0)),
+    staff: t.creator?.name || t.created_by?.name || (typeof t.staff === 'string' ? t.staff : t.staff?.nama) || '—',
+    status: t.status || 'sukses',
   };
 };
 
@@ -38,18 +39,29 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
 
   const fetchTransactions = () => {
     setLoading(true);
-    transactionApi
+    return transactionApi
       .list({ per_page: 100 })
-      .then((res) => setTransactions((res.data || []).map(apiToUi)))
+      .then((res) => {
+        const list = (res.data || []).map(apiToUi);
+        setTransactions(list);
+      })
       .catch((e) => setError(e.message || 'Gagal memuat data transaksi.'))
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchTransactions, []);
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
-  // Handle new withdrawal from Staff form
-  const handleNewWithdrawal = (res) => {
-    if (res?.transaction) setTransactions((prev) => [apiToUi(res.transaction), ...prev]);
+  // Handle new withdrawal from Staff form: langsung reload data transaksi real-time
+  const handleNewWithdrawal = async (newTx) => {
+    if (newTx) {
+      const formatted = newTx.id && newTx.nominal !== undefined && newTx.namaSantri
+        ? newTx
+        : apiToUi(newTx);
+      setTransactions((prev) => [formatted, ...prev.filter((t) => t.id !== formatted.id)]);
+    }
+    await fetchTransactions();
   };
 
   // Filter Data Transaksi
