@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
-import { getSantriHistory, addSantriHistory } from '../../utils/saldoStorage';
+import { santriApi } from '../../utils/api';
 
 const SaldoDetailModal = ({
   isOpen,
@@ -12,6 +12,7 @@ const SaldoDetailModal = ({
   // States untuk Saldo & Riwayat Transaksi
   const [currentSaldo, setCurrentSaldo] = useState(santri?.saldo || 0);
   const [historyList, setHistoryList] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [activeTab, setActiveTab] = useState('history'); // 'history' | 'adjust'
 
   // States untuk Form Sesuaikan Saldo (Manual)
@@ -23,12 +24,20 @@ const SaldoDetailModal = ({
   useEffect(() => {
     if (isOpen && santri?.id) {
       setCurrentSaldo(santri.saldo !== undefined ? santri.saldo : 0);
-      setHistoryList(getSantriHistory(santri.id, []));
+      setHistoryList([]);
       setAdjustSuccessMsg('');
       setAdjustNominal('');
       setAdjustKeterangan('');
       setAdjustType('tambah');
       setActiveTab('history');
+
+      setIsLoadingHistory(true);
+      santriApi.mutasi(santri.id)
+        .then(res => {
+          setHistoryList(res.data || []);
+        })
+        .catch(err => console.error("Gagal memuat mutasi", err))
+        .finally(() => setIsLoadingHistory(false));
     }
   }, [isOpen, santri]);
 
@@ -44,7 +53,7 @@ const SaldoDetailModal = ({
       : Math.max(0, currentSaldo - (nominalVal > 0 ? nominalVal : 0));
 
   // Handler Submit Penyesuaian Saldo Manual
-  const handleSaveAdjustment = (e) => {
+  const handleSaveAdjustment = async (e) => {
     e.preventDefault();
     if (!nominalVal || nominalVal <= 0) {
       alert('Masukkan nominal penyesuaian saldo yang valid.');
@@ -65,41 +74,39 @@ const SaldoDetailModal = ({
       return;
     }
 
-    const finalNewSaldo = calculatedSaldo;
+    try {
+      const payload = {
+        aksi: adjustType,
+        nominal: nominalVal,
+        keterangan: adjustKeterangan.trim(),
+      };
 
-    const todayStr = new Intl.DateTimeFormat('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date());
+      const res = await santriApi.penyesuaian(santri.id, payload);
 
-    const newHistoryItem = {
-      id: Date.now(),
-      tanggal: todayStr,
-      keterangan: adjustKeterangan.trim(),
-      nominal: adjustType === 'tambah' ? nominalVal : -nominalVal,
-    };
+      const finalNewSaldo = res.saldo !== undefined ? res.saldo : calculatedSaldo;
 
-    // Save to localStorage history
-    const updatedHistory = addSantriHistory(santri.id, newHistoryItem);
+      setCurrentSaldo(finalNewSaldo);
+      
+      const resHistory = await santriApi.mutasi(santri.id);
+      setHistoryList(resHistory.data || []);
 
-    // Update local modal states
-    setCurrentSaldo(finalNewSaldo);
-    setHistoryList(updatedHistory);
-    setAdjustSuccessMsg(
-      `Saldo ${santri.nama} berhasil disesuaikan menjadi Rp ${finalNewSaldo.toLocaleString('id-ID')}.`
-    );
+      setAdjustSuccessMsg(
+        `Saldo ${santri.nama} berhasil disesuaikan menjadi Rp ${finalNewSaldo.toLocaleString('id-ID')}.`
+      );
 
-    // Kirim callback ke parent component (TopUpPage)
-    onAdjustSaldo?.(santri.id, finalNewSaldo, newHistoryItem);
+      // Kirim callback ke parent component
+      onAdjustSaldo?.(santri.id, finalNewSaldo, res.mutasi);
 
-    // Reset input fields
-    setAdjustNominal('');
-    setAdjustKeterangan('');
+      // Reset input fields
+      setAdjustNominal('');
+      setAdjustKeterangan('');
 
-    setTimeout(() => {
-      setAdjustSuccessMsg('');
-    }, 4000);
+      setTimeout(() => {
+        setAdjustSuccessMsg('');
+      }, 4000);
+    } catch (error) {
+      alert(error.message || 'Terjadi kesalahan saat menyesuaikan saldo.');
+    }
   };
 
   return (
@@ -225,11 +232,23 @@ const SaldoDetailModal = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                  {historyList.length > 0 ? (
+                  {isLoadingHistory ? (
+                    <tr>
+                      <td colSpan="3" className="px-4 py-6 text-center text-slate-400 font-medium">
+                        Memuat riwayat transaksi...
+                      </td>
+                    </tr>
+                  ) : historyList.length > 0 ? (
                     historyList.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                        <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
-                        <td className="px-4 py-3 font-medium">{item.keterangan}</td>
+                        <td className="px-4 py-3 font-medium whitespace-nowrap">
+                          {new Intl.DateTimeFormat('id-ID', {
+                            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                          }).format(new Date(item.created_at))}
+                        </td>
+                        <td className="px-4 py-3 font-medium">
+                          {item.keterangan || (item.tipe === 'tarik_koin' ? 'Tarik Koin' : (item.nominal > 0 ? 'Kredit' : 'Debit'))}
+                        </td>
                         <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
                           <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                             {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}

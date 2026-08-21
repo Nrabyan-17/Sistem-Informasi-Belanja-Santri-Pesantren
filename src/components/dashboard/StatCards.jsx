@@ -17,10 +17,10 @@ const StatCards = ({ totalSaldo = 0, totalPemasukan = 0, totalSantriAktif = 0 })
         <h2 className="stat-value">Rp {(Number(totalSaldo) || 0).toLocaleString('id-ID')}</h2>
       </div>
 
-      {/* Koin Ditarik Hari Ini */}
+      {/* Koin Ditarik */}
       <div className="stat-card">
         <div className="stat-card-header">
-          <span className="stat-label">KOIN DITARIK HARI INI</span>
+          <span className="stat-label">TOTAL KOIN DITARIK</span>
           <div className="stat-icon-pill stat-icon-pill--orange">
             <svg className="stat-icon" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" />

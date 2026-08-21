@@ -49,14 +49,14 @@ const CustomTooltip = ({ active, payload, label, timeframe }) => {
     return (
       <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 text-xs space-y-1">
         <p className="font-bold text-slate-500 dark:text-slate-400">
-          {timeframe === 'mingguan' ? `Hari ${label}` : timeframe === 'bulanan' ? `Bulan ${label}` : `Tahun ${label}`}
+          {timeframe === 'mingguan' ? `${label} (${data.tanggal || ''})` : timeframe === 'bulanan' ? `Bulan ${label}` : `Tahun ${label}`}
         </p>
         <p className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
-          Rp {new Intl.NumberFormat('id-ID').format(data.total)}
+          Rp {new Intl.NumberFormat('id-ID').format(data.total || 0)}
         </p>
         {data.transaksi > 0 && (
           <p className="text-slate-400 dark:text-slate-400">
-            Total Transaksi: <strong className="text-slate-700 dark:text-slate-200">{data.transaksi.toLocaleString('id-ID')} entri</strong>
+            Total Penarikan: <strong className="text-slate-700 dark:text-slate-200">{data.transaksi.toLocaleString('id-ID')} kali</strong>
           </p>
         )}
       </div>
@@ -119,6 +119,19 @@ const SalesChart = ({
   };
 
   const activeData = getActiveData();
+
+  const handleYearChange = async (year) => {
+    setSelectedYear(year);
+    try {
+      const { dashboardApi } = await import('../../utils/api');
+      const res = await dashboardApi.get({ tahun: year });
+      if (res?.tren_bulanan) {
+        setCustomMonthly(res.tren_bulanan);
+      }
+    } catch {
+      // fallback to current
+    }
+  };
 
   const formatYAxis = (val) => {
     if (val >= 1000000000) return `${(val / 1000000000).toFixed(1)}B`;
