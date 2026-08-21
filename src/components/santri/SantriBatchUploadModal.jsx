@@ -1,61 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Modal from '../common/Modal';
-
-// Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
-const cleanCell = (val) => {
-  if (val === null || val === undefined) return '';
-  return String(val)
-    .replace(/^="?|"?$/g, '')
-    .replace(/^["']|["']$/g, '')
-    .trim();
-};
-
-const parseSantriCSV = (text) => {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length < 2) return [];
-
-  const delimiter = lines[0].includes(';') ? ';' : lines[0].includes(',') ? ',' : '\t';
-  const headers = lines[0].split(delimiter).map(cleanCell).map(h => h.toLowerCase());
-
-  const nisIdx = headers.findIndex(h => /nis|nomor\s*induk|id\s*santri|va\s*number/i.test(h));
-  const namaIdx = headers.findIndex(h => /(^nama$|nama\s*santri|nama\s*siswa|nama\s*lengkap|customer\s*name)/i.test(h) && !/wali/i.test(h));
-  const kelasIdx = headers.findIndex(h => /(^kelas$|tingkat|rombel|asrama|kamar)/i.test(h));
-  const tglIdx = headers.findIndex(h => /(tgl|tanggal|lahir|birth)/i.test(h));
-  const waliIdx = headers.findIndex(h => /(wali|orang\s*tua|ayah|ibu)/i.test(h));
-
-  const results = [];
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split(delimiter).map(cleanCell);
-    if (parts.length < 2) continue;
-
-    let nis = nisIdx !== -1 ? parts[nisIdx] : parts[0] || `2024${String(i).padStart(3, '0')}`;
-    let nama = namaIdx !== -1 ? parts[namaIdx] : parts[1] || `Santri Baru ${i}`;
-    let kelas = kelasIdx !== -1 ? parts[kelasIdx] : parts[2] || 'VII A';
-    let tglLahir = tglIdx !== -1 ? parts[tglIdx] : parts[3] || '1 Jan 2012';
-    let namaWali = waliIdx !== -1 ? parts[waliIdx] : parts[4] || 'Wali Santri';
-
-    // Bersihkan jika ada nilai kelas yang berupa angka tanggal Excel (misal 44333 -> VII A)
-    if (/^\d{4,6}$/.test(kelas)) {
-      kelas = 'VII A';
-    }
-
-    // Jika nama wali kosong atau sama persis dengan nama santri, berikan default yang rapi
-    if (!namaWali || namaWali === nama) {
-      namaWali = `Wali ${nama}`;
-    }
-
-    results.push({
-      id: `import-${Date.now()}-${i}`,
-      nis,
-      nama,
-      kelas,
-      tglLahir,
-      namaWali,
-      status: 'aktif',
-    });
-  }
-  return results;
-};
+import { santriApi } from '../../utils/api';
 
 // Modal Pop-Up Upload Batch Santri dengan Fitur Preview Lega & Rapi, Edit, Delete, dan Handler Data Ganda
 const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSantriList = [] }) => {
@@ -80,37 +25,36 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
 
   if (!isOpen && !isValidationModalOpen && !isSuccessModalOpen) return null;
 
-  const handleFileProcess = (selectedFile) => {
+  const handleFileProcess = async (selectedFile) => {
     if (!selectedFile) return;
     setFile(selectedFile);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result;
-        if (typeof text === 'string') {
-          const parsed = parseSantriCSV(text);
-          if (parsed.length > 0) {
-            setPreviewList(parsed);
-          } else {
-            alert('File CSV / Excel tidak memuat data santri yang dapat diproses.');
-            setPreviewList([]);
-            setFile(null);
-          }
-        }
-      } catch (err) {
-        console.error('Gagal memproses file:', err);
-        alert('Gagal memproses struktur file CSV/Excel.');
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await santriApi.importPreview(formData);
+      const parsedItems = res.items || [];
+      if (parsedItems.length > 0) {
+        const withIds = parsedItems.map((item, idx) => ({
+          ...item,
+          id: item.temp_id || `import-${Date.now()}-${idx}`,
+          tglLahir: item.tanggal_lahir,
+          namaWali: item.nama_wali || 'Wali Santri',
+          status: 'aktif'
+        }));
+        setPreviewList(withIds);
+      } else {
+        alert('File CSV / Excel tidak memuat data santri yang dapat diproses.');
         setPreviewList([]);
         setFile(null);
       }
-    };
-    reader.onerror = () => {
-      alert('Gagal membaca file dari komputer.');
+    } catch (err) {
+      console.error('Gagal memproses file via server:', err);
+      alert(err.message || 'Gagal memproses struktur file CSV/Excel.');
       setPreviewList([]);
       setFile(null);
-    };
-    reader.readAsText(selectedFile);
+    }
   };
 
   const handleDrop = (e) => {
@@ -212,10 +156,10 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       nis: s.nis,
       nama: s.nama,
       kelas: s.kelas || 'VII A',
-      tglLahir: s.tglLahir || '1 Jan 2012',
-      namaWali: s.namaWali || 'Wali Santri',
-      vaJajan: `8808 0990 ${s.nis.slice(0, 4)} ${s.nis.slice(4)}`,
-      vaTagihan: `8808 0990 9${s.nis.slice(1, 4)} ${s.nis.slice(4)}`,
+      tanggal_lahir: s.tglLahir || '1 Jan 2012',
+      nama_wali: s.namaWali || 'Wali Santri',
+      va_jajan: `8808 0990 ${s.nis.slice(0, 4)} ${s.nis.slice(4)}`,
+      va_tagihan: `8808 0990 9${s.nis.slice(1, 4)} ${s.nis.slice(4)}`,
       status: s.status || 'aktif',
       saldo: 0,
     }));

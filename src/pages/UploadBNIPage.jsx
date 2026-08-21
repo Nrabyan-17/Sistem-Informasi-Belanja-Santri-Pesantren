@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import StaffLayout from '../components/layout/StaffLayout';
 import { bniApi } from '../utils/api';
-import { getSantriSaldos, setSantriSaldo, addSantriHistory } from '../utils/saldoStorage';
 
 // Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
 const cleanCell = (val) => {
@@ -280,26 +279,6 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
       } catch (err) {
         console.warn('Gagal apply BNI ke backend:', err.message);
       }
-    }
-
-    // 2. Update saldo santri & riwayat mutasi lokal agar langsung terlihat di Cek Saldo & Data Santri
-    if (Array.isArray(parsedData)) {
-      const saldos = getSantriSaldos();
-      parsedData.forEach((item) => {
-        if (item.status === 'valid' && item.nominal > 0) {
-          const key = item.santriId || item.nis;
-          const current = Number(saldos[key] || 0);
-          const newBal = current + Number(item.nominal);
-          setSantriSaldo(key, newBal);
-
-          addSantriHistory(key, {
-            id: Date.now() + Math.random(),
-            tanggal: item.tanggal || new Date().toISOString().slice(0, 10),
-            keterangan: `Isi Saldo VA BNI (${item.va || 'eCollection'})`,
-            nominal: Number(item.nominal),
-          });
-        }
-      });
     }
 
     setIsConfirmed(true);

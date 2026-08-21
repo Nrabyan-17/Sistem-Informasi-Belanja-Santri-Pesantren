@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { santriApi, penarikanApi } from '../../utils/api';
-import { mergeSantriSaldos, setSantriSaldo, addSantriHistory } from '../../utils/saldoStorage';
 
 const getInitials = (name) => {
   if (!name) return 'S';
@@ -37,10 +36,9 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             saldo: Number(s.saldo || 0),
             foto: s.foto || s.foto_url || null,
           }));
-          const merged = mergeSantriSaldos(mapped);
-          setSantriOptions(merged);
-          if (merged.length > 0 && !selectedNis) {
-            setSelectedNis(merged[0].nis);
+          setSantriOptions(mapped);
+          if (mapped.length > 0 && !selectedNis) {
+            setSelectedNis(mapped[0].nis);
           }
         } else {
           setSantriOptions([]);
@@ -112,22 +110,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     const amount = parseInt(nominal || '0', 10);
     const newSaldo = activeSantri.saldo - amount;
     const santriKey = activeSantri.id || activeSantri.nis;
-
-    // Simpan penyesuaian saldo & riwayat ke localStorage
-    setSantriSaldo(santriKey, newSaldo);
-
-    const todayStr = new Intl.DateTimeFormat('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date());
-
-    addSantriHistory(santriKey, {
-      id: Date.now(),
-      tanggal: todayStr,
-      keterangan: 'Tarik Koin (Rumah Koin)',
-      nominal: -amount,
-    });
 
     // Panggil API penarikan backend
     try {

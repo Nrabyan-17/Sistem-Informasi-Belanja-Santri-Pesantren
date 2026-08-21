@@ -5,7 +5,6 @@ import StatCards from '../components/dashboard/StatCards';
 import SalesChart from '../components/dashboard/SalesChart';
 import RecentTransactionsWidget from '../components/dashboard/RecentTransactionsWidget';
 import { dashboardApi, santriApi, transactionApi } from '../utils/api';
-import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 // API → bentuk yang dibaca komponen dashboard
 const mapRecent = (trx) => {
@@ -66,7 +65,7 @@ const DashboardPage = ({ Layout = MainLayout }) => {
         }
         if (santriRes) {
           const rawData = santriRes.data || (Array.isArray(santriRes) ? santriRes : []);
-          const merged = mergeSantriSaldos(rawData);
+          const merged = rawData;
           const activeCount = Array.isArray(merged)
             ? merged.filter((s) => (s.status || 'aktif') === 'aktif').length
             : 0;

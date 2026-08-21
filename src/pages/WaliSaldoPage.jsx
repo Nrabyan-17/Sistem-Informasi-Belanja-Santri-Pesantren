@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import WaliLayout from '../components/layout/WaliLayout';
 import { waliApi } from '../utils/api';
 import { usePopup } from '../context/PopupContext';
-import { getSantriSaldos } from '../utils/saldoStorage';
 
 const getInitials = (name) => {
   if (!name) return 'S';
@@ -24,11 +23,7 @@ const WaliSaldoPage = () => {
       .then((res) => {
         const rawSantri = res.santri_terpilih || null;
         if (rawSantri) {
-          const localSaldos = getSantriSaldos();
-          const overrideSaldo = localSaldos[rawSantri.id] !== undefined
-            ? localSaldos[rawSantri.id]
-            : (localSaldos[rawSantri.nis] !== undefined ? localSaldos[rawSantri.nis] : rawSantri.saldo);
-          setSantri({ ...rawSantri, saldo: Number(overrideSaldo !== undefined ? overrideSaldo : 0) });
+          setSantri({ ...rawSantri, saldo: Number(rawSantri.saldo || 0) });
         } else {
           setSantri(null);
         }

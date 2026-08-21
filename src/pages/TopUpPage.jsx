@@ -3,7 +3,6 @@ import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
 import { useAuth } from '../context/AuthContext';
 import { santriApi } from '../utils/api';
-import { setSantriSaldo, mergeSantriSaldos } from '../utils/saldoStorage';
 
 const mapSantriForSaldo = (s) => ({
   id: s.id,
@@ -30,7 +29,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
       .then((res) => {
         const rawData = res.data || (Array.isArray(res) ? res : []);
         if (Array.isArray(rawData)) {
-          setSantriList(mergeSantriSaldos(rawData.map(mapSantriForSaldo)));
+          setSantriList(rawData.map(mapSantriForSaldo));
         } else {
           setSantriList([]);
         }
@@ -68,23 +67,9 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   };
 
   const handleAdjustSaldo = async (santriId, newSaldo, historyItem) => {
-    // Simpan ke localStorage agar data terikat secara persisten
-    setSantriSaldo(santriId, newSaldo);
-
-    if (historyItem) {
-      const nominal = Math.abs(Number(historyItem.nominal) || Math.abs(newSaldo - (selectedSantri?.saldo || 0)));
-      const aksi = (historyItem.tipe === 'tambah' || historyItem.type === 'in' || newSaldo > (selectedSantri?.saldo || 0)) ? 'tambah' : 'kurangi';
-      try {
-        await santriApi.penyesuaian(santriId, {
-          nominal: Math.max(1, nominal),
-          aksi,
-          keterangan: historyItem.keterangan || (aksi === 'tambah' ? 'Penyesuaian tambah saldo' : 'Penyesuaian kurangi saldo'),
-        });
-        await fetchSantriList();
-      } catch (err) {
-        console.warn('Penyimpanan API penyesuaian error:', err.message);
-      }
-    }
+    // API call sudah dilakukan di dalam SaldoDetailModal
+    // Update local state saja
+    await fetchSantriList();
 
     setSantriList((prev) =>
       prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))

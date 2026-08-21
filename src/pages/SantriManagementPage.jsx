@@ -8,7 +8,6 @@ import SantriDetailModal from '../components/santri/SantriDetailModal';
 import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
 import BatchActionBar from '../components/common/BatchActionBar';
 import { santriApi } from '../utils/api';
-import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 const mapSantriFromApi = (item) => ({
   id: item.id,
@@ -60,7 +59,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       .then((res) => {
         const rawData = res.data || (Array.isArray(res) ? res : []);
         if (Array.isArray(rawData)) {
-          setSantriList(mergeSantriSaldos(rawData.map(mapSantriFromApi)));
+          setSantriList(rawData.map(mapSantriFromApi));
         }
       })
       .catch((err) => {
