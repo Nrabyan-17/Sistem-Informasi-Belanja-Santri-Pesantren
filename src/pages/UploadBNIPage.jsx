@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import StaffLayout from '../components/layout/StaffLayout';
 import { bniApi } from '../utils/api';
+import { getSantriSaldos, setSantriSaldo, addSantriHistory } from '../utils/saldoStorage';
 
 const mockParsedTransactions = [
   { id: 1, va: '9881234567890001', nis: '123456', nama: 'Ahmad Fauzi', nominal: 100000, tanggal: '2026-08-01 08:30', status: 'valid', billingId: 'JJNJULI26/123456', isJajan: true, isDuplicate: true },
@@ -89,6 +90,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [parsedData, setParsedData] = useState(null);
+  const [uploadId, setUploadId] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -148,12 +150,44 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     setIsDragging(false);
   };
 
-  const processFile = (selectedFile) => {
+  const processFile = async (selectedFile) => {
     if (!selectedFile) return;
     setFile(selectedFile);
     setIsUploading(true);
     setIsConfirmed(false);
+    setUploadId(null);
 
+    // Coba upload langsung ke backend Laravel BNI Upload API
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const apiRes = await bniApi.store(formData);
+      if (apiRes && apiRes.upload) {
+        setUploadId(apiRes.upload.id);
+        if (Array.isArray(apiRes.upload.items) && apiRes.upload.items.length > 0) {
+          const mapped = apiRes.upload.items.map((item, idx) => ({
+            id: item.id || (idx + 1),
+            va: item.va || '—',
+            nis: item.santri?.nis || item.nis || '—',
+            nama: item.santri?.nama || item.nama_santri_raw || item.nama || '—',
+            nominal: Number(item.nominal) || 0,
+            tanggal: item.tanggal_transaksi || item.tanggal || new Date().toISOString().slice(0, 10),
+            status: item.status_valid ? 'valid' : 'invalid',
+            isDuplicate: item.is_duplicate || false,
+            isJajan: true,
+            santriId: item.santri_id || item.santri?.id || null,
+          }));
+          setParsedData(mapped);
+          setIsUploading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend BNI upload fallback ke client parser:', err.message);
+    }
+
+    // Fallback Client-Side CSV Parser
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -163,7 +197,6 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
           if (parsed.length > 0) {
             setParsedData(parsed);
           } else {
-            // Fallback jika bukan CSV BNI eCollection
             setParsedData(mockParsedTransactions);
           }
         }
@@ -180,7 +213,6 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
       setErrorMessage('Gagal membaca file. Pastikan format file CSV/Excel valid.');
     };
 
-    // Baca file secara real sebagai text
     reader.readAsText(selectedFile);
   };
 
@@ -240,8 +272,41 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   };
 
   // Handler eksekusi simpan saldo final setelah staff yakin di modal validasi
-  const handleFinalConfirmSave = () => {
+  const handleFinalConfirmSave = async () => {
     setIsValidationModalOpen(false);
+
+    // 1. Eksekusi apply via Backend Laravel API jika uploadId tersedia
+    if (uploadId) {
+      try {
+        const validItemIds = parsedData
+          .filter((d) => d.status === 'valid')
+          .map((d) => d.id);
+        await bniApi.apply(uploadId, validItemIds);
+      } catch (err) {
+        console.warn('Gagal apply BNI ke backend:', err.message);
+      }
+    }
+
+    // 2. Update saldo santri & riwayat mutasi lokal agar langsung terlihat di Cek Saldo & Data Santri
+    if (Array.isArray(parsedData)) {
+      const saldos = getSantriSaldos();
+      parsedData.forEach((item) => {
+        if (item.status === 'valid' && item.nominal > 0) {
+          const key = item.santriId || item.nis;
+          const current = Number(saldos[key] || 0);
+          const newBal = current + Number(item.nominal);
+          setSantriSaldo(key, newBal);
+
+          addSantriHistory(key, {
+            id: Date.now() + Math.random(),
+            tanggal: item.tanggal || new Date().toISOString().slice(0, 10),
+            keterangan: `Isi Saldo VA BNI (${item.va || 'eCollection'})`,
+            nominal: Number(item.nominal),
+          });
+        }
+      });
+    }
+
     setIsConfirmed(true);
     setIsSuccessModalOpen(true);
   };
@@ -249,6 +314,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const handleReset = () => {
     setFile(null);
     setParsedData(null);
+    setUploadId(null);
     setIsConfirmed(false);
     setFilterMode('all');
     setIsDuplicateModalOpen(false);

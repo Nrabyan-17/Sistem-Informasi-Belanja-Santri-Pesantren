@@ -77,15 +77,23 @@ const TopUpPage = ({ Layout = MainLayout }) => {
     setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, foto: newPhoto } : prev));
   };
 
-  const handleAdjustSaldo = (santriId, newSaldo, historyItem) => {
+  const handleAdjustSaldo = async (santriId, newSaldo, historyItem) => {
     // Simpan ke localStorage agar data terikat secara persisten
     setSantriSaldo(santriId, newSaldo);
 
     if (historyItem) {
-      const nominal = historyItem.nominal || Math.abs(newSaldo - (selectedSantri?.saldo || 0));
-      const tipe = historyItem.tipe === 'tambah' || historyItem.type === 'in' ? 'topup' : 'penarikan';
-      santriApi.penyesuaian(santriId, { nominal, tipe, keterangan: historyItem.keterangan || 'Penyesuaian saldo' })
-        .catch((err) => console.warn('Penyimpanan API penyesuaian fallback ke localStorage:', err));
+      const nominal = Math.abs(Number(historyItem.nominal) || Math.abs(newSaldo - (selectedSantri?.saldo || 0)));
+      const aksi = (historyItem.tipe === 'tambah' || historyItem.type === 'in' || newSaldo > (selectedSantri?.saldo || 0)) ? 'tambah' : 'kurangi';
+      try {
+        await santriApi.penyesuaian(santriId, {
+          nominal: Math.max(1, nominal),
+          aksi,
+          keterangan: historyItem.keterangan || (aksi === 'tambah' ? 'Penyesuaian tambah saldo' : 'Penyesuaian kurangi saldo'),
+        });
+        await fetchSantriList();
+      } catch (err) {
+        console.warn('Penyimpanan API penyesuaian error:', err.message);
+      }
     }
 
     setSantriList((prev) =>

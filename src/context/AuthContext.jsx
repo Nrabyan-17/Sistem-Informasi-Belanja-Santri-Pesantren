@@ -61,35 +61,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError('');
 
-    const cleanUsername = (username || '').trim().toLowerCase();
-    const cleanPassword = (password || '').trim();
-
     try {
-      // 1. Coba login ke API backend
-      const data = await authApi.login({ username, password });
+      const data = await authApi.login({
+        username: (username || '').trim(),
+        password: (password || '').trim(),
+      });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       return data.user.role;
     } catch (e) {
-      // 2. Jika API offline / tidak terjangkau, validasi kredensial lokal
-      const matchedAccount = VALID_ACCOUNTS.find((acc) =>
-        acc.usernames.includes(cleanUsername) && acc.passwords.includes(cleanPassword)
-      );
-
-      if (matchedAccount) {
-        const loggedUser = matchedAccount.user;
-        const localToken = 'auth-token-' + Date.now();
-        localStorage.setItem('token', localToken);
-        localStorage.setItem('user', JSON.stringify(loggedUser));
-        setUser(loggedUser);
-        return loggedUser.role;
-      }
-
-      // 3. Jika username atau password tidak cocok, tolak login
-      const err = new Error('Username atau password salah.');
-      setError(err.message);
-      throw err;
+      const msg = e.message || 'Username atau password salah.';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }

@@ -115,7 +115,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   };
 
   // Step 2: Eksekusi penarikan koin setelah staff mengonfirmasi di modal validasi
-  const handleExecuteWithdrawal = () => {
+  const handleExecuteWithdrawal = async () => {
     const amount = parseInt(nominal || '0', 10);
     const newSaldo = activeSantri.saldo - amount;
     const santriKey = activeSantri.id || activeSantri.nis;
@@ -136,9 +136,15 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       nominal: -amount,
     });
 
-    // Panggil API penarikan jika backend tersedia
-    penarikanApi.store({ santri_id: activeSantri.id, nominal: amount })
-      .catch((err) => console.warn('Penyimpanan API penarikan fallback ke localStorage:', err));
+    // Panggil API penarikan backend
+    try {
+      const apiRes = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
+      if (apiRes?.transaction) {
+        // Backend record successfully saved
+      }
+    } catch (err) {
+      console.warn('Gagal panggil API penarikan:', err.message);
+    }
 
     // Update state options lokal
     setSantriOptions((prev) =>

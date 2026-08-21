@@ -7,17 +7,25 @@ import StaffCoinWithdrawalForm from '../components/transactions/StaffCoinWithdra
 import { transactionApi } from '../utils/api';
 
 // API → bentuk yang dibaca komponen transaksi
-const apiToUi = (t) => ({
-  id: t.id,
-  tanggal: t.created_at ? t.created_at.slice(0, 10) : '',
-  nis: t.santri?.nis || '',
-  namaSantri: t.santri?.nama || '—',
-  jenis: t.tipe === 'topup' ? 'Masuk' : 'Keluar',
-  kategori: t.tipe === 'topup' ? 'Top Up' : 'Penarikan Koin',
-  nominal: Math.abs(t.nominal || 0),
-  staff: t.created_by?.name || '—',
-  status: 'sukses',
-});
+const apiToUi = (t) => {
+  const isMasuk = t.tipe === 'topup' || (t.tipe === 'penyesuaian' && Number(t.nominal || 0) > 0) || Number(t.nominal || 0) > 0;
+  let kat = 'Penarikan Koin';
+  if (t.tipe === 'topup' || t.tipe === 'bni') kat = 'Isi Saldo VA';
+  else if (t.tipe === 'penyesuaian') kat = Number(t.nominal || 0) >= 0 ? 'Penyesuaian (Tambah)' : 'Penyesuaian (Kurang)';
+  else if (t.tipe === 'tarik_koin' || t.tipe === 'penarikan') kat = 'Penarikan Koin';
+
+  return {
+    id: t.id,
+    tanggal: t.created_at ? t.created_at.slice(0, 10) : '',
+    nis: t.santri?.nis || '',
+    namaSantri: t.santri?.nama || '—',
+    jenis: isMasuk ? 'Masuk' : 'Keluar',
+    kategori: kat,
+    nominal: Math.abs(Number(t.nominal || 0)),
+    staff: t.creator?.name || t.created_by?.name || '—',
+    status: 'sukses',
+  };
+};
 
 const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
   const [transactions, setTransactions] = useState([]);

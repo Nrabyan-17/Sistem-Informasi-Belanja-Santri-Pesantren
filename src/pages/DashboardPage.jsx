@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import DailySummaryBanner from '../components/dashboard/DailySummaryBanner';
 import StatCards from '../components/dashboard/StatCards';
@@ -8,16 +8,23 @@ import { dashboardApi, santriApi, transactionApi } from '../utils/api';
 import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 // API → bentuk yang dibaca komponen dashboard
-const mapRecent = (trx) => ({
-  id: trx.id,
-  namaSantri: trx.santri?.nama || trx.nama_santri || trx.namaSantri || '—',
-  nis: trx.santri?.nis || trx.nis || '',
-  kategori: (trx.tipe === 'topup' || trx.kategori === 'topup' || trx.kategori === 'Isi Saldo VA') ? 'Isi Saldo VA' : (trx.kategori || 'Penarikan Koin'),
-  waktu: trx.created_at
-    ? new Date(trx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-    : (trx.waktu || '—'),
-  nominal: Math.abs(trx.nominal ?? trx.total ?? trx.jumlah ?? 0),
-});
+const mapRecent = (trx) => {
+  let kat = 'Penarikan Koin';
+  if (trx.tipe === 'topup' || trx.tipe === 'bni' || trx.kategori === 'topup' || trx.kategori === 'Isi Saldo VA') kat = 'Isi Saldo VA';
+  else if (trx.tipe === 'penyesuaian' || trx.kategori === 'Penyesuaian Saldo') kat = Number(trx.nominal || 0) >= 0 ? 'Penyesuaian (Tambah)' : 'Penyesuaian (Kurang)';
+  else if (trx.tipe === 'tarik_koin' || trx.tipe === 'penarikan' || trx.kategori === 'Penarikan Koin') kat = 'Penarikan Koin';
+
+  return {
+    id: trx.id,
+    namaSantri: trx.santri?.nama || trx.nama_santri || trx.namaSantri || '—',
+    nis: trx.santri?.nis || trx.nis || '',
+    kategori: kat,
+    waktu: trx.created_at
+      ? new Date(trx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      : (trx.waktu || '—'),
+    nominal: Math.abs(trx.nominal ?? trx.total ?? trx.jumlah ?? 0),
+  };
+};
 
 const DashboardPage = ({ Layout = MainLayout }) => {
   const [stats, setStats] = useState(null);
@@ -92,6 +99,12 @@ const DashboardPage = ({ Layout = MainLayout }) => {
   const santriAktif = stats?.santri_aktif ?? stats?.total_santri_aktif ?? stats?.total_santri ?? activeSantriCount ?? 0;
   const displayTotalSaldo = (stats?.total_saldo && stats.total_saldo > 0) ? stats.total_saldo : localTotalSaldo;
 
+  const activeTrendData = useMemo(() => {
+    if (timeframe === 'bulanan') return stats?.tren_bulanan ?? [];
+    if (timeframe === 'tahunan') return stats?.tren_tahunan ?? [];
+    return stats?.tren_transaksi ?? [];
+  }, [timeframe, stats]);
+
   return (
     <Layout pageTitle="Dashboard Keuangan">
       {loading && !stats ? (
@@ -111,7 +124,7 @@ const DashboardPage = ({ Layout = MainLayout }) => {
           />
           <div className="flex flex-col gap-6">
             <SalesChart
-              trendData={stats?.tren_transaksi ?? []}
+              trendData={activeTrendData}
               timeframe={timeframe}
               selectedYear={selectedYear}
               onTimeframeChange={handleTimeframeChange}
