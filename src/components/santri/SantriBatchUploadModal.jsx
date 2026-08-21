@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Modal from '../common/Modal';
+import Popup from '../common/Popup';
 import { santriApi } from '../../utils/api';
 
 // Modal Pop-Up Upload Batch Santri dengan Fitur Preview Lega & Rapi, Edit, Delete, dan Handler Data Ganda
@@ -10,6 +11,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
   const [isDragging, setIsDragging] = useState(false);
   const [editingRowId, setEditingRowId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
   const handleDownloadTemplate = (e) => {
     e.stopPropagation();
@@ -71,13 +73,23 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
         }));
         setPreviewList(withIds);
       } else {
-        alert('File CSV / Excel tidak memuat data santri yang dapat diproses.');
+        setPopupConfig({
+          isOpen: true,
+          type: 'error',
+          title: 'Format Tidak Sesuai',
+          message: 'File CSV / Excel tidak memuat data santri yang dapat diproses.',
+        });
         setPreviewList([]);
         setFile(null);
       }
     } catch (err) {
       console.error('Gagal memproses file via server:', err);
-      alert(err.message || 'Gagal memproses struktur file CSV/Excel.');
+      setPopupConfig({
+        isOpen: true,
+        type: 'error',
+        title: 'Gagal Memproses File',
+        message: err.message || 'Gagal memproses struktur file CSV/Excel.',
+      });
       setPreviewList([]);
       setFile(null);
     }
@@ -781,6 +793,15 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
           </div>
         </div>
       )}
+
+      {/* ERROR POPUP */}
+      <Popup
+        isOpen={popupConfig.isOpen}
+        type={popupConfig.type}
+        title={popupConfig.title}
+        message={popupConfig.message}
+        onClose={() => setPopupConfig({ ...popupConfig, isOpen: false })}
+      />
 
       {/* POP-UP FORM 2: NOTIFIKASI BERHASIL IMPORT BATCH */}
       {isSuccessModalOpen && (

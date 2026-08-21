@@ -7,6 +7,7 @@ import SantriModalForm from '../components/santri/SantriModalForm';
 import SantriDetailModal from '../components/santri/SantriDetailModal';
 import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal';
 import BatchActionBar from '../components/common/BatchActionBar';
+import Popup from '../components/common/Popup';
 import { santriApi } from '../utils/api';
 
 
@@ -72,6 +73,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
   const loadSantriData = () => {
     setLoading(true);
@@ -291,7 +294,12 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       return true;
     } catch (err) {
       console.error("Gagal import data batch:", err);
-      alert("Gagal menyimpan ke database: " + err.message);
+      setPopupConfig({
+        isOpen: true,
+        type: 'error',
+        title: 'Gagal Import Data',
+        message: err.message || 'Gagal menyimpan ke database, silakan coba lagi.',
+      });
       return false;
     }
   };
@@ -731,6 +739,14 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           </div>
         </div>
       )}
+
+      <Popup
+        isOpen={popupConfig.isOpen}
+        type={popupConfig.type}
+        title={popupConfig.title}
+        message={popupConfig.message}
+        onClose={() => setPopupConfig({ ...popupConfig, isOpen: false })}
+      />
     </Layout>
   );
 };

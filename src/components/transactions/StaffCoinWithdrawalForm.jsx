@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Popup from '../common/Popup';
 import { santriApi, penarikanApi } from '../../utils/api';
 
 const getInitials = (name) => {
@@ -22,6 +23,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const [isInsufficientModal, setIsInsufficientModal] = useState(false);
   const [insufficientData, setInsufficientData] = useState(null);
   const [lastTxData, setLastTxData] = useState(null);
+  const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
   useEffect(() => {
     santriApi.list({ per_page: 500 })
@@ -83,11 +85,11 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
     if (amount <= 0) {
-      alert('Masukkan nominal penarikan koin yang valid.');
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Nominal Tidak Valid', message: 'Masukkan nominal penarikan koin yang valid.' });
       return;
     }
     if (amount > 30000) {
-      alert('Batas penarikan koin santri maksimal Rp 30.000 per 2 hari.');
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Melebihi Batas', message: 'Batas penarikan koin santri maksimal Rp 30.000 per 2 hari.' });
       return;
     }
     if (amount > activeSantri.saldo) {
@@ -614,6 +616,15 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           </div>
         </div>
       )}
+
+      {/* ERROR POPUP */}
+      <Popup
+        isOpen={popupConfig.isOpen}
+        type={popupConfig.type}
+        title={popupConfig.title}
+        message={popupConfig.message}
+        onClose={() => setPopupConfig({ ...popupConfig, isOpen: false })}
+      />
     </div>
   );
 };
