@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { useAuth, buildUserBadge } from '../../context/AuthContext';
@@ -27,22 +27,43 @@ const StaffLayout = ({ children, pageTitle }) => {
       return false;
     }
   });
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleToggle = () => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('sidebar_collapsed', String(next));
-      } catch {}
-      return next;
-    });
+    if (window.innerWidth <= 768) {
+      setMobileOpen((prev) => !prev);
+    } else {
+      setCollapsed((prev) => {
+        const next = !prev;
+        try {
+          localStorage.setItem('sidebar_collapsed', String(next));
+        } catch {}
+        return next;
+      });
+    }
+  };
+
+  const handleCloseMobile = () => {
+    setMobileOpen(false);
   };
 
   return (
     <div className={`main-layout ${collapsed ? 'main-layout--collapsed' : ''}`}>
       <Sidebar
         collapsed={collapsed}
+        mobileOpen={mobileOpen}
         onToggle={handleToggle}
+        onCloseMobile={handleCloseMobile}
         menuItems={staffMenuItems}
         basePath="/staff"
         userBadge={buildUserBadge(user)}

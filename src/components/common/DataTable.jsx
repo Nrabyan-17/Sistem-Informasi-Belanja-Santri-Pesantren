@@ -1,8 +1,8 @@
 // DataTable: Tabel dengan header dan baris data
 const DataTable = ({ columns = [], data = [], emptyText = 'Tidak ada data.' }) => {
   return (
-    <div className="data-table-wrapper w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs transition-colors duration-200">
-      <table className="data-table w-full text-left border-collapse text-sm text-slate-700 dark:text-slate-200">
+    <div className="data-table-wrapper w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs transition-colors duration-200 pb-1">
+      <table className="data-table w-full text-left border-collapse text-sm text-slate-700 dark:text-slate-200 min-w-[640px]">
         <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800">
           <tr>
             {columns.map((col) => (

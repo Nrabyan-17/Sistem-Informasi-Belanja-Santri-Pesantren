@@ -18,15 +18,20 @@ const SantriTable = ({
 
   return (
     <div className="user-table-card">
-      <div className="user-table-header">
-        <h3 className="user-table-title">Daftar Data Santri</h3>
-        <p className="user-table-subtitle">
-          {data.length} santri ditampilkan &middot; Klik nama untuk lihat detail
-        </p>
+      <div className="user-table-header flex items-center justify-between gap-2">
+        <div>
+          <h3 className="user-table-title">Daftar Data Santri</h3>
+          <p className="user-table-subtitle">
+            {data.length} santri ditampilkan &middot; Klik nama untuk lihat detail
+          </p>
+        </div>
+        <span className="text-[11px] font-extrabold text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-300/80 dark:border-amber-700/80 sm:hidden shrink-0">
+          ← Geser Tabel →
+        </span>
       </div>
 
-      <div className="user-table-wrapper overflow-x-auto">
-        <table className="user-table w-full">
+      <div className="user-table-wrapper overflow-x-auto pb-1">
+        <table className="user-table w-full min-w-[680px]">
           <thead>
             <tr>
               <th className="w-10 text-center">

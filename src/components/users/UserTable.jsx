@@ -17,17 +17,22 @@ const UserTable = ({
 
   return (
     <div className="user-table-card">
-      <div className="user-table-header">
-        <h3 className="user-table-title">
-          {isWaliCategory ? 'Daftar Akun Wali Santri' : 'Daftar Pengguna Sistem'}
-        </h3>
-        <p className="user-table-subtitle">
-          {data.length} {isWaliCategory ? 'akun wali santri' : 'pengguna'} ditampilkan &middot; Klik nama untuk lihat detail
-        </p>
+      <div className="user-table-header flex items-center justify-between gap-2">
+        <div>
+          <h3 className="user-table-title">
+            {isWaliCategory ? 'Daftar Akun Wali Santri' : 'Daftar Pengguna Sistem'}
+          </h3>
+          <p className="user-table-subtitle">
+            {data.length} {isWaliCategory ? 'akun wali santri' : 'pengguna'} ditampilkan &middot; Klik nama untuk lihat detail
+          </p>
+        </div>
+        <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-300/80 dark:border-emerald-700/80 sm:hidden shrink-0">
+          ← Geser Tabel →
+        </span>
       </div>
 
-      <div className="user-table-wrapper overflow-x-auto">
-        <table className="user-table w-full">
+      <div className="user-table-wrapper overflow-x-auto pb-1">
+        <table className="user-table w-full min-w-[680px]">
           <thead>
             <tr>
               <th className="w-10 text-center">

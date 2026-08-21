@@ -11,7 +11,7 @@ const RecentTransactionsWidget = ({ transactions = [] }) => {
 
   return (
     <div className="recent-transactions bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs">
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-800 gap-2">
         <div>
           <h3 className="widget-title text-base font-extrabold text-slate-800 dark:text-slate-100 !mb-0 !pb-0 !border-none">
             Transaksi Terbaru
@@ -20,13 +20,18 @@ const RecentTransactionsWidget = ({ transactions = [] }) => {
             Aktivitas transaksi koin dan isi saldo santri hari ini
           </p>
         </div>
-        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-          {data.length} Transaksi Hari Ini
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-300/80 dark:border-emerald-700/80 sm:hidden">
+            ← Geser Tabel →
+          </span>
+          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 hidden sm:inline">
+            {data.length} Transaksi Hari Ini
+          </span>
+        </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="user-table w-full text-left">
+      <div className="overflow-x-auto pb-2">
+        <table className="user-table w-full text-left min-w-[540px]">
           <thead>
             <tr>
               <th className="text-left">SANTRI</th>

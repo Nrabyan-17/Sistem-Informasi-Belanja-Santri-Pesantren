@@ -3647,21 +3647,73 @@ html.dark .data-table tbody tr:hover,
 
 @media (max-width: 768px) {
   .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px !important;
+    max-width: 85vw !important;
+    z-index: 1000 !important;
     transform: translateX(-100%);
-    transition: transform var(--transition-base);
+    transition: transform var(--transition-base), width var(--transition-base);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.sidebar--mobile-open {
+    transform: translateX(0) !important;
+    width: 270px !important;
+  }
+
+  /* Memastikan teks label, logo, & user badge tampil utuh saat sidebar drawer terbuka di mobile */
+  .sidebar.sidebar--mobile-open .logo-text-wrapper,
+  .sidebar.sidebar--mobile-open .nav-label {
+    opacity: 1 !important;
+    width: auto !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .sidebar.sidebar--mobile-open .sidebar-logo {
+    padding: 16px 16px !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .sidebar.sidebar--mobile-open .nav-item {
+    justify-content: flex-start !important;
+    padding: 10px 14px !important;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
   }
 
   .main-content {
-    margin-left: 0;
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .main-layout--collapsed .main-content {
+    margin-left: 0 !important;
   }
 
   .page-content {
-    padding: 20px 16px;
+    padding: 16px 12px;
   }
 
   .stat-cards,
   .financial-summary {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .filter-bar {
@@ -3682,7 +3734,141 @@ html.dark .data-table tbody tr:hover,
   }
 
   .pos-content {
-    padding: 20px 16px;
+    padding: 16px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .daily-summary-banner {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .banner-date {
+    font-size: 0.9rem;
+  }
+
+  .banner-metrics {
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .metric-divider {
+    display: none;
+  }
+
+  .metric-item {
+    align-items: flex-start;
+    min-width: 45%;
+    flex: 1 1 45%;
+  }
+
+  .metric-label {
+    font-size: 0.68rem;
+  }
+
+  .metric-value {
+    font-size: 1.15rem;
+  }
+}
+
+/* ========================================
+   RESPONSIVE TABLE SCROLLBAR STYLING
+   ======================================== */
+
+.overflow-x-auto,
+.user-table-wrapper,
+.data-table-wrapper,
+.rekap-table-wrapper {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #059669 #cbd5e1 !important;
+}
+
+.dark .overflow-x-auto,
+.dark .user-table-wrapper,
+.dark .data-table-wrapper,
+.dark .rekap-table-wrapper {
+  scrollbar-color: #10b981 #334155 !important;
+}
+
+/* Custom WebKit Scrollbar (Chrome, Safari, Edge, Mobile WebKit) */
+.overflow-x-auto::-webkit-scrollbar,
+.user-table-wrapper::-webkit-scrollbar,
+.data-table-wrapper::-webkit-scrollbar,
+.rekap-table-wrapper::-webkit-scrollbar {
+  display: block !important;
+  height: 8px !important;
+  width: 8px !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track,
+.user-table-wrapper::-webkit-scrollbar-track,
+.data-table-wrapper::-webkit-scrollbar-track,
+.rekap-table-wrapper::-webkit-scrollbar-track {
+  display: block !important;
+  background: #cbd5e1 !important;
+  border-radius: 9999px !important;
+  margin: 0 4px !important;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-track,
+.dark .user-table-wrapper::-webkit-scrollbar-track,
+.dark .data-table-wrapper::-webkit-scrollbar-track,
+.dark .rekap-table-wrapper::-webkit-scrollbar-track {
+  display: block !important;
+  background: #334155 !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.user-table-wrapper::-webkit-scrollbar-thumb,
+.data-table-wrapper::-webkit-scrollbar-thumb,
+.rekap-table-wrapper::-webkit-scrollbar-thumb {
+  display: block !important;
+  background: #059669 !important;
+  border-radius: 9999px !important;
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb,
+.dark .user-table-wrapper::-webkit-scrollbar-thumb,
+.dark .data-table-wrapper::-webkit-scrollbar-thumb,
+.dark .rekap-table-wrapper::-webkit-scrollbar-thumb {
+  display: block !important;
+  background: #10b981 !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover,
+.user-table-wrapper::-webkit-scrollbar-thumb:hover,
+.data-table-wrapper::-webkit-scrollbar-thumb:hover,
+.rekap-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #047857 !important;
+}
+
+@media (max-width: 768px) {
+  .overflow-x-auto::-webkit-scrollbar,
+  .user-table-wrapper::-webkit-scrollbar,
+  .data-table-wrapper::-webkit-scrollbar,
+  .rekap-table-wrapper::-webkit-scrollbar {
+    display: block !important;
+    height: 9px !important;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track,
+  .user-table-wrapper::-webkit-scrollbar-track,
+  .data-table-wrapper::-webkit-scrollbar-track,
+  .rekap-table-wrapper::-webkit-scrollbar-track {
+    display: block !important;
+    background: #cbd5e1 !important;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb,
+  .user-table-wrapper::-webkit-scrollbar-thumb,
+  .data-table-wrapper::-webkit-scrollbar-thumb,
+  .rekap-table-wrapper::-webkit-scrollbar-thumb {
+    display: block !important;
+    background: #059669 !important;
   }
 }
 
@@ -4839,18 +5025,16 @@ html.dark .data-table tbody tr:hover,
   }
 }
 
-/* Hide Scrollbar Globally & for Custom Scrollbar Containers */
-*::-webkit-scrollbar,
-.custom-scrollbar::-webkit-scrollbar,
-.no-scrollbar::-webkit-scrollbar {
+/* Hide Scrollbar ONLY for elements explicitly marked with .no-scrollbar or .hide-scrollbar */
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
 
-*,
-.custom-scrollbar,
-.no-scrollbar {
+.no-scrollbar,
+.hide-scrollbar {
   -ms-overflow-style: none !important; /* IE and Edge */
   scrollbar-width: none !important; /* Firefox */
 }
