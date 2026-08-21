@@ -320,8 +320,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
               </div>
 
               {/* Scrollable Preview Table dengan Spacing & Lebar Kolom Tegas */}
-              <div className="import-batch-table-container">
-                <table className="import-batch-table">
+              <div className="import-batch-table-container overflow-x-scroll overflow-y-auto max-h-[380px] w-full border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs">
+                <table className="import-batch-table w-full min-w-[750px]">
                   <thead>
                     <tr>
                       <th className="import-batch-col-no">No</th>

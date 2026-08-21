@@ -101,6 +101,9 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
   const [duplicateTransactions, setDuplicateTransactions] = useState([]);
   const [duplicateGlobalOption, setDuplicateGlobalOption] = useState('skip'); // 'skip' | 'process' | 'custom'
 
+  // State untuk Pop-up Validasi Keyakinan Staff Sebelum Simpan Saldo
+  const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+
   const fileInputRef = useRef(null);
 
   const handleDeletePreviewRow = (id) => {
@@ -205,8 +208,8 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
       setDuplicateGlobalOption('skip');
       setIsDuplicateModalOpen(true);
     } else {
-      setIsConfirmed(true);
-      setIsSuccessModalOpen(true);
+      // Tampilkan modal validasi keyakinan data staff terlebih dahulu
+      setIsValidationModalOpen(true);
     }
   };
 
@@ -232,6 +235,13 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     const finalTransactions = parsedData.filter((d) => !skippedIds.has(d.id));
     setParsedData(finalTransactions);
     setIsDuplicateModalOpen(false);
+    // Tampilkan modal validasi konfirmasi
+    setIsValidationModalOpen(true);
+  };
+
+  // Handler eksekusi simpan saldo final setelah staff yakin di modal validasi
+  const handleFinalConfirmSave = () => {
+    setIsValidationModalOpen(false);
     setIsConfirmed(true);
     setIsSuccessModalOpen(true);
   };
@@ -242,6 +252,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
     setIsConfirmed(false);
     setFilterMode('all');
     setIsDuplicateModalOpen(false);
+    setIsValidationModalOpen(false);
     setDuplicateTransactions([]);
   };
 
@@ -748,6 +759,114 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
         </div>
       )}
 
+      {/* Modal Pop-Up Validasi Keyakinan Staff Sebelum Simpan Saldo */}
+      {isValidationModalOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsValidationModalOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Amber Shield / Question Icon Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-amber-600 dark:text-amber-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Konfirmasi Simpan Saldo
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '20px' }}
+            >
+              Apakah Anda sudah yakin data transaksi mutasi BNI ini sudah benar &amp; siap disinkronkan?
+            </p>
+
+            {/* Ringkasan Box (Sama Persis Seperti Modal Berhasil) */}
+            {parsedData && (
+              <div
+                className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
+                style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
+              >
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Transaksi Valid:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+                    {parsedData.filter((d) => d.status === 'valid').length} data
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak Valid / Dilewati:</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
+                    {parsedData.filter((d) => d.status === 'invalid').length} data
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Dana Masuk:</span>
+                  <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
+                    Rp {parsedData.filter((d) => d.status === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div
+                  className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80"
+                  style={{ paddingTop: '10px' }}
+                >
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Status Saldo:</span>
+                  <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Menunggu Konfirmasi Staff
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons (Dua Tombol: Batal & Ya, Saya Yakin) */}
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setIsValidationModalOpen(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all cursor-pointer flex items-center justify-center"
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalConfirmSave}
+                className="w-full bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                <span>Ya, Saya Yakin</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Pop-Up Berhasil Konfirmasi & Simpan */}
       {isSuccessModalOpen && (
         <div
@@ -800,7 +919,7 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
             {parsedData && (
               <div
                 className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
-                style={{ padding: '18px 20px', marginBottom: '28px', gap: '12px' }}
+                style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
               >
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Transaksi Valid:</span>
@@ -809,6 +928,12 @@ const UploadBNIPage = ({ Layout = StaffLayout }) => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak Valid / Dilewati:</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
+                    {parsedData.filter((d) => d.status === 'invalid').length} data
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Total Dana Masuk:</span>
                   <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
                     Rp {parsedData.filter((d) => d.status === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}

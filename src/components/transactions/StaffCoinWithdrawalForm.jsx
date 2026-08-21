@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { santriApi, penarikanApi } from '../../utils/api';
+import { mergeSantriSaldos, setSantriSaldo, addSantriHistory } from '../../utils/saldoStorage';
 
 // Form Penarikan Koin / Saldo khusus Staff Rumah Koin
 const mockSantriOptions = [
-  { nis: '2024003', nama: 'Muhammad Rizki',  kelas: 'VII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024007', nama: 'Zainab Mustafa',  kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024006', nama: 'Nurul Hidayah',  kelas: 'IX A', saldo: 0, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024002', nama: 'Siti Nurhaliza', kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024001', nama: 'Ahmad Fauzi',    kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024082', nama: 'Budi Santoso',   kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024084', nama: 'Dani Pratama',   kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
-  { nis: '2024085', nama: 'Eka Rahmawati',  kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
+  { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  kelas: 'VII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
+  { id: 2, nis: '2024007', nama: 'Zainab Mustafa',  kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256' },
+  { id: 3, nis: '2024006', nama: 'Nurul Hidayah',  kelas: 'IX A', saldo: 0, foto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256' },
+  { id: 4, nis: '2024002', nama: 'Siti Nurhaliza', kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
+  { id: 5, nis: '2024001', nama: 'Ahmad Fauzi',    kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
+  { id: 6, nis: '2024082', nama: 'Budi Santoso',   kelas: 'VIII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256' },
+  { id: 7, nis: '2024084', nama: 'Dani Pratama',   kelas: 'VII B', saldo: 0, foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256' },
+  { id: 8, nis: '2024085', nama: 'Eka Rahmawati',  kelas: 'VIII A', saldo: 0, foto: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256' },
 ];
 
 const getInitials = (name) => {
@@ -20,24 +22,73 @@ const getInitials = (name) => {
 };
 
 const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
+  const [santriOptions, setSantriOptions] = useState(() => mergeSantriSaldos(mockSantriOptions));
   const [selectedNis, setSelectedNis] = useState('2024003');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isOpenDropdown, setIsOpenDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const [customNis, setCustomNis] = useState('');
   const [nominal, setNominal] = useState('');
+  const [isConfirmWithdrawalModalOpen, setIsConfirmWithdrawalModalOpen] = useState(false);
   const [isSuccessModal, setIsSuccessModal] = useState(false);
   const [isInsufficientModal, setIsInsufficientModal] = useState(false);
   const [insufficientData, setInsufficientData] = useState(null);
   const [lastTxData, setLastTxData] = useState(null);
 
+  useEffect(() => {
+    santriApi.list({ per_page: 500 })
+      .then((res) => {
+        const rawData = res.data || (Array.isArray(res) ? res : null);
+        if (rawData && rawData.length > 0) {
+          const mapped = rawData.map((s) => ({
+            id: s.id,
+            nis: s.nis || '',
+            nama: s.nama || s.name || '',
+            kelas: s.kelas || 'VII A',
+            saldo: Number(s.saldo || 0),
+            foto: s.foto || s.foto_url || null,
+          }));
+          setSantriOptions(mergeSantriSaldos(mapped));
+        } else {
+          setSantriOptions(mergeSantriSaldos(mockSantriOptions));
+        }
+      })
+      .catch(() => {
+        setSantriOptions(mergeSantriSaldos(mockSantriOptions));
+      });
+  }, []);
+
+  // Handle click outside to close autocomplete popup
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpenDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter daftar santri untuk rekomendasi autocomplete
+  const filteredSuggestions = searchQuery
+    ? santriOptions.filter(
+        (s) =>
+          s.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.nis.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+
   // Find santri object based on selected NIS or search match
-  const activeSantri = mockSantriOptions.find((s) => s.nis === selectedNis) || {
+  const activeSantri = santriOptions.find((s) => s.nis === selectedNis) || {
+    id: Date.now(),
     nis: customNis || '2024000',
     nama: 'Santri Terpilih',
     saldo: 100000,
   };
 
-  const handleProcessWithdrawal = (e) => {
+  // Step 1: Inisiasi & Validasi awal sebelum menampilkan modal konfirmasi
+  const handleInitiateWithdrawal = (e) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
     if (amount <= 0) {
@@ -59,6 +110,41 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       return;
     }
 
+    // Buka Pop-up Validasi Data Penarikan Koin
+    setIsConfirmWithdrawalModalOpen(true);
+  };
+
+  // Step 2: Eksekusi penarikan koin setelah staff mengonfirmasi di modal validasi
+  const handleExecuteWithdrawal = () => {
+    const amount = parseInt(nominal || '0', 10);
+    const newSaldo = activeSantri.saldo - amount;
+    const santriKey = activeSantri.id || activeSantri.nis;
+
+    // Simpan penyesuaian saldo & riwayat ke localStorage
+    setSantriSaldo(santriKey, newSaldo);
+
+    const todayStr = new Intl.DateTimeFormat('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date());
+
+    addSantriHistory(santriKey, {
+      id: Date.now(),
+      tanggal: todayStr,
+      keterangan: 'Tarik Koin (Rumah Koin)',
+      nominal: -amount,
+    });
+
+    // Panggil API penarikan jika backend tersedia
+    penarikanApi.store({ santri_id: activeSantri.id, nominal: amount })
+      .catch((err) => console.warn('Penyimpanan API penarikan fallback ke localStorage:', err));
+
+    // Update state options lokal
+    setSantriOptions((prev) =>
+      prev.map((s) => (s.nis === activeSantri.nis ? { ...s, saldo: newSaldo } : s))
+    );
+
     const txData = {
       id: Date.now(),
       tanggal: new Date().toISOString().slice(0, 10),
@@ -68,11 +154,12 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       kategori: 'Penarikan Koin',
       jenis: 'Keluar',
       nominal: amount,
-      sisaSaldo: activeSantri.saldo - amount,
+      sisaSaldo: newSaldo,
       staff: 'Ust. Miftahul Huda',
       status: 'sukses',
     };
 
+    setIsConfirmWithdrawalModalOpen(false);
     setLastTxData(txData);
     setIsSuccessModal(true);
     onWithdrawalSuccess?.(txData);
@@ -84,7 +171,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
 
   return (
-    <div className="staff-withdrawal-card">
+    <div className="staff-withdrawal-card bg-white dark:bg-slate-900 mt-7">
       <div className="card-header border-b border-slate-100 dark:border-slate-800 pb-5 mb-8 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
@@ -99,94 +186,165 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         </span>
       </div>
 
-      <form onSubmit={handleProcessWithdrawal} className="flex flex-col pt-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-          {/* Left Column: Search Bar & Info Santri */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            {/* Input Search Bar Santri (Tanpa Rekomendasi Pop-up) */}
-            <div className="form-group flex flex-col gap-2.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                <span>Cari Santri (NIS / Nama)</span>
-                <span className="text-[11px] font-normal text-emerald-700 dark:text-emerald-400 font-sans">
-                  {activeSantri.nis ? `Terpilih: ${activeSantri.nama}` : 'Ketik untuk mencari'}
-                </span>
-              </label>
+      <form onSubmit={handleInitiateWithdrawal} className="flex flex-col pt-1 gap-6">
+        {/* Row 1: Search Bar & Input Nominal Side-by-Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Left Column: Input Search Bar Santri */}
+          <div ref={dropdownRef} className="lg:col-span-6 flex flex-col gap-2 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
+              <span>Cari Santri (NIS / Nama)</span>
+              <span className="text-[11px] font-normal text-emerald-700 dark:text-emerald-400 font-sans">
+                {activeSantri.nis ? `Terpilih: ${activeSantri.nama}` : 'Ketik untuk mencari'}
+              </span>
+            </label>
 
-              {/* Search Bar Input Field */}
-              <div className="relative flex items-center">
-                <svg
-                  className="absolute left-3.5 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const query = e.target.value;
-                    setSearchQuery(query);
-                    // Match santri secara dinamis berdasarkan NIS atau Nama
-                    const matched = mockSantriOptions.find(
-                      (s) =>
-                        s.nis.toLowerCase().includes(query.toLowerCase()) ||
-                        s.nama.toLowerCase().includes(query.toLowerCase())
-                    );
-                    if (matched) {
-                      setSelectedNis(matched.nis);
-                    } else {
-                      setCustomNis(query);
-                    }
-                  }}
-                  placeholder="Ketik NIS atau nama santri..."
-                  style={{ paddingLeft: '40px', paddingRight: '40px' }}
-                  className="w-full h-11 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition-all"
+            {/* Search Bar Input Field */}
+            <div className="relative flex items-center">
+              <svg
+                className="absolute left-3.5 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
+              </svg>
 
-                {/* Clear Button */}
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedNis('2024003');
-                    }}
-                    className="absolute right-3 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-center transition-colors cursor-pointer"
-                    title="Hapus pencarian"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onFocus={() => setIsOpenDropdown(true)}
+                onChange={(e) => {
+                  const query = e.target.value;
+                  setSearchQuery(query);
+                  setIsOpenDropdown(true);
+                  const matched = santriOptions.find(
+                    (s) =>
+                      s.nis.toLowerCase().includes(query.toLowerCase()) ||
+                      s.nama.toLowerCase().includes(query.toLowerCase())
+                  );
+                  if (matched) {
+                    setSelectedNis(matched.nis);
+                  } else {
+                    setCustomNis(query);
+                  }
+                }}
+                placeholder="Ketik NIS atau nama santri..."
+                style={{ paddingLeft: '40px', paddingRight: '40px' }}
+                className="w-full h-11 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition-all"
+              />
+
+              {/* Clear Button */}
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedNis('2024003');
+                    setIsOpenDropdown(false);
+                  }}
+                  className="absolute right-3 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-600 dark:text-slate-300 text-xs flex items-center justify-center transition-colors cursor-pointer"
+                  title="Hapus pencarian"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
-            {/* Info Card Santri Terpilih dengan Inisial Santri */}
-            <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-4">
-              <div className="flex items-center gap-3.5">
+            {/* Autocomplete Recommendation Dropdown Popup */}
+            {isOpenDropdown && filteredSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 animate-fadeIn">
+                {filteredSuggestions.map((item) => (
+                  <div
+                    key={item.nis}
+                    onClick={() => {
+                      setSelectedNis(item.nis);
+                      setSearchQuery(item.nama);
+                      setIsOpenDropdown(false);
+                    }}
+                    className="p-3 hover:bg-emerald-50/80 dark:hover:bg-slate-800/80 cursor-pointer transition-colors flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.foto ? (
+                        <img
+                          src={item.foto}
+                          alt={item.nama}
+                          className="w-9 h-9 rounded-xl object-cover border border-emerald-600/30 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-xl bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                          {getInitials(item.nama)}
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 dark:text-slate-100 text-sm leading-tight">
+                          {item.nama}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          NIS: {item.nis} • Kelas {item.kelas}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">SALDO</span>
+                      <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        Rp {formatRupiah(item.saldo)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Nominal Penarikan & Action */}
+          <div className="lg:col-span-6 flex flex-col gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
+              <span>Nominal Penarikan (RP)</span>
+              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb</span>
+            </label>
+            <input
+              type="number"
+              placeholder="Contoh: 30000"
+              max="30000"
+              value={nominal}
+              onChange={(e) => setNominal(e.target.value)}
+              className="w-full h-11 px-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
+              required
+            />
+            {/* Pengingat Batas Penarikan Santri */}
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+              <strong className="text-slate-700 dark:text-slate-300 font-bold">Batas penarikan santri:</strong> Maks. Rp 30.000 per 2 hari.
+            </p>
+          </div>
+        </div>
+
+        {/* Row 2: Info Santri Terpilih (Sama lebar dengan Input Search Bar di atasnya) & Tombol Proses Penarikan Koin */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center pt-4 border-t border-slate-100 dark:border-slate-800">
+          {/* Info Card Santri Terpilih (lg:col-span-6, persis selebar Input Search Bar) */}
+          <div className="lg:col-span-6">
+            <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-3 my-0 w-full">
+              <div className="flex items-center gap-3 min-w-0">
                 {/* Inisial Profil Santri */}
                 <div className="relative shrink-0">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-lg sm:text-xl flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-base sm:text-lg flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-xs ring-4 ring-emerald-50 dark:ring-emerald-950/40">
                     {getInitials(activeSantri.nama)}
                   </div>
                   <span
-                    className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-2xs"
+                    className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-2xs"
                     title="Santri Aktif"
                   />
                 </div>
 
-                <div className="flex flex-col">
-                  <span className="santri-preview-label">
+                <div className="flex flex-col min-w-0">
+                  <span className="santri-preview-label truncate">
                     INFO SANTRI TERPILIH
                   </span>
-                  <h3 className="santri-preview-name font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-snug">
+                  <h3 className="santri-preview-name font-extrabold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-snug truncate">
                     {activeSantri.nama}
                   </h3>
                   <p className="santri-preview-nis text-xs font-mono text-slate-500 dark:text-slate-400 mt-0.5">
@@ -206,38 +364,123 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             </div>
           </div>
 
-          {/* Right Column: Nominal Penarikan & Action */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            <div className="form-group flex flex-col gap-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                <span>Nominal Penarikan (RP)</span>
-                <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb</span>
-              </label>
-              <input
-                type="number"
-                placeholder="Contoh: 30000"
-                max="30000"
-                value={nominal}
-                onChange={(e) => setNominal(e.target.value)}
-                className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
-                required
-              />
-            </div>
-
-            {/* Pengingat Batas Penarikan Santri (Tanpa Background) */}
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              <strong className="text-slate-700 dark:text-slate-300 font-bold">Batas penarikan santri:</strong> Maks. Rp 30.000 per 2 hari.
-            </p>
+          {/* Tombol Proses Penarikan Koin (lg:col-span-6) */}
+          <div className="lg:col-span-6 flex items-center justify-start">
+            <button
+              type="submit"
+              className="btn-process-withdrawal w-full lg:w-auto h-13 sm:h-14 px-8 sm:px-10 bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-sm sm:text-base cursor-pointer"
+            >
+              <span>Proses Penarikan Koin</span>
+            </button>
           </div>
         </div>
-
-        {/* Action Button Row dengan Border Top & Spacing Lega */}
-        <div className="staff-withdrawal-footer">
-          <button type="submit" className="btn-process-withdrawal">
-            <span>Proses Penarikan Koin</span>
-          </button>
-        </div>
       </form>
+
+      {/* Pop-up Modal Validasi Konfirmasi Data Penarikan Koin */}
+      {isConfirmWithdrawalModalOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setIsConfirmWithdrawalModalOpen(false)}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Amber Shield / Question Icon Box */}
+            <div
+              className="modal-badge-bounce rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0 shadow-xs"
+              style={{ width: '64px', height: '64px', marginBottom: '20px' }}
+            >
+              <svg
+                className="text-amber-600 dark:text-amber-400"
+                style={{ width: '34px', height: '34px' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
+              Konfirmasi Penarikan Koin
+            </h3>
+
+            {/* Description */}
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
+              style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '20px' }}
+            >
+              Apakah Anda sudah yakin data penarikan koin santri ini sudah benar?
+            </p>
+
+            {/* Ringkasan Box */}
+            <div
+              className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col"
+              style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
+            >
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Santri:</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  {activeSantri.nama} ({activeSantri.nis})
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Nominal Penarikan:</span>
+                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+                  Rp {formatRupiah(parseInt(nominal || '0', 10))}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Estimasi Sisa Saldo:</span>
+                <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
+                  Rp {formatRupiah(activeSantri.saldo - parseInt(nominal || '0', 10))}
+                </span>
+              </div>
+              <div
+                className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80"
+                style={{ paddingTop: '10px' }}
+              >
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Status Penarikan:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Menunggu Konfirmasi Staff
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setIsConfirmWithdrawalModalOpen(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all cursor-pointer flex items-center justify-center"
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteWithdrawal}
+                className="w-full bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                style={{ height: '50px', fontSize: '14px' }}
+              >
+                <span>Ya, Proses</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pop-up Modal Sukses Penarikan - Display Lega & Spacing Proporsional */}
       {isSuccessModal && lastTxData && (

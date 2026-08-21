@@ -3,6 +3,7 @@ import MainLayout from '../components/layout/MainLayout';
 import SaldoDetailModal from '../components/users/SaldoDetailModal';
 import { useAuth } from '../context/AuthContext';
 import { santriApi } from '../utils/api';
+import { setSantriSaldo, mergeSantriSaldos } from '../utils/saldoStorage';
 
 const mockSantriList = [
   { id: 1, nis: '2024003', nama: 'Muhammad Rizki',  saldo: 0 },
@@ -27,7 +28,7 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   const { user } = useAuth();
   const isStaff = user?.role === 'staff' || Layout !== MainLayout;
 
-  const [santriList, setSantriList] = useState(mockSantriList);
+  const [santriList, setSantriList] = useState(() => mergeSantriSaldos(mockSantriList));
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSantri, setSelectedSantri] = useState(null);
@@ -39,11 +40,14 @@ const TopUpPage = ({ Layout = MainLayout }) => {
       .then((res) => {
         const rawData = res.data || (Array.isArray(res) ? res : null);
         if (rawData && rawData.length >= 0) {
-          setSantriList(rawData.map(mapSantriForSaldo));
+          setSantriList(mergeSantriSaldos(rawData.map(mapSantriForSaldo)));
+        } else {
+          setSantriList(mergeSantriSaldos(mockSantriList));
         }
       })
       .catch((err) => {
         console.warn('Menggunakan data saldo santri lokal:', err.message);
+        setSantriList(mergeSantriSaldos(mockSantriList));
       })
       .finally(() => setLoading(false));
   };
@@ -74,22 +78,19 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   };
 
   const handleAdjustSaldo = (santriId, newSaldo, historyItem) => {
-    // Panggil API penyesuaian saldo jika backend tersedia
+    // Simpan ke localStorage agar data terikat secara persisten
+    setSantriSaldo(santriId, newSaldo);
+
     if (historyItem) {
       const nominal = historyItem.nominal || Math.abs(newSaldo - (selectedSantri?.saldo || 0));
       const tipe = historyItem.tipe === 'tambah' || historyItem.type === 'in' ? 'topup' : 'penarikan';
       santriApi.penyesuaian(santriId, { nominal, tipe, keterangan: historyItem.keterangan || 'Penyesuaian saldo' })
-        .then(() => fetchSantriList())
-        .catch(() => {
-          setSantriList((prev) =>
-            prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
-          );
-        });
-    } else {
-      setSantriList((prev) =>
-        prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
-      );
+        .catch((err) => console.warn('Penyimpanan API penyesuaian fallback ke localStorage:', err));
     }
+
+    setSantriList((prev) =>
+      prev.map((s) => (s.id === santriId ? { ...s, saldo: newSaldo } : s))
+    );
     setSelectedSantri((prev) => (prev && prev.id === santriId ? { ...prev, saldo: newSaldo } : prev));
   };
 

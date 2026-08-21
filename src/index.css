@@ -1079,10 +1079,11 @@ html.dark .daily-summary-banner,
    STAFF WITHDRAWAL CARD
    ======================================== */
 .staff-withdrawal-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 16px;
   padding: 32px 36px 36px 36px;
+  margin-top: 28px;
   margin-bottom: 32px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
@@ -4588,14 +4589,15 @@ html.dark .data-table tbody tr:hover,
 .saldo-identity-card {
   background-color: #f8fafc !important;
   border: 1px solid #e2e8f0 !important;
-  border-radius: 20px !important;
-  padding: 24px 28px !important;
+  border-radius: 24px !important;
+  padding: 28px 32px !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  gap: 24px !important;
-  min-height: 125px !important;
+  gap: 28px !important;
+  min-height: 135px !important;
   width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .dark .saldo-identity-card {
@@ -4606,22 +4608,23 @@ html.dark .data-table tbody tr:hover,
 .saldo-identity-left {
   display: flex !important;
   align-items: center !important;
-  gap: 20px !important;
+  gap: 22px !important;
   flex: 1 !important;
 }
 
 .santri-avatar-circle {
-  width: 64px !important;
-  height: 64px !important;
-  border-radius: 18px !important;
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 9999px !important;
   background-color: #0e5d26 !important;
   color: #ffffff !important;
-  font-weight: 800 !important;
-  font-size: 1.6rem !important;
+  font-weight: 900 !important;
+  font-size: 1.75rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 4px 12px rgba(14, 93, 38, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(14, 93, 38, 0.25) !important;
+  flex-shrink: 0 !important;
 }
 
 .identity-tag,
@@ -4629,16 +4632,19 @@ html.dark .data-table tbody tr:hover,
   font-size: 0.72rem !important;
   font-weight: 800 !important;
   color: #94a3b8 !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
+  display: block !important;
+  margin-bottom: 6px !important;
+  margin-top: 2px !important;
 }
 
 .identity-name {
-  font-size: 1.25rem !important;
-  font-weight: 800 !important;
+  font-size: 1.35rem !important;
+  font-weight: 900 !important;
   color: #0f172a !important;
-  margin: 3px 0 4px 0 !important;
-  line-height: 1.2 !important;
+  margin: 4px 0 6px 0 !important;
+  line-height: 1.3 !important;
 }
 
 .dark .identity-name {
@@ -4648,7 +4654,7 @@ html.dark .data-table tbody tr:hover,
 .identity-nis {
   font-size: 0.85rem !important;
   color: #64748b !important;
-  margin: 0 0 12px 0 !important;
+  margin: 2px 0 0 0 !important;
 }
 
 .dark .identity-nis {
@@ -4854,7 +4860,7 @@ html.dark .data-table tbody tr:hover,
    ======================================== */
 .staff-withdrawal-card input,
 .staff-withdrawal-card select {
-  background-color: #f8fafc !important;
+  background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
@@ -6268,5 +6274,65 @@ html.dark .wali-table-title,
 
 .animate-bounce-in {
   animation: batchSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========================================
+   IMPORT BATCH SANTRI TABLE SCROLLBAR & STICKY HEADER
+   ======================================== */
+.import-batch-table-container {
+  overflow-x: scroll !important;
+  overflow-y: auto !important;
+  max-height: 380px !important;
+  border-radius: 1rem;
+  scrollbar-width: thin !important;
+  scrollbar-color: #059669 #cbd5e1 !important;
+}
+
+.dark .import-batch-table-container {
+  scrollbar-color: #059669 #1e293b !important;
+}
+
+/* Force Visible Webkit Scrollbar */
+.import-batch-table-container::-webkit-scrollbar {
+  width: 10px !important;
+  height: 10px !important;
+  display: block !important;
+}
+
+.import-batch-table-container::-webkit-scrollbar-track {
+  background: #cbd5e1 !important;
+  border-radius: 9999px !important;
+}
+
+.dark .import-batch-table-container::-webkit-scrollbar-track {
+  background: #1e293b !important;
+}
+
+.import-batch-table-container::-webkit-scrollbar-thumb {
+  background: #059669 !important;
+  border-radius: 9999px !important;
+  border: 2px solid #ffffff !important;
+}
+
+.dark .import-batch-table-container::-webkit-scrollbar-thumb {
+  border-color: #0f172a !important;
+}
+
+.import-batch-table-container::-webkit-scrollbar-thumb:hover {
+  background: #047857 !important;
+}
+
+/* Sticky Header for Import Batch Table */
+.import-batch-table th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  background-color: #f8fafc !important;
+  box-shadow: inset 0 -1px 0 #e2e8f0 !important;
+}
+
+.dark .import-batch-table th {
+  background-color: #0f172a !important;
+  box-shadow: inset 0 -1px 0 #1e293b !important;
 }
 

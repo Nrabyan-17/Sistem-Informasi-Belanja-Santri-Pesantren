@@ -11,26 +11,29 @@ const TransactionFilterBar = ({
   sampai = '',
   onSampaiChange,
   onExport,
+  showSearch = true,
 }) => {
   return (
     <div className="transaction-filter-card">
       <div className="filter-group-wrapper">
         {/* CARI SANTRI */}
-        <div className="filter-field filter-field--search">
-          <label className="filter-label">CARI SANTRI</label>
-          <div className="search-input-wrapper">
-            <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Nama atau NIS..."
-              value={search}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              className="filter-input tx-search-input"
-            />
+        {showSearch && (
+          <div className="filter-field filter-field--search">
+            <label className="filter-label">CARI SANTRI</label>
+            <div className="search-input-wrapper">
+              <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Nama atau NIS..."
+                value={search}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                className="filter-input tx-search-input"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* JENIS */}
         <div className="filter-field">

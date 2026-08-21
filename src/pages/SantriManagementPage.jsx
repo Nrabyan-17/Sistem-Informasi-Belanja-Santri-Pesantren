@@ -9,6 +9,7 @@ import SantriBatchUploadModal from '../components/santri/SantriBatchUploadModal'
 import BatchActionBar from '../components/common/BatchActionBar';
 import { mockSantri } from '../data/mockSantri';
 import { santriApi } from '../utils/api';
+import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 const mapSantriFromApi = (item) => ({
   id: item.id,
@@ -26,7 +27,7 @@ const mapSantriFromApi = (item) => ({
 });
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {
-  const [santriList, setSantriList] = useState(mockSantri);
+  const [santriList, setSantriList] = useState(() => mergeSantriSaldos(mockSantri));
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [kelasFilter, setKelasFilter] = useState('Semua Kelas');
@@ -51,11 +52,14 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       .then((res) => {
         const rawData = res.data || (Array.isArray(res) ? res : null);
         if (rawData && rawData.length >= 0) {
-          setSantriList(rawData.map(mapSantriFromApi));
+          setSantriList(mergeSantriSaldos(rawData.map(mapSantriFromApi)));
+        } else {
+          setSantriList(mergeSantriSaldos(mockSantri));
         }
       })
       .catch((err) => {
         console.warn('Menggunakan data santri lokal (gagal terhubung ke API):', err.message);
+        setSantriList(mergeSantriSaldos(mockSantri));
       })
       .finally(() => setLoading(false));
   };

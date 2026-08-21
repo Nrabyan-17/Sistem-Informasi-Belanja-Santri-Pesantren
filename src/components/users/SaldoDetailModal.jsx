@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { getSantriHistory, addSantriHistory } from '../../utils/saldoStorage';
 
 const initialSantriHistory = [
   { id: 1, tanggal: '01 Agts 2025', keterangan: 'Tarik Koin (Rumah Koin)', nominal: -30000 },
@@ -15,8 +16,9 @@ const SaldoDetailModal = ({
   canAdjustSaldo = true,
 }) => {
   // States untuk Saldo & Riwayat Transaksi
-  const [currentSaldo, setCurrentSaldo] = useState(santri?.saldo || 15000);
-  const [historyList, setHistoryList] = useState(initialSantriHistory);
+  const [currentSaldo, setCurrentSaldo] = useState(santri?.saldo || 0);
+  const [historyList, setHistoryList] = useState([]);
+  const [activeTab, setActiveTab] = useState('history'); // 'history' | 'adjust'
 
   // States untuk Form Sesuaikan Saldo (Manual)
   const [adjustType, setAdjustType] = useState('tambah'); // 'tambah' | 'kurang'
@@ -25,12 +27,14 @@ const SaldoDetailModal = ({
   const [adjustSuccessMsg, setAdjustSuccessMsg] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      setCurrentSaldo(santri?.saldo !== undefined ? santri.saldo : 15000);
+    if (isOpen && santri?.id) {
+      setCurrentSaldo(santri.saldo !== undefined ? santri.saldo : 0);
+      setHistoryList(getSantriHistory(santri.id, initialSantriHistory));
       setAdjustSuccessMsg('');
       setAdjustNominal('');
       setAdjustKeterangan('');
       setAdjustType('tambah');
+      setActiveTab('history');
     }
   }, [isOpen, santri]);
 
@@ -82,9 +86,12 @@ const SaldoDetailModal = ({
       nominal: adjustType === 'tambah' ? nominalVal : -nominalVal,
     };
 
+    // Save to localStorage history
+    const updatedHistory = addSantriHistory(santri.id, newHistoryItem);
+
     // Update local modal states
     setCurrentSaldo(finalNewSaldo);
-    setHistoryList([newHistoryItem, ...historyList]);
+    setHistoryList(updatedHistory);
     setAdjustSuccessMsg(
       `Saldo ${santri.nama} berhasil disesuaikan menjadi Rp ${finalNewSaldo.toLocaleString('id-ID')}.`
     );
@@ -115,28 +122,28 @@ const SaldoDetailModal = ({
     >
       <div className="saldo-modal-content flex flex-col gap-5 pt-1">
         {/* Identitas Santri Card */}
-        <div className="bg-slate-50/90 dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
-          <div className="flex items-center gap-4">
+        <div className="saldo-identity-card bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl sm:rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 min-h-[135px] shadow-xs">
+          <div className="saldo-identity-left flex items-center gap-5 sm:gap-6">
             {/* Circular Avatar */}
-            <div className="w-14 h-14 rounded-full bg-emerald-600 text-white font-black text-2xl flex items-center justify-center shrink-0 shadow-sm">
+            <div className="santri-avatar-circle w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-emerald-600 text-white font-black text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-md">
               {initialLetter}
             </div>
 
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+            <div className="flex flex-col justify-center py-1">
+              <span className="identity-tag text-[11px] sm:text-xs font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block mb-1.5">
                 IDENTITAS SANTRI
               </span>
-              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 leading-tight mt-0.5">
+              <h3 className="identity-name text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 leading-snug my-1">
                 {santri.nama || 'Muhammad Rizki'}
               </h3>
-              <p className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 mt-1">
+              <p className="identity-nis text-xs sm:text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-1">
                 NIS: <span className="text-slate-800 dark:text-slate-200 font-extrabold">{santri.nis || '2024003'}</span>
               </p>
             </div>
           </div>
 
-          <div className="text-left sm:text-right shrink-0">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+          <div className="saldo-identity-right text-left sm:text-right shrink-0 flex flex-col justify-center py-1 sm:pl-4">
+            <span className="sisa-saldo-tag text-[11px] sm:text-xs font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block mb-1.5">
               SISA SALDO SAAT INI
             </span>
             <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
@@ -145,18 +152,104 @@ const SaldoDetailModal = ({
           </div>
         </div>
 
-        {/* Adjustment Success Alert (Hanya untuk Admin) */}
+        {/* Tab Navigation (hanya ditampilkan bila canAdjustSaldo true) */}
+        {canAdjustSaldo ? (
+          <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab('history')}
+              className={`flex-1 py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'history'
+                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-extrabold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+              }`}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Riwayat Transaksi</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('adjust')}
+              className={`flex-1 py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'adjust'
+                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-2xs font-extrabold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+              }`}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span>Sesuaikan Saldo (Manual)</span>
+            </button>
+          </div>
+        ) : null}
+
+        {/* Adjustment Success Alert */}
         {canAdjustSaldo && adjustSuccessMsg && (
-          <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-400 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-extrabold flex items-center gap-2.5 animate-fadeIn shadow-2xs">
-            <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {adjustSuccessMsg}
+          <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-400 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2.5 animate-fadeIn shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{adjustSuccessMsg}</span>
+            </div>
+            {activeTab === 'adjust' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('history')}
+                className="text-xs font-bold text-emerald-700 dark:text-emerald-300 underline hover:text-emerald-900 shrink-0"
+              >
+                Lihat Riwayat &rarr;
+              </button>
+            )}
           </div>
         )}
 
-        {/* Form Sesuaikan Saldo (Manual) - Khusus Admin BAK, Disembunyikan untuk Staff Rumah Koin */}
-        {canAdjustSaldo && (
+        {/* Tab 1: Riwayat Transaksi Terakhir */}
+        {(!canAdjustSaldo || activeTab === 'history') && (
+          <div className="saldo-history-section flex flex-col gap-2.5">
+            <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+              RIWAYAT TRANSAKSI TERAKHIR
+            </h4>
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900 shadow-2xs">
+              <table className="mini-data-table w-full text-left border-collapse text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">TANGGAL</th>
+                    <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">KETERANGAN</th>
+                    <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase text-right">NOMINAL</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
+                  {historyList.length > 0 ? (
+                    historyList.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                        <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
+                        <td className="px-4 py-3 font-medium">{item.keterangan}</td>
+                        <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
+                          <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                            {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" className="px-4 py-6 text-center text-slate-400 font-medium">
+                        Belum ada riwayat transaksi.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Form Sesuaikan Saldo (Manual) */}
+        {canAdjustSaldo && activeTab === 'adjust' && (
           <div className="adjust-saldo-box shadow-xs">
             <h4 className="adjust-saldo-title">
               SESUAIKAN SALDO (MANUAL)
@@ -240,40 +333,10 @@ const SaldoDetailModal = ({
             </form>
           </div>
         )}
-
-        {/* Riwayat Transaksi Terakhir */}
-        <div className="saldo-history-section flex flex-col gap-2.5">
-          <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-            RIWAYAT TRANSAKSI TERAKHIR
-          </h4>
-          <div className="overflow-x-auto border border-slate-200 dark:border-slate-700/80 rounded-2xl bg-white dark:bg-slate-900 shadow-2xs">
-            <table className="mini-data-table w-full text-left border-collapse text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">TANGGAL</th>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase">KETERANGAN</th>
-                  <th className="px-4 py-3 font-bold text-slate-500 dark:text-slate-400 uppercase text-right">NOMINAL</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300">
-                {historyList.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
-                    <td className="px-4 py-3 font-medium whitespace-nowrap">{item.tanggal}</td>
-                    <td className="px-4 py-3 font-medium">{item.keterangan}</td>
-                    <td className="px-4 py-3 text-right font-bold whitespace-nowrap">
-                      <span className={item.nominal > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                        {item.nominal > 0 ? '+' : ''} Rp {Math.abs(item.nominal).toLocaleString('id-ID')}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </Modal>
   );
 };
 
 export default SaldoDetailModal;
+

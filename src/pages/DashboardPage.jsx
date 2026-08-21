@@ -4,7 +4,8 @@ import DailySummaryBanner from '../components/dashboard/DailySummaryBanner';
 import StatCards from '../components/dashboard/StatCards';
 import SalesChart from '../components/dashboard/SalesChart';
 import RecentTransactionsWidget from '../components/dashboard/RecentTransactionsWidget';
-import { dashboardApi } from '../utils/api';
+import { dashboardApi, santriApi } from '../utils/api';
+import { mergeSantriSaldos } from '../utils/saldoStorage';
 
 // API → bentuk yang dibaca komponen dashboard
 const mapRecent = (trx) => ({
@@ -20,18 +21,38 @@ const mapRecent = (trx) => ({
 
 const DashboardPage = ({ Layout = MainLayout }) => {
   const [stats, setStats] = useState(null);
+  const [activeSantriCount, setActiveSantriCount] = useState(0);
+  const [localTotalSaldo, setLocalTotalSaldo] = useState(0);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('mingguan');
   const [selectedYear, setSelectedYear] = useState('2026');
 
   const fetchDashboardData = (tf = timeframe, yr = selectedYear) => {
     setLoading(true);
-    dashboardApi.get({ timeframe: tf, tahun: yr })
-      .then((data) => {
-        if (data) setStats(data);
-      })
-      .catch((err) => {
+    Promise.all([
+      dashboardApi.get({ timeframe: tf, tahun: yr }).catch((err) => {
         console.error('Gagal mengambil data dashboard:', err);
+        return null;
+      }),
+      santriApi.list({ per_page: 500 }).catch((err) => {
+        console.warn('Gagal mengambil data santri:', err);
+        return null;
+      }),
+    ])
+      .then(([dashData, santriRes]) => {
+        if (dashData) setStats(dashData);
+        if (santriRes) {
+          const rawData = santriRes.data || (Array.isArray(santriRes) ? santriRes : []);
+          const merged = mergeSantriSaldos(rawData);
+          const activeCount = Array.isArray(merged)
+            ? merged.filter((s) => (s.status || 'aktif') === 'aktif').length
+            : 0;
+          const sumSaldo = Array.isArray(merged)
+            ? merged.reduce((acc, s) => acc + (Number(s.saldo) || 0), 0)
+            : 0;
+          setActiveSantriCount(activeCount);
+          setLocalTotalSaldo(sumSaldo);
+        }
       })
       .finally(() => setLoading(false));
   };
@@ -52,6 +73,9 @@ const DashboardPage = ({ Layout = MainLayout }) => {
     if (newYear !== undefined) setSelectedYear(newYear);
   };
 
+  const santriAktif = stats?.santri_aktif ?? stats?.total_santri_aktif ?? stats?.total_santri ?? activeSantriCount ?? 0;
+  const displayTotalSaldo = (stats?.total_saldo && stats.total_saldo > 0) ? stats.total_saldo : localTotalSaldo;
+
   return (
     <Layout pageTitle="Dashboard Keuangan">
       {loading && !stats ? (
@@ -65,9 +89,9 @@ const DashboardPage = ({ Layout = MainLayout }) => {
             transaksi={stats?.total_transaksi ?? 0}
           />
           <StatCards
-            totalSaldo={stats?.total_saldo ?? 0}
+            totalSaldo={displayTotalSaldo}
             totalPemasukan={stats?.total_pemasukan ?? 0}
-            totalTransaksi={stats?.total_transaksi ?? 0}
+            totalSantriAktif={santriAktif}
           />
           <div className="flex flex-col gap-6">
             <SalesChart

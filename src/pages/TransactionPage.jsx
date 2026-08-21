@@ -134,7 +134,12 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
         </div>
       )}
 
-      {/* 1. Filter Card Bar (CARI SANTRI, JENIS, DARI, SAMPAI, Ekspor .xlsx) */}
+      {/* 1. Jika versi Staff: Tampilkan Form Penarikan Koin di atas Filter & KPI */}
+      {isStaffVersion && (
+        <StaffCoinWithdrawalForm onWithdrawalSuccess={handleNewWithdrawal} />
+      )}
+
+      {/* 2. Filter Card Bar (CARI SANTRI, JENIS, DARI, SAMPAI, Ekspor .xlsx) */}
       <TransactionFilterBar
         search={search}
         onSearchChange={setSearch}
@@ -145,19 +150,15 @@ const TransactionPage = ({ Layout = MainLayout, isStaffVersion = false }) => {
         sampai={sampai}
         onSampaiChange={setSampai}
         onExport={handleExportXLSX}
+        showSearch={!isStaffVersion}
       />
 
-      {/* 2. KPI Cards Ringkasan (TOTAL TRANSAKSI, TOTAL MASUK, TOTAL KELUAR) */}
+      {/* 3. KPI Cards Ringkasan (TOTAL TRANSAKSI, SALDO MASUK, SALDO KELUAR) */}
       <TransactionKpiCards
         totalTransaksi={kpiStats.totalTransaksi}
         totalMasuk={kpiStats.totalMasuk}
         totalKeluar={kpiStats.totalKeluar}
       />
-
-      {/* 3. Jika versi Staff: Tampilkan Form Penarikan Koin di bawah KPI & Cari Santri */}
-      {isStaffVersion && (
-        <StaffCoinWithdrawalForm onWithdrawalSuccess={handleNewWithdrawal} />
-      )}
 
       {/* 4. Table Data Transaksi */}
       <TransactionTable data={filteredData} />
