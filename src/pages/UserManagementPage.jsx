@@ -186,6 +186,16 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         role: deleteUserTarget.role,
         count: 1,
       };
+
+      // Call appropriate API
+      if (deleteUserTarget.role?.toLowerCase().includes('kabid') || deleteUserTarget.role?.toLowerCase().includes('admin')) {
+        adminApi.destroy(deleteUserTarget.id).catch(() => {});
+      } else if (deleteUserTarget.role?.toLowerCase().includes('staff')) {
+        staffApi.destroy(deleteUserTarget.id).catch(() => {});
+      } else if (deleteUserTarget.role?.toLowerCase().includes('wali')) {
+        waliUserApi.destroy(deleteUserTarget.id).catch(() => {});
+      }
+
       setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
       setIsDeleteModalOpen(false);
       setDeleteUserTarget(null);
@@ -218,12 +228,22 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   };
 
   const handleBatchStatusChange = (status) => {
+    const newStatus = status === 'aktif' ? 'Aktif' : 'Non-Aktif';
     setUsers((prev) =>
-      prev.map((u) =>
-        validSelectedIds.includes(u.id)
-          ? { ...u, status: status === 'aktif' ? 'Aktif' : 'Nonaktif' }
-          : u
-      )
+      prev.map((u) => {
+        if (validSelectedIds.includes(u.id)) {
+          const updated = { ...u, status: newStatus };
+          if (u.role?.toLowerCase().includes('kabid') || u.role?.toLowerCase().includes('admin')) {
+            adminApi.update(u.id, { status: newStatus }).catch(() => {});
+          } else if (u.role?.toLowerCase().includes('staff')) {
+            staffApi.update(u.id, { status: newStatus }).catch(() => {});
+          } else if (u.role?.toLowerCase().includes('wali')) {
+            waliUserApi.update(u.id, { status: newStatus }).catch(() => {});
+          }
+          return updated;
+        }
+        return u;
+      })
     );
     setSelectedIds([]);
   };
@@ -238,6 +258,20 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
       nama: `${deletedCount} Pengguna Terpilih`,
       count: deletedCount,
     };
+
+    // Delete from API/storage for each selected user
+    users.forEach((u) => {
+      if (validSelectedIds.includes(u.id)) {
+        if (u.role?.toLowerCase().includes('kabid') || u.role?.toLowerCase().includes('admin')) {
+          adminApi.destroy(u.id).catch(() => {});
+        } else if (u.role?.toLowerCase().includes('staff')) {
+          staffApi.destroy(u.id).catch(() => {});
+        } else if (u.role?.toLowerCase().includes('wali')) {
+          waliUserApi.destroy(u.id).catch(() => {});
+        }
+      }
+    });
+
     setUsers((prev) => prev.filter((u) => !validSelectedIds.includes(u.id)));
     setSelectedIds([]);
     setIsBatchDeleteOpen(false);
@@ -263,6 +297,15 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         role: assignedRole,
         status: formData.status ? (formData.status === 'aktif' ? 'Aktif' : 'Non-Aktif') : editUser.status,
       };
+
+      // Call API to persist changes
+      if (assignedRole === 'Kabid BAK & Manajerial') {
+        adminApi.update(editUser.id, updatedUser).catch(() => {});
+      } else if (assignedRole === 'Staff Rumah Koin') {
+        staffApi.update(editUser.id, updatedUser).catch(() => {});
+      } else if (assignedRole === 'Wali Santri / Wali') {
+        waliUserApi.update(editUser.id, updatedUser).catch(() => {});
+      }
 
       setUsers(
         users.map((u) => (u.id === editUser.id ? updatedUser : u))
@@ -291,6 +334,16 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
         username: formData.username || (formData.nama ? formData.nama.toLowerCase().replace(/\s+/g, '') : 'userbaru'),
         createdDate: new Date().toISOString().slice(0, 10),
       };
+
+      // Call API to persist new user
+      if (assignedRole === 'Kabid BAK & Manajerial') {
+        adminApi.store(newUser).catch(() => {});
+      } else if (assignedRole === 'Staff Rumah Koin') {
+        staffApi.store(newUser).catch(() => {});
+      } else if (assignedRole === 'Wali Santri / Wali') {
+        waliUserApi.store(newUser).catch(() => {});
+      }
+
       setUsers([newUser, ...users]);
       setIsModalOpen(false);
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePopup } from '../context/PopupContext';
@@ -7,8 +7,13 @@ import logoPesantren from '../assets/logo-pesantren.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const { showPopup } = usePopup();
+
+  // Bersihkan sesi lama setiap kali halaman login dibuka
+  useEffect(() => {
+    logout();
+  }, []);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

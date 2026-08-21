@@ -1,3 +1,5 @@
+import { handleMockApi } from './mockStorage';
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://nata-api.islab.web.id/api';
 
 function getToken() {
@@ -9,45 +11,65 @@ async function apiFetch(endpoint, options = {}) {
   const opts = { ...options };
   delete opts._blob;
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getToken()}`,
-      ...(opts.headers || {}),
-    },
-    ...opts,
-  });
+  try {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`,
+        ...(opts.headers || {}),
+      },
+      ...opts,
+    });
 
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      // If server responds with 404, 500, 502, 503, fall back to mock storage during offline testing
+      if (res.status >= 500 || res.status === 404) {
+        return await handleMockApi(endpoint, opts);
+      }
+      const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
+      throw new Error(err.message || 'Request gagal.');
     }
-    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-    throw new Error(err.message || 'Request gagal.');
-  }
 
-  if (isBlob) return res.blob();
-  return res.json();
+    if (isBlob) return res.blob();
+    return res.json();
+  } catch (networkError) {
+    console.warn(`[API Offline Fallback] ${endpoint}:`, networkError.message);
+    if (isBlob) {
+      return new Blob(['Data export dummy offline'], { type: 'text/plain' });
+    }
+    return await handleMockApi(endpoint, opts);
+  }
 }
 
 async function apiFetchForm(endpoint, formData, method = 'POST') {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
-    method,
-    headers: { Authorization: `Bearer ${getToken()}` },
-    body: formData,
-  });
+  try {
+    const res = await fetch(`${BASE_URL}${endpoint}`, {
+      method,
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
 
-  if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      if (res.status >= 500 || res.status === 404) {
+        return await handleMockApi(endpoint, { method }, formData);
+      }
+      const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
+      throw new Error(err.message || 'Request gagal.');
     }
-    const err = await res.json().catch(() => ({ message: 'Terjadi kesalahan.' }));
-    throw new Error(err.message || 'Request gagal.');
-  }
 
-  return res.json();
+    return res.json();
+  } catch (networkError) {
+    console.warn(`[API Form Offline Fallback] ${endpoint}:`, networkError.message);
+    return await handleMockApi(endpoint, { method }, formData);
+  }
 }
 
 function downloadBlob(blob, filename) {

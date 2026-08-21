@@ -250,9 +250,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   // Batch Upload Success Handler (Push data dari pop-up preview ke database/state)
   const handleBatchUploadSuccess = (payload) => {
     if (Array.isArray(payload)) {
+      santriApi.importConfirm(payload).catch(() => {});
       setSantriList((prev) => [...payload, ...prev]);
     } else if (payload && typeof payload === 'object') {
       const { newSantri = [], updatedSantri = [] } = payload;
+      santriApi.importConfirm([...newSantri, ...updatedSantri]).catch(() => {});
       setSantriList((prev) => {
         const updatedList = prev.map((item) => {
           const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
