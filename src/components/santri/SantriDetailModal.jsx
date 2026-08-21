@@ -14,7 +14,7 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Detail Data Santri"
-      subtitle="Informasi lengkap profil, wali, dan akun virtual santri."
+      subtitle="Informasi lengkap profil dan akun virtual santri."
     >
       <div className="flex flex-col gap-6 pt-1 pb-2">
 
@@ -70,7 +70,7 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
               Tanggal Lahir
             </span>
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              {santri.tglLahir || '—'}
+              {santri.tglLahirFormatted || santri.tglLahir || '—'}
             </span>
           </div>
 
@@ -84,33 +84,13 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
             </span>
           </div>
 
-          {/* Nama Wali */}
+          {/* VA Jajan (BNI) */}
           <div className="flex flex-col gap-1.5 sm:col-span-2">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              Nama Wali
-            </span>
-            <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {santri.namaWali || '—'}
-            </span>
-          </div>
-
-          {/* VA Jajan */}
-          <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               No. VA Jajan (BNI)
             </span>
-            <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 w-fit">
-              {santri.vaJajan || '—'}
-            </span>
-          </div>
-
-          {/* VA Tagihan */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-              No. VA Tagihan (BNI)
-            </span>
-            <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 w-fit">
-              {santri.vaTagihan || '—'}
+            <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 w-fit">
+              {santri.vaJajan || (santri.nis ? `8808 0990 ${santri.nis}` : '—')}
             </span>
           </div>
         </div>

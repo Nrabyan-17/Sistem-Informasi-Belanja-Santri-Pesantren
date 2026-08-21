@@ -21,17 +21,27 @@ const WaliRiwayatPage = () => {
       .transactions({ per_page: 100 })
       .then((res) =>
         setTransactions(
-          (res.data || []).map((t) => ({
-            id: t.id,
-            tanggal: formatTanggal(t.created_at),
-            rawDate: t.created_at ? t.created_at.slice(0, 10) : '',
-            nis: t.santri?.nis || '—',
-            nama: t.santri?.nama || '—',
-            ket: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
-            nominal: t.nominal || 0,
-            saldoAfter: t.saldo_setelah ?? null,
-            type: (t.nominal || 0) > 0 ? 'masuk' : 'keluar',
-          }))
+          (res.data || []).map((t) => {
+            let timeStr = '';
+            if (t.created_at) {
+              const d = new Date(t.created_at);
+              if (!isNaN(d.getTime())) {
+                timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+              }
+            }
+            return {
+              id: t.id,
+              tanggal: formatTanggal(t.created_at),
+              waktu: timeStr,
+              rawDate: t.created_at ? t.created_at.slice(0, 10) : '',
+              nis: t.santri?.nis || '—',
+              nama: t.santri?.nama || '—',
+              ket: t.keterangan || (t.tipe === 'topup' ? 'Setor BNI Virtual Account' : 'Tarik Koin (Rumah Koin)'),
+              nominal: t.nominal || 0,
+              saldoAfter: t.saldo_setelah ?? null,
+              type: (t.nominal || 0) > 0 ? 'masuk' : 'keluar',
+            };
+          })
         )
       )
       .catch((e) => setError(e.message || 'Gagal memuat riwayat transaksi.'))
@@ -199,7 +209,12 @@ const WaliRiwayatPage = () => {
                 {filteredData.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3.5 text-xs text-slate-400 font-medium">{idx + 1}</td>
-                    <td className="px-4 py-3.5 text-xs font-medium whitespace-nowrap">{item.tanggal}</td>
+                    <td className="px-4 py-3.5 text-xs font-medium whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-slate-800 dark:text-slate-100">{item.tanggal}</span>
+                        {item.waktu && <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">{item.waktu}</span>}
+                      </div>
+                    </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="santri-cell flex flex-col">
                         <strong className="text-slate-800 font-bold">{item.nama}</strong>

@@ -10,19 +10,42 @@ import BatchActionBar from '../components/common/BatchActionBar';
 import { santriApi } from '../utils/api';
 import { mergeSantriSaldos } from '../utils/saldoStorage';
 
+const formatTglIndo = (d) => {
+  if (!d) return '';
+  try {
+    const parts = String(d).split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${day} ${months[month] || ''} ${year}`;
+    }
+    const date = new Date(d);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    return d;
+  } catch {
+    return d;
+  }
+};
+
 const mapSantriFromApi = (item) => ({
   id: item.id,
   nis: item.nis || '',
   nama: item.nama || item.name || '',
   kelas: item.kelas || 'VII A',
-  tglLahir: item.tgl_lahir || item.tglLahir || '',
+  tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir || '',
+  tglLahirFormatted: formatTglIndo(item.tanggal_lahir || item.tgl_lahir || item.tglLahir),
   namaWali: item.nama_wali || item.namaWali || item.wali_user?.name || '',
   noHpWali: item.no_hp_wali || item.noHpWali || '',
-  vaJajan: item.va_jajan || item.vaJajan || `8808 0990 ${item.nis || '2024'} 0001`,
+  vaJajan: item.va_jajan || item.vaJajan || (item.nis ? `8808 0990 ${item.nis}` : '—'),
   vaTagihan: item.va_tagihan || item.vaTagihan || `8808 0990 9${item.nis || '024'} 0001`,
   status: item.status || 'aktif',
   saldo: Number(item.saldo || 0),
   foto: item.foto || item.foto_url || null,
+  jenisKelamin: item.jenis_kelamin || item.jenisKelamin || 'L',
 });
 
 const SantriManagementPage = ({ Layout = MainLayout }) => {

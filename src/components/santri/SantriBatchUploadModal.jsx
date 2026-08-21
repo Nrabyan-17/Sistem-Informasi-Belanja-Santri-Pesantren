@@ -243,12 +243,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
     setIsSuccessModalOpen(true);
   };
 
-  const handleFinalSuccessClose = () => {
-    setIsSuccessModalOpen(false);
-    setPendingImportPayload(null);
-    handleResetModal();
-  };
-
   const handleResetModal = () => {
     setFile(null);
     setPreviewList([]);
@@ -296,13 +290,26 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </div>
-              <div className="flex flex-col gap-1.5 px-4 pb-2">
+              <div className="flex flex-col gap-1.5 px-4 pb-1">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
                   Tarik &amp; lepas file CSV / Excel di sini, atau <span className="text-emerald-700 dark:text-emerald-400 underline">klik untuk memilih file</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Tanggal Lahir, Nama Wali)
                 </p>
+              </div>
+
+              {/* Tombol Template Excel untuk Input Data Santri di Dalam Kotak Dashed (Hiasan/Visual Saja) */}
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="px-10 sm:px-12 py-3.5 min-h-[46px] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-sm rounded-2xl border border-slate-200/90 dark:border-slate-700 shadow-xs hover:shadow-sm transition-all cursor-default inline-flex items-center justify-center tracking-tight"
+                >
+                  Template Excel untuk input data santri
+                </button>
               </div>
             </div>
           ) : (

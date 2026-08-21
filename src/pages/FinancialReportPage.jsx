@@ -52,8 +52,15 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
 
   // Export Excel Handler (via API)
   const handleExportExcel = (rowMonth) => {
-    const targetMonth = typeof rowMonth === 'string' ? rowMonth : selectedMonth;
-    const bulan = rows.find((r) => r.periode === targetMonth)?.bulan || rows.find((r) => r.periode === selectedMonth)?.bulan;
+    let bulan = '';
+    if (rowMonth && typeof rowMonth === 'object' && rowMonth.bulan) {
+      bulan = rowMonth.bulan;
+    } else if (typeof rowMonth === 'string') {
+      bulan = rows.find((r) => r.periode === rowMonth)?.bulan || rowMonth;
+    } else {
+      bulan = activeMonthReport?.bulan || rows[0]?.bulan || '';
+    }
+    if (!bulan) return;
     reportApi.export(bulan).catch((e) => setError(e.message || 'Gagal mengekspor laporan.'));
   };
 
