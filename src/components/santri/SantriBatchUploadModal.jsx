@@ -158,8 +158,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       kelas: s.kelas || 'VII A',
       tanggal_lahir: s.tglLahir || '1 Jan 2012',
       nama_wali: s.namaWali || 'Wali Santri',
-      va_jajan: `8808 0990 ${s.nis.slice(0, 4)} ${s.nis.slice(4)}`,
-      va_tagihan: `8808 0990 9${s.nis.slice(1, 4)} ${s.nis.slice(4)}`,
+      va_jajan: s.va_jajan || s.vaJajan || '',
+      va_tagihan: s.va_tagihan || s.vaTagihan || '',
       status: s.status || 'aktif',
       saldo: 0,
     }));

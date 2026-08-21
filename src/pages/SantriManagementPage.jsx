@@ -14,11 +14,11 @@ const mapSantriFromApi = (item) => ({
   nis: item.nis || '',
   nama: item.nama || item.name || '',
   kelas: item.kelas || 'VII A',
-  tglLahir: item.tgl_lahir || item.tglLahir || '',
+  tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir || '',
   namaWali: item.nama_wali || item.namaWali || item.wali_user?.name || '',
   noHpWali: item.no_hp_wali || item.noHpWali || '',
-  vaJajan: item.va_jajan || item.vaJajan || `8808 0990 ${item.nis || '2024'} 0001`,
-  vaTagihan: item.va_tagihan || item.vaTagihan || `8808 0990 9${item.nis || '024'} 0001`,
+  vaJajan: item.va_jajan || item.vaJajan || '',
+  vaTagihan: item.va_tagihan || item.vaTagihan || '',
   status: item.status || 'aktif',
   saldo: Number(item.saldo || 0),
   foto: item.foto || item.foto_url || null,
@@ -262,16 +262,16 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const handleBatchUploadSuccess = (payload) => {
     if (Array.isArray(payload)) {
       santriApi.importConfirm(payload).catch(() => {});
-      setSantriList((prev) => [...payload, ...prev]);
+      setSantriList((prev) => [...payload.map(mapSantriFromApi), ...prev]);
     } else if (payload && typeof payload === 'object') {
       const { newSantri = [], updatedSantri = [] } = payload;
       santriApi.importConfirm([...newSantri, ...updatedSantri]).catch(() => {});
       setSantriList((prev) => {
         const updatedList = prev.map((item) => {
           const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
-          return matchedUpdate ? { ...item, ...matchedUpdate } : item;
+          return matchedUpdate ? { ...item, ...mapSantriFromApi(matchedUpdate) } : item;
         });
-        return [...newSantri, ...updatedList];
+        return [...newSantri.map(mapSantriFromApi), ...updatedList];
       });
     }
   };
