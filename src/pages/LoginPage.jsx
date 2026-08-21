@@ -35,18 +35,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleQuickLogin = async (targetRole) => {
-    setIsLoading(true);
-    setErrorMsg('');
-    try {
-      const role = await login(targetRole, '123456', targetRole);
-      handleRoleNavigate(role);
-    } catch (err) {
-      setErrorMsg('Gagal masuk sebagai ' + targetRole);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="login-page min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -114,36 +102,6 @@ const LoginPage = () => {
               {isLoading ? 'Memproses...' : 'Masuk ke Sistem'}
             </button>
           </form>
-
-          {/* Quick Role Login Shortcut Buttons */}
-          <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col gap-2.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center block">
-              Akses Cepat Demo Role:
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="py-2.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-all border border-emerald-200 text-center cursor-pointer active:scale-95"
-              >
-                🔑 Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('staff')}
-                className="py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200 text-center cursor-pointer active:scale-95"
-              >
-                🏧 Staff Koin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('wali')}
-                className="py-2.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-xl text-xs font-bold transition-all border border-amber-200 text-center cursor-pointer active:scale-95"
-              >
-                👨‍👩‍👧 Wali Santri
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
