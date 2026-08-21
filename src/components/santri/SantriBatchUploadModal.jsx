@@ -10,14 +10,6 @@ const cleanCell = (val) => {
     .trim();
 };
 
-// Sample data demo: sengaja menyertakan NIS 2024001 dan 2024002 (yang sudah ada di mockSantri) untuk menguji handler data ganda
-const mockSampleImportData = [
-  { id: 'import-1', nis: '2024001', nama: 'Ahmad Fauzi (Update)', kelas: 'VII B', tglLahir: '10 Jan 2012', namaWali: 'Bpk. Fauzi Baru', status: 'aktif' },
-  { id: 'import-2', nis: '2024091', nama: 'Gita Permata', kelas: 'VIII B', tglLahir: '15 Feb 2011', namaWali: 'Ibu Ningsih', status: 'aktif' },
-  { id: 'import-3', nis: '2024002', nama: 'Siti Nurhaliza (Update)', kelas: 'VIII A', tglLahir: '20 Mar 2012', namaWali: 'Ibu Hj. Aminah', status: 'aktif' },
-  { id: 'import-4', nis: '2024093', nama: 'Ibrahim Malik', kelas: 'IX A', tglLahir: '05 Apr 2010', namaWali: 'Ibu Mariam', status: 'aktif' },
-];
-
 const parseSantriCSV = (text) => {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
   if (lines.length < 2) return [];
@@ -101,16 +93,22 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
           if (parsed.length > 0) {
             setPreviewList(parsed);
           } else {
-            setPreviewList(mockSampleImportData);
+            alert('File CSV / Excel tidak memuat data santri yang dapat diproses.');
+            setPreviewList([]);
+            setFile(null);
           }
         }
       } catch (err) {
         console.error('Gagal memproses file:', err);
-        setPreviewList(mockSampleImportData);
+        alert('Gagal memproses struktur file CSV/Excel.');
+        setPreviewList([]);
+        setFile(null);
       }
     };
     reader.onerror = () => {
-      setPreviewList(mockSampleImportData);
+      alert('Gagal membaca file dari komputer.');
+      setPreviewList([]);
+      setFile(null);
     };
     reader.readAsText(selectedFile);
   };
@@ -143,11 +141,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
   const handleCancelEdit = () => {
     setEditingRowId(null);
     setEditFormData({});
-  };
-
-  const handleLoadDemo = () => {
-    setFile({ name: 'template_data_santri_2026.csv', size: 1420 });
-    setPreviewList(mockSampleImportData);
   };
 
   // Validasi Awal: Deteksi Data Ganda berdasarkan NIS sebelum Konfirmasi & Simpan
@@ -303,22 +296,13 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </div>
-              <div className="flex flex-col gap-1.5 px-4">
+              <div className="flex flex-col gap-1.5 px-4 pb-2">
                 <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
                   Tarik &amp; lepas file CSV / Excel di sini, atau <span className="text-emerald-700 dark:text-emerald-400 underline">klik untuk memilih file</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Tanggal Lahir, Nama Wali)
                 </p>
-              </div>
-              <div className="pt-1 flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); handleLoadDemo(); }}
-                  className="import-batch-btn-demo"
-                >
-                  Muat Contoh Data Demo
-                </button>
               </div>
             </div>
           ) : (

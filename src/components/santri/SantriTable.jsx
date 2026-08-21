@@ -117,8 +117,16 @@ const SantriTable = ({
                     </td>
                     <td onClick={() => onViewDetail?.(santri)} className="cursor-pointer group py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-700 group-hover:text-white transition-all shadow-2xs">
-                          {(santri.nama || 'S').charAt(0).toUpperCase()}
+                        <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden group-hover:scale-110 transition-all shadow-2xs aspect-square">
+                          {santri.foto ? (
+                            <img
+                              src={santri.foto}
+                              alt={santri.nama}
+                              className="w-full h-full object-cover rounded-full aspect-square block"
+                            />
+                          ) : (
+                            (santri.nama || 'S').charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div className="flex flex-col">
                           <span className="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">

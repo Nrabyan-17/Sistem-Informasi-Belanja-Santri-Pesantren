@@ -113,13 +113,13 @@ const DashboardPage = ({ Layout = MainLayout }) => {
         <>
           <DailySummaryBanner
             dateStr={today}
-            masuk={todayTrend?.pemasukan ?? stats?.pemasukan_hari_ini ?? 0}
-            keluar={todayTrend?.penarikan ?? stats?.penarikan_hari_ini ?? 0}
+            masuk={stats?.pemasukan_hari_ini ?? todayTrend?.pemasukan ?? 0}
+            keluar={stats?.penarikan_hari_ini ?? todayTrend?.penarikan ?? 0}
             transaksi={stats?.total_transaksi ?? 0}
           />
           <StatCards
             totalSaldo={displayTotalSaldo}
-            totalPemasukan={stats?.total_pemasukan ?? 0}
+            totalPemasukan={stats?.penarikan_hari_ini ?? stats?.total_penarikan ?? 0}
             totalSantriAktif={santriAktif}
           />
           <div className="flex flex-col gap-6">
