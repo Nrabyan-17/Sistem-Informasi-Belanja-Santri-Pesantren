@@ -42,10 +42,6 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
               <span>NIS: {santri.nis}</span>
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
-                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-                Kelas {santri.kelas}
-              </span>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                 santri.status === 'aktif'
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'

@@ -1,5 +1,5 @@
 // Modal Dialog Reusable
-const Modal = ({ isOpen, onClose, title, subtitle, maxWidth = 'max-w-xl', children }) => {
+const Modal = ({ isOpen, onClose, title, subtitle, maxWidth = 'max-w-xl', style, children }) => {
   if (!isOpen) return null;
 
   return (
@@ -8,6 +8,7 @@ const Modal = ({ isOpen, onClose, title, subtitle, maxWidth = 'max-w-xl', childr
       onClick={onClose}
     >
       <div
+        style={style}
         className={`modal-content modal-animate-pop bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-6 sm:p-8 ${maxWidth} w-full max-h-[88vh] flex flex-col border border-slate-200 dark:border-slate-800 shadow-2xl relative my-auto text-slate-800 dark:text-slate-100 transition-colors duration-200`}
         onClick={(e) => e.stopPropagation()}
       >

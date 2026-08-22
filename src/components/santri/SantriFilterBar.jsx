@@ -3,13 +3,10 @@ import React from 'react';
 const SantriFilterBar = ({
   search = '',
   onSearchChange,
-  kelas = 'Semua Kelas',
-  onKelasChange,
   status = 'Semua Status',
   onStatusChange,
   onAddSantri,
   onUploadBatch,
-  kelasOptions = [],
 }) => {
   return (
     <div className="user-filter-card">
@@ -37,22 +34,6 @@ const SantriFilterBar = ({
             onChange={(e) => onSearchChange?.(e.target.value)}
             className="user-search-input pl-10"
           />
-        </div>
-
-        {/* Kelas Dropdown */}
-        <div className="user-select-field">
-          <select
-            value={kelas}
-            onChange={(e) => onKelasChange?.(e.target.value)}
-            className="user-filter-select"
-          >
-            <option value="Semua Kelas">Semua Kelas</option>
-            {kelasOptions.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* Status Dropdown */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import Popup from '../common/Popup';
 import { santriApi } from '../../utils/api';
 
 const SaldoDetailModal = ({
@@ -20,6 +21,7 @@ const SaldoDetailModal = ({
   const [adjustNominal, setAdjustNominal] = useState('');
   const [adjustKeterangan, setAdjustKeterangan] = useState('');
   const [adjustSuccessMsg, setAdjustSuccessMsg] = useState('');
+  const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
   useEffect(() => {
     if (isOpen && santri?.id) {
@@ -56,21 +58,22 @@ const SaldoDetailModal = ({
   const handleSaveAdjustment = async (e) => {
     e.preventDefault();
     if (!nominalVal || nominalVal <= 0) {
-      alert('Masukkan nominal penyesuaian saldo yang valid.');
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Input Tidak Valid', message: 'Masukkan nominal penyesuaian saldo yang valid.' });
       return;
     }
 
     if (!adjustKeterangan.trim()) {
-      alert('Keterangan / alasan penyesuaian wajib diisi.');
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Input Tidak Lengkap', message: 'Keterangan / alasan penyesuaian wajib diisi.' });
       return;
     }
 
-    if (adjustType === 'kurangi' && nominalVal > currentSaldo) {
-      alert(
-        `Nominal pengurangan (Rp ${nominalVal.toLocaleString(
-          'id-ID'
-        )}) melebihi sisa saldo saat ini (Rp ${currentSaldo.toLocaleString('id-ID')}).`
-      );
+    if ((adjustType === 'kurang' || adjustType === 'kurangi') && nominalVal > currentSaldo) {
+      setPopupConfig({
+        isOpen: true,
+        type: 'error',
+        title: 'Saldo Tidak Cukup',
+        message: `Nominal pengurangan (Rp ${nominalVal.toLocaleString('id-ID')}) melebihi sisa saldo saat ini (Rp ${currentSaldo.toLocaleString('id-ID')}).`
+      });
       return;
     }
 
@@ -105,7 +108,7 @@ const SaldoDetailModal = ({
         setAdjustSuccessMsg('');
       }, 4000);
     } catch (error) {
-      alert(error.message || 'Terjadi kesalahan saat menyesuaikan saldo.');
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Terjadi Kesalahan', message: error.message || 'Terjadi kesalahan saat menyesuaikan saldo.' });
     }
   };
 
@@ -351,6 +354,14 @@ const SaldoDetailModal = ({
           </div>
         )}
       </div>
+
+      <Popup
+        isOpen={popupConfig.isOpen}
+        type={popupConfig.type}
+        title={popupConfig.title}
+        message={popupConfig.message}
+        onClose={() => setPopupConfig({ ...popupConfig, isOpen: false })}
+      />
     </Modal>
   );
 };
