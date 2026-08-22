@@ -40,38 +40,46 @@ const RecentTransactionsWidget = ({ transactions = [] }) => {
                 </td>
               </tr>
             ) : (
-              data.map((trx, idx) => (
-                <tr key={trx.id || idx} className="user-table-row">
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">
-                        {(trx.namaSantri || 'S').charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
-                          {trx.namaSantri}
-                        </span>
-                        {trx.nis && (
-                          <span className="text-[11px] text-slate-400 font-mono">
-                            NIS: {trx.nis}
+              data.map((trx, idx) => {
+                const isPenarikan = /penarikan/i.test(trx.kategori || '') || /keluar/i.test(trx.jenis || '');
+
+                return (
+                  <tr key={trx.id || idx} className="user-table-row">
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">
+                          {(trx.namaSantri || 'S').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                            {trx.namaSantri}
                           </span>
-                        )}
+                          {trx.nis && (
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              NIS: {trx.nis}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      {trx.kategori || 'Penarikan Koin'}
-                    </span>
-                  </td>
-                  <td className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {trx.waktu || '10:00 WIB'}
-                  </td>
-                  <td className="text-right font-extrabold text-xs sm:text-sm text-emerald-700 dark:text-emerald-400">
-                    Rp {(trx.nominal || 0).toLocaleString('id-ID')}
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {trx.kategori || 'Penarikan Koin'}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {trx.waktu || '10:00 WIB'}
+                    </td>
+                    <td className={`text-right font-extrabold text-xs sm:text-sm ${
+                      isPenarikan
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-emerald-700 dark:text-emerald-400'
+                    }`}>
+                      Rp {(trx.nominal || 0).toLocaleString('id-ID')}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

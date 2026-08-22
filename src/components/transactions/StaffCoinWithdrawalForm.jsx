@@ -78,16 +78,22 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     saldo: 100000,
   };
 
+  const [errorModal, setErrorModal] = useState({ isOpen: false, title: '', message: '' });
+
+  const showErrorModal = (title, message) => {
+    setErrorModal({ isOpen: true, title, message });
+  };
+
   // Step 1: Inisiasi & Validasi awal sebelum menampilkan modal konfirmasi
   const handleInitiateWithdrawal = (e) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
     if (amount <= 0) {
-      alert('Masukkan nominal penarikan koin yang valid.');
+      showErrorModal('Nominal Tidak Valid', 'Silakan masukkan nominal penarikan koin yang valid (minimal Rp 1.000).');
       return;
     }
     if (amount > 30000) {
-      alert('Batas penarikan koin santri maksimal Rp 30.000 per 2 hari.');
+      showErrorModal('Batas Penarikan Koin', 'Batas maksimal penarikan koin santri adalah Rp 30.000 per 2 hari.');
       return;
     }
     if (amount > activeSantri.saldo) {
@@ -108,63 +114,67 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   // Step 2: Eksekusi penarikan koin setelah staff mengonfirmasi di modal validasi
   const handleExecuteWithdrawal = async () => {
     const amount = parseInt(nominal || '0', 10);
-    const newSaldo = activeSantri.saldo - amount;
-    const santriKey = activeSantri.id || activeSantri.nis;
-
-    // Panggil API penarikan backend
-    let savedTx = null;
-    try {
-      const apiRes = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
-      savedTx = apiRes?.data || apiRes?.transaction || apiRes;
-    } catch (err) {
-      console.warn('Gagal panggil API penarikan:', err.message);
+    
+    if (!activeSantri?.id) {
+      showErrorModal('Santri Belum Dipilih', 'Silakan pilih santri yang terdaftar di sistem terlebih dahulu.');
+      return;
     }
 
-    // Refresh daftar santri dari API agar saldo santri selalu sinkron
-    santriApi.list({ per_page: 500 })
-      .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : []);
-        if (Array.isArray(rawData) && rawData.length > 0) {
-          const mapped = rawData.map((s) => ({
-            id: s.id,
-            nis: s.nis || '',
-            nama: s.nama || s.name || '',
-            kelas: s.kelas || 'VII A',
-            saldo: Number(s.saldo || 0),
-            foto: s.foto || s.foto_url || null,
-          }));
-          setSantriOptions(mergeSantriSaldos(mapped));
-        }
-      })
-      .catch(() => {});
+    try {
+      // Panggil API penarikan backend
+      const apiRes = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
+      const savedTx = apiRes?.data || apiRes?.transaction || apiRes;
 
-    // Update state options lokal
-    setSantriOptions((prev) =>
-      prev.map((s) => (s.nis === activeSantri.nis ? { ...s, saldo: newSaldo } : s))
-    );
+      const newSaldo = activeSantri.saldo - amount;
 
-    const txData = {
-      id: savedTx?.id || Date.now(),
-      created_at: savedTx?.created_at || new Date().toISOString(),
-      tanggal: new Date().toISOString().slice(0, 10),
-      waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      nis: activeSantri.nis,
-      namaSantri: activeSantri.nama,
-      kategori: 'Penarikan Koin',
-      jenis: 'Keluar',
-      nominal: amount,
-      sisaSaldo: newSaldo,
-      staff: savedTx?.creator?.name || savedTx?.created_by?.name || 'Staff Rumah Koin',
-      status: 'sukses',
-    };
+      // Update state options lokal
+      setSantriOptions((prev) =>
+        prev.map((s) => (s.id === activeSantri.id ? { ...s, saldo: newSaldo } : s))
+      );
 
-    setIsConfirmWithdrawalModalOpen(false);
-    setLastTxData(txData);
-    setIsSuccessModal(true);
-    onWithdrawalSuccess?.(savedTx || txData);
+      const txData = {
+        id: savedTx?.id || Date.now(),
+        created_at: savedTx?.created_at || new Date().toISOString(),
+        tanggal: new Date().toISOString().slice(0, 10),
+        waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        nis: activeSantri.nis,
+        namaSantri: activeSantri.nama,
+        kategori: 'Penarikan Koin',
+        jenis: 'Keluar',
+        nominal: amount,
+        sisaSaldo: newSaldo,
+        staff: savedTx?.creator?.name || savedTx?.created_by?.name || 'Staff Rumah Koin',
+        status: 'sukses',
+      };
 
-    // Reset form
-    setNominal('');
+      setIsConfirmWithdrawalModalOpen(false);
+      setLastTxData(txData);
+      setIsSuccessModal(true);
+      onWithdrawalSuccess?.(savedTx || txData);
+
+      // Reset form
+      setNominal('');
+
+      // Refresh daftar santri dari API agar saldo santri selalu sinkron
+      santriApi.list({ per_page: 500 })
+        .then((res) => {
+          const rawData = res.data || (Array.isArray(res) ? res : []);
+          if (Array.isArray(rawData) && rawData.length > 0) {
+            const mapped = rawData.map((s) => ({
+              id: s.id,
+              nis: s.nis || '',
+              nama: s.nama || s.name || '',
+              kelas: s.kelas || 'VII A',
+              saldo: Number(s.saldo || 0),
+              foto: s.foto || s.foto_url || null,
+            }));
+            setSantriOptions(mapped);
+          }
+        })
+        .catch(() => {});
+    } catch (err) {
+      showErrorModal('Penarikan Ditolak', err.message || 'Gagal memproses penarikan koin pada server.');
+    }
   };
 
   const formatRupiah = (val) => new Intl.NumberFormat('id-ID').format(val);
@@ -312,7 +322,8 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               max="30000"
               value={nominal}
               onChange={(e) => setNominal(e.target.value)}
-              className="w-full h-11 px-3.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600"
+              style={{ paddingLeft: '16px', paddingRight: '16px' }}
+              className="w-full h-11 px-4 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition-all"
               required
             />
             {/* Pengingat Batas Penarikan Santri */}
@@ -610,6 +621,59 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               className="insufficient-modal-btn"
             >
               Tutup &amp; Kembali
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pop-up Modal Alert / Peringatan Sistem (Custom Pop-up Elegan, Bukan Alert Browser) */}
+      {errorModal.isOpen && (
+        <div
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
+          onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
+        >
+          <div
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '36px 28px 28px 28px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Warning / Error Badge Icon dengan Ring & Bounce */}
+            <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-amber-900/10 ring-8 ring-amber-50 dark:ring-amber-900/20">
+              <svg className="w-10 h-10 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+
+            {/* Title & Subtitle */}
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+              {errorModal.title || 'Pemberitahuan Sistem'}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+              {errorModal.message}
+            </p>
+
+            {/* Detail Alert Breakdown Card */}
+            <div className="w-full bg-amber-50/70 dark:bg-slate-800/70 border border-amber-200/70 dark:border-slate-700 rounded-2xl p-4 text-left flex items-start gap-3.5 mb-6">
+              <div className="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                !
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-bold text-amber-950 dark:text-amber-200 uppercase tracking-wider">
+                  Aturan Keamanan Sistem
+                </span>
+                <p className="text-xs text-amber-800 dark:text-slate-300 leading-relaxed">
+                  Pastikan data penarikan santri memenuhi batasan operasional Rumah Koin pesantren.
+                </p>
+              </div>
+            </div>
+
+            {/* Button Selesai / Mengerti */}
+            <button
+              type="button"
+              onClick={() => setErrorModal({ isOpen: false, title: '', message: '' })}
+              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Mengerti &amp; Tutup
             </button>
           </div>
         </div>

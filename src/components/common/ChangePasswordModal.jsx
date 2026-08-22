@@ -66,7 +66,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               placeholder="Masukkan password saat ini..."
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              style={{ paddingLeft: '18px', paddingRight: '48px' }}
+              className="w-full h-12 px-5 pr-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-emerald-600/20 transition-all"
               required
             />
             <button
@@ -91,7 +92,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               placeholder="Minimal 6 karakter..."
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              style={{ paddingLeft: '18px', paddingRight: '48px' }}
+              className="w-full h-12 px-5 pr-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-emerald-600/20 transition-all"
               required
             />
             <button
@@ -116,7 +118,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               placeholder="Ketik ulang password baru..."
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-5 sm:px-6 py-3 sm:py-3.5 pr-12 sm:pr-12 h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+              style={{ paddingLeft: '18px', paddingRight: '48px' }}
+              className="w-full h-12 px-5 pr-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-emerald-600/20 transition-all"
               required
             />
             <button
