@@ -77,6 +77,9 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     id: Date.now(),
     nis: customNis || '2024000',
     nama: 'Santri Terpilih',
+    saldo: 100000,
+  };
+
   // Step 1: Inisiasi & Validasi awal sebelum menampilkan modal konfirmasi
   const handleInitiateWithdrawal = (e) => {
     e.preventDefault();
