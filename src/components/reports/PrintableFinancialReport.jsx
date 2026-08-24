@@ -67,7 +67,7 @@ const PrintableFinancialReport = ({
       <div className="bg-slate-50 border border-slate-300 rounded-lg p-3.5 mb-6 text-xs font-sans flex justify-between items-center">
         <div>
           <p><span className="text-slate-500">Tanggal Dicetak:</span> <strong>{currentDate}</strong> pukul {currentTime} WIB</p>
-          <p><span className="text-slate-500">Dicetak Oleh:</span> <strong>Administrator Sistem (BAK Pesantren)</strong></p>
+          <p><span className="text-slate-500">Dicetak Oleh:</span> <strong>Manajer BAK / Rumah Koin</strong></p>
         </div>
         <div className="text-right">
           <p><span className="text-slate-500">Status Dokumen:</span> <strong className="text-emerald-700">RESMI &amp; TERVERIFIKASI</strong></p>
@@ -123,7 +123,7 @@ const PrintableFinancialReport = ({
               <th className="border border-slate-300 p-2 text-right">Total Keluar</th>
               <th className="border border-slate-300 p-2 text-right">Selisih (Net)</th>
               <th className="border border-slate-300 p-2 text-center">Jumlah Trx</th>
-              <th className="border border-slate-300 p-2 text-left">Petugas Staff</th>
+              <th className="border border-slate-300 p-2 text-left">Manajer BAK / Rumah Koin</th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +135,7 @@ const PrintableFinancialReport = ({
                 <td className="border border-slate-300 p-2 text-right text-rose-700 font-medium">-{formatRupiah(row.totalKeluar)}</td>
                 <td className="border border-slate-300 p-2 text-right font-bold text-slate-900">{formatRupiah(row.net)}</td>
                 <td className="border border-slate-300 p-2 text-center font-medium">{row.jmlTrx} trx</td>
-                <td className="border border-slate-300 p-2 text-slate-700">{row.staff}</td>
+                <td className="border border-slate-300 p-2 text-slate-700">{row.staff || 'Manajer BAK / Rumah Koin'}</td>
               </tr>
             ))}
           </tbody>
@@ -156,20 +156,10 @@ const PrintableFinancialReport = ({
 
       {/* 6. LEMBAR PENGESAHAN & TANDA TANGAN */}
       <div className="font-sans text-xs mt-10 pt-4 border-t border-slate-300">
-        <div className="flex justify-between items-start text-center">
-          <div className="w-56">
-            <p className="text-slate-500 mb-1">Mengetahui,</p>
-            <p className="font-bold text-slate-800">Petugas Kasir Rumah Koin</p>
-            <div className="h-20 flex items-center justify-center text-slate-300 italic text-[10px]">
-              (Tanda Tangan &amp; Stempel)
-            </div>
-            <p className="font-extrabold text-slate-900 underline">Ust. Miftahul Huda</p>
-            <p className="text-[10px] text-slate-500">NIP. 202208002</p>
-          </div>
-
-          <div className="w-64">
+        <div className="flex justify-end items-start text-center">
+          <div className="w-72">
             <p className="text-slate-500 mb-1">Sampang, {currentDate}</p>
-            <p className="font-bold text-slate-800">Kepala Bagian Keuangan (BAK)</p>
+            <p className="font-bold text-slate-800">Manajer BAK / Rumah Koin</p>
             <div className="h-20 flex items-center justify-center text-slate-300 italic text-[10px]">
               (Tanda Tangan &amp; Stempel)
             </div>

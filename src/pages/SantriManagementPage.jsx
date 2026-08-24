@@ -36,6 +36,7 @@ const mapSantriFromApi = (item) => ({
   id: item.id,
   nis: item.nis != null ? String(item.nis) : '',
   nama: item.nama || item.name ? String(item.nama || item.name) : '',
+  kelas: item.kelas || item.class ? String(item.kelas || item.class) : '',
   tglLahir: item.tanggal_lahir || item.tgl_lahir || item.tglLahir ? String(item.tanggal_lahir || item.tgl_lahir || item.tglLahir) : '',
   tglLahirFormatted: formatTglIndo(item.tanggal_lahir || item.tgl_lahir || item.tglLahir),
   vaJajan: item.va_jajan || item.vaJajan ? String(item.va_jajan || item.vaJajan) : '',
@@ -223,6 +224,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     const payload = {
       nis: formData.nis,
       nama: formData.nama,
+      kelas: formData.kelas || null,
       jenis_kelamin: formData.jenisKelamin || formData.jenis_kelamin || 'L',
       tanggal_lahir: formData.tglLahir || formData.tanggal_lahir || null,
       unit: formData.unit || null,

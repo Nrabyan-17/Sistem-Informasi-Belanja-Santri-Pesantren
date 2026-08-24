@@ -133,7 +133,7 @@ const SantriTable = ({
                             {santri.nama}
                           </span>
                           <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">
-                            NIS: {santri.nis}
+                            NIS: {santri.nis}{santri.kelas ? ` • Kelas ${santri.kelas}` : ''}
                           </span>
                         </div>
                       </div>

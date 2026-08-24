@@ -34,7 +34,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             id: s.id,
             nis: s.nis || '',
             nama: s.nama || s.name || '',
-            kelas: s.kelas || 'VII A',
+            kelas: s.kelas || s.class || '',
             saldo: Number(s.saldo || 0),
             foto: s.foto || s.foto_url || null,
           }));
@@ -77,6 +77,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     id: Date.now(),
     nis: customNis || '2024000',
     nama: 'Santri Terpilih',
+    kelas: '',
     saldo: 100000,
   };
 
@@ -84,10 +85,12 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const handleInitiateWithdrawal = (e) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
-    if (amount <= 0) {
-      setPopupConfig({ isOpen: true, type: 'error', title: 'Nominal Tidak Valid', message: 'Silakan masukkan nominal penarikan koin yang valid (minimal Rp 1.000).' });
+    
+    if (isNaN(amount) || amount <= 0) {
+      setPopupConfig({ isOpen: true, type: 'warning', title: 'Nominal Tidak Valid', message: 'Silakan masukkan nominal penarikan koin yang valid (lebih dari 0).' });
       return;
     }
+    
     if (amount > 30000) {
       setPopupConfig({ isOpen: true, type: 'error', title: 'Batas Penarikan Koin', message: 'Batas maksimal penarikan koin santri adalah Rp 30.000 per 2 hari.' });
       return;
@@ -96,6 +99,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       setInsufficientData({
         namaSantri: activeSantri.nama,
         nis: activeSantri.nis,
+        kelas: activeSantri.kelas,
         saldo: activeSantri.saldo,
         nominalDiminta: amount,
         foto: activeSantri.foto,
@@ -136,6 +140,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         waktu: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
         nis: activeSantri.nis,
         namaSantri: activeSantri.nama,
+        kelas: activeSantri.kelas,
         foto: activeSantri.foto,
         kategori: 'Penarikan Koin',
         jenis: 'Keluar',
@@ -162,7 +167,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               id: s.id,
               nis: s.nis || '',
               nama: s.nama || s.name || '',
-              kelas: s.kelas || 'VII A',
+              kelas: s.kelas || s.class || '',
               saldo: Number(s.saldo || 0),
               foto: s.foto || s.foto_url || null,
             }));
@@ -364,7 +369,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     {activeSantri.nama}
                   </h3>
                   <p className="santri-preview-nis text-xs sm:text-sm font-mono text-slate-500 dark:text-slate-400 mt-0.5">
-                    NIS: {activeSantri.nis}
+                    NIS: {activeSantri.nis}{activeSantri.kelas ? ` • Kelas: ${activeSantri.kelas}` : ''}
                   </p>
                 </div>
               </div>
@@ -457,7 +462,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     )}
                   </div>
                   <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
-                    {activeSantri.nama} ({activeSantri.nis})
+                    {activeSantri.nama} ({activeSantri.nis}{activeSantri.kelas ? ` • Kelas ${activeSantri.kelas}` : ''})
                   </span>
                 </div>
               </div>
@@ -539,7 +544,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                       getInitials(lastTxData.namaSantri)
                     )}
                   </div>
-                  <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis})</strong>
+                  <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis}{lastTxData.kelas ? ` • Kelas ${lastTxData.kelas}` : ''})</strong>
                 </div>
               </div>
               <div className="success-modal-divider"></div>
@@ -620,7 +625,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     )}
                   </div>
                   <strong className="success-modal-value">
-                    {insufficientData.namaSantri} ({insufficientData.nis})
+                    {insufficientData.namaSantri} ({insufficientData.nis}{insufficientData.kelas ? ` • Kelas ${insufficientData.kelas}` : ''})
                   </strong>
                 </div>
               </div>

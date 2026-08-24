@@ -40,6 +40,12 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
               </svg>
               <span>NIS: {santri.nis}</span>
+              {santri.kelas && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span>Kelas {santri.kelas}</span>
+                </>
+              )}
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
@@ -59,6 +65,16 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
 
         {/* ── Info Detail ─────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+
+          {/* Kelas */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              Kelas
+            </span>
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              {santri.kelas || '—'}
+            </span>
+          </div>
 
           {/* Tanggal Lahir */}
           <div className="flex flex-col gap-1.5">
@@ -81,7 +97,7 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
           </div>
 
           {/* VA Jajan (BNI) */}
-          <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               No. VA Jajan (BNI)
             </span>

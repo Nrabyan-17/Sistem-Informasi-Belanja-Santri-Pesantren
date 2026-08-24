@@ -8,6 +8,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
 
   const [nis, setNis] = useState('');
   const [nama, setNama] = useState('');
+  const [kelas, setKelas] = useState('');
   const [jenisKelamin, setJenisKelamin] = useState('L');
   const [tglLahir, setTglLahir] = useState('');
   const [vaJajan, setVaJajan] = useState('');
@@ -19,6 +20,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     if (isOpen) {
       setNis(initialData.nis || '');
       setNama(initialData.nama || '');
+      setKelas(initialData.kelas || initialData.class || '');
       setJenisKelamin(initialData.jenisKelamin || initialData.jenis_kelamin || 'L');
       setTglLahir(initialData.tglLahir || initialData.tanggal_lahir || '');
       setVaJajan(initialData.vaJajan || initialData.va_jajan || '');
@@ -41,6 +43,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       ...initialData,
       nis,
       nama,
+      kelas,
       jenisKelamin,
       tglLahir,
       vaJajan,
@@ -165,8 +168,18 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </div>
         </div>
 
-        {/* VA JAJAN — 1 kolom */}
+        {/* KELAS & VA JAJAN — 2 kolom */}
         <div className="form-grid-2col grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="form-group-section flex flex-col gap-1">
+            <label className={labelClass}>KELAS</label>
+            <input
+              type="text"
+              className={inputClass}
+              placeholder="Contoh: VII A"
+              value={kelas}
+              onChange={(e) => setKelas(e.target.value)}
+            />
+          </div>
           <div className="form-group-section flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <label className={labelClass}>NO. VA JAJAN (BNI)</label>
