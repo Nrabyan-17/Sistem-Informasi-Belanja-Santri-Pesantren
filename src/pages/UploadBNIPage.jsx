@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import StaffLayout from '../components/layout/StaffLayout';
+import MainLayout from '../components/layout/MainLayout';
 import { bniApi } from '../utils/api';
 
 // Helper function untuk membersihkan karakter tanda petik dan formula Excel ="..."
@@ -77,7 +77,7 @@ const parseBNICSV = (text) => {
   return results;
 };
 
-const UploadBNIPage = ({ Layout = StaffLayout }) => {
+const UploadBNIPage = ({ Layout = MainLayout }) => {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);

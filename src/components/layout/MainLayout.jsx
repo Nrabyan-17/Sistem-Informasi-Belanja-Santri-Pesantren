@@ -10,6 +10,7 @@ import {
   IconAdmin,
   IconCoin,
   IconSantri,
+  IconUpload,
   IconReport,
 } from '../common/Icons';
 
@@ -28,6 +29,7 @@ const adminMenuItems = [
       { path: '/pengguna/santri',     label: 'Data Santri',         icon: <IconSantri className="w-4 h-4" /> },
     ],
   },
+  { path: '/upload-bni',label: 'Upload BNI',          icon: <IconUpload /> },
   { path: '/laporan',   label: 'Laporan',             icon: <IconReport /> },
 ];
 

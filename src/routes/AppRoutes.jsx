@@ -104,6 +104,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/upload-bni"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <UploadBNIPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Staff Rumah Koin Routes (Protected: Staff & Admin) */}
       <Route
@@ -119,14 +127,6 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <TransactionPage Layout={StaffLayout} isStaffVersion={true} />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/staff/upload-bni"
-        element={
-          <ProtectedRoute allowedRoles={['staff', 'admin']}>
-            <UploadBNIPage Layout={StaffLayout} />
           </ProtectedRoute>
         }
       />
