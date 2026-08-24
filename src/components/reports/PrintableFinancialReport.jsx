@@ -123,7 +123,7 @@ const PrintableFinancialReport = ({
               <th className="border border-slate-300 p-2 text-right">Total Keluar</th>
               <th className="border border-slate-300 p-2 text-right">Selisih (Net)</th>
               <th className="border border-slate-300 p-2 text-center">Jumlah Trx</th>
-              <th className="border border-slate-300 p-2 text-left">Manajer BAK / Rumah Koin</th>
+              <th className="border border-slate-300 p-2 text-left">Petugas</th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +135,11 @@ const PrintableFinancialReport = ({
                 <td className="border border-slate-300 p-2 text-right text-rose-700 font-medium">-{formatRupiah(row.totalKeluar)}</td>
                 <td className="border border-slate-300 p-2 text-right font-bold text-slate-900">{formatRupiah(row.net)}</td>
                 <td className="border border-slate-300 p-2 text-center font-medium">{row.jmlTrx} trx</td>
-                <td className="border border-slate-300 p-2 text-slate-700">{row.staff || 'Manajer BAK / Rumah Koin'}</td>
+                <td className="border border-slate-300 p-2 text-slate-700">
+                  {(!row.staff || row.staff === 'Staff Rumah Koin' || row.staff === '—' || String(row.staff).toLowerCase().includes('staff'))
+                    ? 'Manajer BAK / Rumah Koin'
+                    : row.staff}
+                </td>
               </tr>
             ))}
           </tbody>

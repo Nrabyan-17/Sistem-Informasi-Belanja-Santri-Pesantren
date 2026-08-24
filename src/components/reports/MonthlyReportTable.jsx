@@ -28,7 +28,7 @@ const MonthlyReportTable = ({
               <th className="text-left">TOTAL KELUAR</th>
               <th className="text-left">SELISIH DANA</th>
               <th className="text-left">JUMLAH TRANSAKSI</th>
-              <th className="text-left">MANAJER BAK / RUMAH KOIN</th>
+              <th className="text-left">PETUGAS</th>
               <th className="text-center">AKSI</th>
             </tr>
           </thead>
@@ -57,7 +57,9 @@ const MonthlyReportTable = ({
                     {row.jmlTrx} transaksi
                   </td>
                   <td className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                    {row.staff || 'Manajer BAK / Rumah Koin'}
+                    {(!row.staff || row.staff === 'Staff Rumah Koin' || row.staff === '—' || String(row.staff).toLowerCase().includes('staff'))
+                      ? 'Manajer BAK / Rumah Koin'
+                      : row.staff}
                   </td>
                   <td>
                     <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>

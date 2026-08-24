@@ -23,7 +23,7 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
           totalKeluar: m.pengeluaran,
           net: m.net,
           jmlTrx: m.jumlah_transaksi ?? 0,
-          staff: m.staff || '\u2014',
+          staff: (!m.staff || m.staff === 'Staff Rumah Koin' || m.staff === '\u2014' || String(m.staff).toLowerCase().includes('staff')) ? 'Manajer BAK / Rumah Koin' : m.staff,
           status: m.status || 'Selesai',
         }));
         setRows(list);
