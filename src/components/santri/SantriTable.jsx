@@ -43,7 +43,7 @@ const SantriTable = ({
       </div>
 
       <div className="user-table-wrapper overflow-x-auto pb-1">
-        <table className="user-table w-full min-w-[680px]">
+        <table className="user-table w-full min-w-[760px]">
           <thead>
             <tr>
               <th className="w-10 text-center">
@@ -56,6 +56,7 @@ const SantriTable = ({
                 />
               </th>
               <th className="text-left">SANTRI</th>
+              <th className="text-left">KELAS</th>
               <th className="text-left">TANGGAL LAHIR</th>
               <th className="text-left">VA</th>
               <th className="text-left">SALDO</th>
@@ -67,7 +68,7 @@ const SantriTable = ({
             {loading ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="text-center py-14 text-slate-500 dark:text-slate-400 font-semibold"
                 >
                   <div className="flex flex-col items-center justify-center gap-3">
@@ -98,7 +99,7 @@ const SantriTable = ({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-slate-400 font-medium">
+                <td colSpan={8} className="text-center py-8 text-slate-400 font-medium">
                   Tidak ada data santri yang sesuai filter.
                 </td>
               </tr>
@@ -133,10 +134,19 @@ const SantriTable = ({
                             {santri.nama}
                           </span>
                           <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">
-                            NIS: {santri.nis}{santri.kelas ? ` • Kelas ${santri.kelas}` : ''}
+                            NIS: {santri.nis}
                           </span>
                         </div>
                       </div>
+                    </td>
+                    <td className="py-3">
+                      {santri.kelas ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 font-mono">
+                          {santri.kelas}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500 font-medium text-xs">—</span>
+                      )}
                     </td>
                     <td className="py-3">
                       <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">

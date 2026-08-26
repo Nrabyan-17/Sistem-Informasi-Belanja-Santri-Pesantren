@@ -1,16 +1,26 @@
+import { useState } from 'react';
 import Modal from '../common/Modal';
 
 // Modal Form Tambah / Edit Data Staff
 const StaffModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.(Object.fromEntries(formData));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? 'Edit Staff' : 'Tambah Staff Baru'}>
       <form
         className="user-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          onSubmit?.(Object.fromEntries(formData));
-        }}
+        onSubmit={handleSubmit}
       >
         <div className="form-group">
           <label>NIP</label>
@@ -44,9 +54,21 @@ const StaffModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
             <option value="nonaktif">Non-Aktif</option>
           </select>
         </div>
-        <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>Batal</button>
-          <button type="submit" className="btn btn-primary">Simpan</button>
+        <div className="form-actions flex items-center justify-end gap-3 pt-3">
+          <button type="button" disabled={isSubmitting} className="btn btn-secondary disabled:opacity-60" onClick={onClose}>Batal</button>
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary disabled:opacity-60 flex items-center justify-center gap-2">
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <span>Simpan</span>
+            )}
+          </button>
         </div>
       </form>
     </Modal>

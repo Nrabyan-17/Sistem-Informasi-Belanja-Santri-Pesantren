@@ -19,6 +19,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const [customNis, setCustomNis] = useState('');
   const [nominal, setNominal] = useState('');
   const [isConfirmWithdrawalModalOpen, setIsConfirmWithdrawalModalOpen] = useState(false);
+  const [isProcessingWithdrawal, setIsProcessingWithdrawal] = useState(false);
   const [isSuccessModal, setIsSuccessModal] = useState(false);
   const [isInsufficientModal, setIsInsufficientModal] = useState(false);
   const [insufficientData, setInsufficientData] = useState(null);
@@ -66,10 +67,10 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   // Filter daftar santri untuk rekomendasi autocomplete
   const filteredSuggestions = searchQuery
     ? santriOptions.filter(
-        (s) =>
-          s.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.nis.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (s) =>
+        s.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.nis.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   // Find santri object based on selected NIS or search match
@@ -85,12 +86,12 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const handleInitiateWithdrawal = (e) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
-    
+
     if (isNaN(amount) || amount <= 0) {
       setPopupConfig({ isOpen: true, type: 'warning', title: 'Nominal Tidak Valid', message: 'Silakan masukkan nominal penarikan koin yang valid (lebih dari 0).' });
       return;
     }
-    
+
     if (amount > 30000) {
       setPopupConfig({ isOpen: true, type: 'error', title: 'Batas Penarikan Koin', message: 'Batas maksimal penarikan koin santri adalah Rp 30.000 per 2 hari.' });
       return;
@@ -115,12 +116,13 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   // Step 2: Eksekusi penarikan koin setelah staff mengonfirmasi di modal validasi
   const handleExecuteWithdrawal = async () => {
     const amount = parseInt(nominal || '0', 10);
-    
+
     if (!activeSantri?.id) {
       setPopupConfig({ isOpen: true, type: 'error', title: 'Santri Belum Dipilih', message: 'Silakan pilih santri yang terdaftar di sistem terlebih dahulu.' });
       return;
     }
 
+    setIsProcessingWithdrawal(true);
     try {
       // Panggil API penarikan backend
       const apiRes = await penarikanApi.store({ santri_id: activeSantri.id, nominal: amount });
@@ -174,9 +176,11 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             setSantriOptions(mapped);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     } catch (err) {
       setPopupConfig({ isOpen: true, type: 'error', title: 'Penarikan Ditolak', message: err.message || 'Gagal memproses penarikan koin pada server.' });
+    } finally {
+      setIsProcessingWithdrawal(false);
     }
   };
 
@@ -400,22 +404,20 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       {/* Pop-up Modal Validasi Konfirmasi Data Penarikan Koin */}
       {isConfirmWithdrawalModalOpen && (
         <div
-          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn"
           onClick={() => setIsConfirmWithdrawalModalOpen(false)}
         >
           <div
-            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-            style={{ padding: '36px 28px 28px 28px' }}
+            className="success-modal-card modal-animate-pop my-auto relative"
+            style={{ padding: '36px 32px 32px 32px', maxWidth: '480px' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top Amber Shield / Question Icon Box */}
             <div
-              className="modal-badge-bounce rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center shrink-0 shadow-xs"
-              style={{ width: '60px', height: '60px', marginBottom: '16px' }}
+              className="modal-badge-bounce w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900/50 flex items-center justify-center shrink-0 mx-auto mb-4 shadow-sm"
             >
               <svg
-                className="text-amber-600 dark:text-amber-400"
-                style={{ width: '30px', height: '30px' }}
+                className="text-amber-600 dark:text-amber-400 w-8 h-8"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -431,24 +433,25 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
             {/* Title */}
             <h3
-              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-xl sm:text-2xl mb-1.5"
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-xl sm:text-2xl mb-2"
             >
               Konfirmasi Penarikan Koin
             </h3>
 
             {/* Description */}
             <p
-              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-xs sm:text-sm px-2 mb-5"
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-xs sm:text-sm px-2 mb-2"
             >
               Apakah Anda sudah yakin data penarikan koin santri ini sudah benar?
             </p>
 
-            {/* Ringkasan Box dengan Ikon Foto Santri */}
+            {/* Detail Summary Card dengan Padding & Row Gap Sangat Lega */}
             <div
-              className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl text-left flex flex-col p-4 sm:p-5 mb-6 gap-3"
+              className="success-modal-details w-full text-left"
+              style={{ margin: '20px 0 24px 0', padding: '20px 22px', gap: '14px' }}
             >
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Santri:</span>
+              <div className="success-modal-row items-center py-0.5">
+                <span className="success-modal-label text-xs">Santri:</span>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600/30 shadow-xs">
                     {activeSantri.foto ? (
@@ -461,49 +464,69 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                       getInitials(activeSantri.nama)
                     )}
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                  <strong className="success-modal-value text-xs sm:text-sm">
                     {activeSantri.nama} ({activeSantri.nis}{activeSantri.kelas ? ` • Kelas ${activeSantri.kelas}` : ''})
-                  </span>
+                  </strong>
                 </div>
               </div>
-              <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2.5">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Nominal Penarikan:</span>
-                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono text-sm sm:text-base">
+
+              <div className="success-modal-divider"></div>
+
+              <div className="success-modal-row py-0.5">
+                <span className="success-modal-label text-xs">Nominal Penarikan:</span>
+                <strong className="success-modal-value text-emerald-700 dark:text-emerald-400 font-mono text-sm sm:text-base font-extrabold">
                   Rp {formatRupiah(parseInt(nominal || '0', 10))}
-                </span>
+                </strong>
               </div>
-              <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2.5">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Estimasi Sisa Saldo:</span>
-                <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm sm:text-base">
+
+              <div className="success-modal-divider"></div>
+
+              <div className="success-modal-row py-0.5">
+                <span className="success-modal-label text-xs">Estimasi Sisa Saldo:</span>
+                <strong className="success-modal-value text-slate-900 dark:text-slate-100 font-mono text-sm sm:text-base font-extrabold">
                   Rp {formatRupiah(activeSantri.saldo - parseInt(nominal || '0', 10))}
-                </span>
+                </strong>
               </div>
-              <div
-                className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2.5"
-              >
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Status Penarikan:</span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+
+              <div className="success-modal-divider"></div>
+
+              <div className="success-modal-row py-0.5">
+                <span className="success-modal-label text-xs">Status Penarikan:</span>
+                <span className="inline-flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400 text-xs sm:text-sm">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
                   Menunggu Konfirmasi Staff
                 </span>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons dengan Gap & Padding Lega */}
             <div className="grid grid-cols-2 gap-3 w-full">
               <button
                 type="button"
+                disabled={isProcessingWithdrawal}
                 onClick={() => setIsConfirmWithdrawalModalOpen(false)}
-                className="w-full h-12 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all cursor-pointer flex items-center justify-center text-sm"
+                className={`w-full h-12 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all flex items-center justify-center text-sm ${isProcessingWithdrawal ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:scale-[0.99]'
+                  }`}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isProcessingWithdrawal}
                 onClick={handleExecuteWithdrawal}
-                className="w-full h-12 bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-sm"
+                className="w-full h-12 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-2 text-sm"
               >
-                <span>Ya, Proses</span>
+                {isProcessingWithdrawal ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Proses</span>
+                )}
               </button>
             </div>
           </div>
@@ -514,7 +537,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       {isSuccessModal && lastTxData && (
         <div className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
           <div className="success-modal-card modal-animate-pop">
-            
+
             {/* Green Checkmark Badge Icon */}
             <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
               ✓

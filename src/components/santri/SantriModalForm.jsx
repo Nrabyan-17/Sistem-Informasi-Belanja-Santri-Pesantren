@@ -15,6 +15,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   const [status, setStatus] = useState('aktif');
   const [foto, setFoto] = useState(null);
   const [fotoPreview, setFotoPreview] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -27,6 +28,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       setStatus(initialData.status || 'aktif');
       setFoto(null);
       setFotoPreview(initialData.foto || initialData.foto_url || '');
+      setIsSubmitting(false);
     }
   }, [isOpen, initialData]);
 
@@ -37,19 +39,24 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     setFotoPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit?.({
-      ...initialData,
-      nis,
-      nama,
-      kelas,
-      jenisKelamin,
-      tglLahir,
-      vaJajan,
-      status,
-      foto,
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({
+        ...initialData,
+        nis,
+        nama,
+        kelas,
+        jenisKelamin,
+        tglLahir,
+        vaJajan,
+        status,
+        foto,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass =
@@ -229,16 +236,30 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         <div className="modal-actions-footer flex justify-end gap-2.5 pt-3 mt-1 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
-            className="btn btn-secondary px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold rounded-xl text-xs transition-all cursor-pointer"
+            disabled={isSubmitting}
+            className={`btn btn-secondary px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all ${
+              isSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'
+            }`}
             onClick={onClose}
           >
             Batal
           </button>
           <button
             type="submit"
-            className="btn btn-primary btn-save px-5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-xs transition-all cursor-pointer"
+            disabled={isSubmitting}
+            className="btn btn-primary btn-save px-5 py-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 min-w-[140px]"
           >
-            {isEdit ? 'Simpan Perubahan' : 'Tambah Santri'}
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Memproses...</span>
+              </>
+            ) : (
+              isEdit ? 'Simpan Perubahan' : 'Tambah Santri'
+            )}
           </button>
         </div>
       </form>

@@ -74,6 +74,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
 
   const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
@@ -103,7 +105,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         const q = search.toLowerCase();
         const mNama = s.nama?.toLowerCase().includes(q);
         const mNis = s.nis?.toLowerCase().includes(q);
-        if (!mNama && !mNis) return false;
+        const mKelas = s.kelas?.toLowerCase().includes(q);
+        if (!mNama && !mNis && !mKelas) return false;
       }
       if (statusFilter !== 'Semua Status' && s.status !== statusFilter) return false;
       return true;
@@ -156,20 +159,24 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     setIsBatchDeleteOpen(true);
   };
 
-  const confirmBatchDelete = () => {
+  const confirmBatchDelete = async () => {
+    setIsBatchDeleting(true);
     const deletedCount = selectedIds.length;
     const deletedInfo = {
       nama: `${deletedCount} Santri Terpilih`,
       count: deletedCount,
     };
 
-    selectedIds.forEach((id) => {
-      santriApi.destroy(id).catch(() => {});
-    });
-
-    setSantriList((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
-    setSelectedIds([]);
-    setIsBatchDeleteOpen(false);
+    try {
+      await Promise.allSettled(selectedIds.map((id) => santriApi.destroy(id)));
+    } catch {
+      // ignore
+    } finally {
+      setSantriList((prev) => prev.filter((s) => !selectedIds.includes(s.id)));
+      setSelectedIds([]);
+      setIsBatchDeleting(false);
+      setIsBatchDeleteOpen(false);
+    }
 
     setDeletedSantriPayload(deletedInfo);
     setIsSuccessDeletedSantriOpen(true);
@@ -197,22 +204,24 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     setIsDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteTarget) {
+      setIsDeleting(true);
       const deletedInfo = {
         nama: deleteTarget.nama,
         nis: deleteTarget.nis,
         count: 1,
       };
-      santriApi.destroy(deleteTarget.id)
-        .then(() => loadSantriData())
-        .catch(() => {
-          setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-        })
-        .finally(() => {
-          setIsDeleteOpen(false);
-          setDeleteTarget(null);
-        });
+      try {
+        await santriApi.destroy(deleteTarget.id);
+        await loadSantriData();
+      } catch {
+        setSantriList((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteOpen(false);
+        setDeleteTarget(null);
+      }
 
       setDeletedSantriPayload(deletedInfo);
       setIsSuccessDeletedSantriOpen(true);
@@ -446,22 +455,36 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             <div className="flex items-center w-full" style={{ gap: '14px' }}>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => {
                   setIsDeleteOpen(false);
                   setDeleteTarget(null);
                 }}
-                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
+                  isDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={confirmDelete}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
                 style={{ height: '50px', fontSize: '15px' }}
               >
-                Ya, Hapus
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Hapus</span>
+                )}
               </button>
             </div>
           </div>
@@ -521,19 +544,33 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             <div className="flex items-center w-full" style={{ gap: '14px' }}>
               <button
                 type="button"
+                disabled={isBatchDeleting}
                 onClick={() => setIsBatchDeleteOpen(false)}
-                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
+                  isBatchDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isBatchDeleting}
                 onClick={confirmBatchDelete}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
                 style={{ height: '50px', fontSize: '15px' }}
               >
-                Ya, Hapus Semua
+                {isBatchDeleting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Hapus Semua</span>
+                )}
               </button>
             </div>
           </div>

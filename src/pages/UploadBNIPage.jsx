@@ -97,6 +97,7 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
 
   // State untuk Pop-up Validasi Keyakinan Staff Sebelum Simpan Saldo
   const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -267,22 +268,26 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
 
   // Handler eksekusi simpan saldo final setelah staff yakin di modal validasi
   const handleFinalConfirmSave = async () => {
-    setIsValidationModalOpen(false);
-
-    // 1. Eksekusi apply via Backend Laravel API jika uploadId tersedia
-    if (uploadId) {
-      try {
+    setIsSubmitting(true);
+    try {
+      // 1. Eksekusi apply via Backend Laravel API jika uploadId tersedia
+      if (uploadId) {
         const validItemIds = parsedData
           .filter((d) => d.status === 'valid')
           .map((d) => d.id);
         await bniApi.apply(uploadId, validItemIds);
-      } catch (err) {
-        console.warn('Gagal apply BNI ke backend:', err.message);
       }
+      setIsConfirmed(true);
+      setIsValidationModalOpen(false);
+      setIsSuccessModalOpen(true);
+    } catch (err) {
+      console.warn('Gagal apply BNI ke backend:', err.message);
+      setIsConfirmed(true);
+      setIsValidationModalOpen(false);
+      setIsSuccessModalOpen(true);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsConfirmed(true);
-    setIsSuccessModalOpen(true);
   };
 
   const handleReset = () => {
@@ -290,6 +295,7 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
     setParsedData(null);
     setUploadId(null);
     setIsConfirmed(false);
+    setIsSubmitting(false);
     setFilterMode('all');
     setIsDuplicateModalOpen(false);
     setIsValidationModalOpen(false);
@@ -888,19 +894,33 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
             <div className="grid grid-cols-2 gap-3 w-full">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => setIsValidationModalOpen(false)}
-                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all cursor-pointer flex items-center justify-center"
+                className={`w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all flex items-center justify-center ${
+                  isSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer'
+                }`}
                 style={{ height: '50px', fontSize: '14px' }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleFinalConfirmSave}
-                className="w-full bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full bg-emerald-800 hover:bg-emerald-900 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 text-white font-bold rounded-2xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-2"
                 style={{ height: '50px', fontSize: '14px' }}
               >
-                <span>Ya, Saya Yakin</span>
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Saya Yakin</span>
+                )}
               </button>
             </div>
           </div>

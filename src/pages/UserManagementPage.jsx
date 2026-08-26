@@ -109,6 +109,8 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
 
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
 
   // State untuk Pop-Up Modal Sukses (Tambah, Edit, & Hapus Pengguna)
   const [isSuccessCreatedModalOpen, setIsSuccessCreatedModalOpen] = useState(false);
@@ -207,26 +209,31 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
   };
 
   // Confirm delete user handler
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (deleteUserTarget) {
+      setIsDeleting(true);
       const deletedInfo = {
         nama: deleteUserTarget.nama,
         role: deleteUserTarget.role,
         count: 1,
       };
 
-      // Call appropriate API
-      if (deleteUserTarget.role?.toLowerCase().includes('kabid') || deleteUserTarget.role?.toLowerCase().includes('admin')) {
-        adminApi.destroy(deleteUserTarget.id).catch(() => {});
-      } else if (deleteUserTarget.role?.toLowerCase().includes('staff')) {
-        staffApi.destroy(deleteUserTarget.id).catch(() => {});
-      } else if (deleteUserTarget.role?.toLowerCase().includes('wali')) {
-        waliUserApi.destroy(deleteUserTarget.id).catch(() => {});
+      try {
+        if (deleteUserTarget.role?.toLowerCase().includes('kabid') || deleteUserTarget.role?.toLowerCase().includes('admin')) {
+          await adminApi.destroy(deleteUserTarget.id);
+        } else if (deleteUserTarget.role?.toLowerCase().includes('staff')) {
+          await staffApi.destroy(deleteUserTarget.id);
+        } else if (deleteUserTarget.role?.toLowerCase().includes('wali')) {
+          await waliUserApi.destroy(deleteUserTarget.id);
+        }
+      } catch (err) {
+        console.warn('Gagal hapus user di server:', err.message);
+      } finally {
+        setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
+        setIsDeleting(false);
+        setIsDeleteModalOpen(false);
+        setDeleteUserTarget(null);
       }
-
-      setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
-      setIsDeleteModalOpen(false);
-      setDeleteUserTarget(null);
 
       // Buka Pop-Up Form Data Pengguna Berhasil Dihapus
       setDeletedUserPayload(deletedInfo);
@@ -280,29 +287,36 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
     setIsBatchDeleteOpen(true);
   };
 
-  const confirmBatchDelete = () => {
+  const confirmBatchDelete = async () => {
+    setIsBatchDeleting(true);
     const deletedCount = validSelectedIds.length;
     const deletedInfo = {
       nama: `${deletedCount} Pengguna Terpilih`,
       count: deletedCount,
     };
 
-    // Delete from API/storage for each selected user
-    users.forEach((u) => {
-      if (validSelectedIds.includes(u.id)) {
-        if (u.role?.toLowerCase().includes('kabid') || u.role?.toLowerCase().includes('admin')) {
-          adminApi.destroy(u.id).catch(() => {});
-        } else if (u.role?.toLowerCase().includes('staff')) {
-          staffApi.destroy(u.id).catch(() => {});
-        } else if (u.role?.toLowerCase().includes('wali')) {
-          waliUserApi.destroy(u.id).catch(() => {});
-        }
-      }
-    });
-
-    setUsers((prev) => prev.filter((u) => !validSelectedIds.includes(u.id)));
-    setSelectedIds([]);
-    setIsBatchDeleteOpen(false);
+    try {
+      const deletePromises = users
+        .filter((u) => validSelectedIds.includes(u.id))
+        .map((u) => {
+          if (u.role?.toLowerCase().includes('kabid') || u.role?.toLowerCase().includes('admin')) {
+            return adminApi.destroy(u.id);
+          } else if (u.role?.toLowerCase().includes('staff')) {
+            return staffApi.destroy(u.id);
+          } else if (u.role?.toLowerCase().includes('wali')) {
+            return waliUserApi.destroy(u.id);
+          }
+          return Promise.resolve();
+        });
+      await Promise.allSettled(deletePromises);
+    } catch (err) {
+      console.warn('Gagal batch delete user:', err.message);
+    } finally {
+      setUsers((prev) => prev.filter((u) => !validSelectedIds.includes(u.id)));
+      setSelectedIds([]);
+      setIsBatchDeleting(false);
+      setIsBatchDeleteOpen(false);
+    }
 
     // Buka Pop-Up Form Data Pengguna Berhasil Dihapus
     setDeletedUserPayload(deletedInfo);
@@ -592,22 +606,36 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
             <div className="flex items-center w-full" style={{ gap: '14px' }}>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => {
                   setIsDeleteModalOpen(false);
                   setDeleteUserTarget(null);
                 }}
-                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
+                  isDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={confirmDeleteUser}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
                 style={{ height: '50px', fontSize: '15px' }}
               >
-                Ya, Hapus
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Hapus</span>
+                )}
               </button>
             </div>
           </div>
@@ -667,19 +695,33 @@ const UserManagementPage = ({ Layout = MainLayout, isStaffVersion = false, categ
             <div className="flex items-center w-full" style={{ gap: '14px' }}>
               <button
                 type="button"
+                disabled={isBatchDeleting}
                 onClick={() => setIsBatchDeleteOpen(false)}
-                className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center"
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
+                  isBatchDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isBatchDeleting}
                 onClick={confirmBatchDelete}
-                className="flex-1 bg-rose-600 hover:bg-rose-700 active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02] text-white font-bold rounded-2xl shadow-md shadow-rose-900/20 transition-all duration-150 cursor-pointer flex items-center justify-center gap-2"
                 style={{ height: '50px', fontSize: '15px' }}
               >
-                Ya, Hapus Semua
+                {isBatchDeleting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses...</span>
+                  </>
+                ) : (
+                  <span>Ya, Hapus Semua</span>
+                )}
               </button>
             </div>
           </div>

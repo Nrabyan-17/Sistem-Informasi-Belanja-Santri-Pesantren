@@ -71,9 +71,17 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               Kelas
             </span>
-            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-              {santri.kelas || '—'}
-            </span>
+            {santri.kelas ? (
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 inline-flex items-center">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60 font-mono">
+                  {santri.kelas}
+                </span>
+              </span>
+            ) : (
+              <span className="text-sm font-bold text-slate-400 dark:text-slate-500">
+                —
+              </span>
+            )}
           </div>
 
           {/* Tanggal Lahir */}

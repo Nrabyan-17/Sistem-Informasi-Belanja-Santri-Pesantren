@@ -145,9 +145,19 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer disabled:opacity-60 flex items-center justify-center"
+            className="px-6 sm:px-8 py-3 sm:py-3.5 h-11 sm:h-12 min-w-[190px] bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs sm:text-sm shadow-md shadow-emerald-900/10 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <span>Simpan Password Baru</span>
+            )}
           </button>
         </div>
       </form>
