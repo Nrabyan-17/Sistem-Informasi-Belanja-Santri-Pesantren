@@ -21,6 +21,7 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   const [status, setStatus] = useState('aktif');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -33,12 +34,28 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       setStatus(String(initialData.status || 'aktif').toLowerCase());
       setPassword('');
       setShowPassword(false);
+      setPasswordError('');
       setIsSubmitting(false);
     }
   }, [isOpen, initialData, isEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validasi Password Minimal 6 Karakter
+    if (!isEdit) {
+      if (!password || password.length < 6) {
+        setPasswordError('Password minimal harus terdiri dari 6 karakter.');
+        return;
+      }
+    } else {
+      if (password.length > 0 && password.length < 6) {
+        setPasswordError('Password baru minimal harus terdiri dari 6 karakter.');
+        return;
+      }
+    }
+
+    setPasswordError('');
     setIsSubmitting(true);
     try {
       await onSubmit?.({
@@ -102,16 +119,25 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         {/* MASUKKAN PASSWORD (Tampil Saat Tambah Pengguna Baru) */}
         {!isEdit && (
           <div className="form-group-section flex flex-col gap-1">
-            <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-              MASUKKAN PASSWORD
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                MASUKKAN PASSWORD
+              </label>
+              <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">Min. 6 Karakter</span>
+            </div>
             <div className="relative flex items-center">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className="form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
-                placeholder="Masukkan password awal untuk login..."
+                minLength={6}
+                className={`form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border ${
+                  passwordError ? 'border-rose-500 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-600'
+                } rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-900 transition-all`}
+                placeholder="Masukkan password awal untuk login (min. 6 karakter)..."
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError('');
+                }}
                 required
               />
               <button
@@ -124,6 +150,23 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
                 {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
               </button>
             </div>
+            {passwordError ? (
+              <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-0.5">
+                <span>⚠️</span> {passwordError}
+              </p>
+            ) : password.length > 0 && password.length < 6 ? (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 mt-0.5">
+                <span>⚠️</span> Minimal 6 karakter (saat ini {password.length}/6)
+              </p>
+            ) : password.length >= 6 ? (
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
+                <span>✓</span> Password memenuhi syarat (minimal 6 karakter)
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                Password wajib minimal 6 karakter
+              </p>
+            )}
           </div>
         )}
 
@@ -161,16 +204,25 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
             </div>
 
             <div className="form-group-section flex flex-col gap-1">
-              <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                GANTI PASSWORD
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="form-section-label text-[10px] font-bold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
+                  GANTI PASSWORD
+                </label>
+                <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">Min. 6 Karakter</span>
+              </div>
               <div className="relative flex items-center">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  className="form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:bg-white dark:focus:bg-slate-900 transition-all"
+                  minLength={6}
+                  className={`form-control-input w-full px-3.5 py-2 pr-10 bg-slate-50 dark:bg-slate-800 border ${
+                    passwordError ? 'border-rose-500 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-600'
+                  } rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-900 transition-all`}
                   placeholder="Kosongkan jika tidak diubah..."
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
                 />
                 <button
                   type="button"
@@ -182,6 +234,23 @@ const UserModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
                   {showPassword ? <IconEyeOff className="w-4 h-4" /> : <IconEye className="w-4 h-4" />}
                 </button>
               </div>
+              {passwordError ? (
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1 mt-0.5">
+                  <span>⚠️</span> {passwordError}
+                </p>
+              ) : password.length > 0 && password.length < 6 ? (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 mt-0.5">
+                  <span>⚠️</span> Minimal 6 karakter ({password.length}/6)
+                </p>
+              ) : password.length >= 6 ? (
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
+                  <span>✓</span> Password baru memenuhi syarat
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+                  Minimal 6 karakter jika ingin mengganti
+                </p>
+              )}
             </div>
           </div>
         )}
