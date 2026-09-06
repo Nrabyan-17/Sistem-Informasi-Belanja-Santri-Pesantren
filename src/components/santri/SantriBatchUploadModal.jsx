@@ -540,7 +540,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
           </div>
 
           {/* Opsi Tindakan Cepat (Global Options) dengan Padding Presisi & Jarak Dekat Proporsional */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <button
               type="button"
               onClick={() => handleApplyGlobalResolution('skip')}
@@ -588,31 +588,6 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
                 Timpa data lama di database dengan data baru dari file ini.
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setGlobalResolution('custom')}
-              style={{ padding: '16px 20px', gap: '8px' }}
-              className={`rounded-2xl border text-left flex flex-col transition-all cursor-pointer ${
-                globalResolution === 'custom'
-                  ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 shadow-sm ring-2 ring-emerald-500/20'
-                  : 'border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-2xs'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2 w-full">
-                <span className="text-xs sm:text-sm font-black flex items-center gap-1.5">
-                  <span>🔍</span> Pilih Per Baris
-                </span>
-                {globalResolution === 'custom' && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
-                    ● Aktif
-                  </span>
-                )}
-              </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
-                Atur tindakan secara manual per baris santri pada tabel di bawah.
               </span>
             </button>
           </div>
