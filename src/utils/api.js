@@ -117,6 +117,7 @@ export const santriApi = {
     return apiFetch(`/santris/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   },
   destroy: (id) => apiFetch(`/santris/${id}`, { method: 'DELETE' }),
+  bulkDestroy: (ids) => apiFetch('/santris/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
   import: (formData) => apiFetchForm('/santris/import', formData, 'POST'),
   importPreview: (formData) => apiFetchForm('/santris/import-preview', formData, 'POST'),
   importConfirm: (items) => apiFetch('/santris/import-confirm', { method: 'POST', body: JSON.stringify({ items }) }),

@@ -15,6 +15,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   const [status, setStatus] = useState('aktif');
   const [foto, setFoto] = useState(null);
   const [fotoPreview, setFotoPreview] = useState('');
+  const [hapusFoto, setHapusFoto] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
       setStatus(initialData.status || 'aktif');
       setFoto(null);
       setFotoPreview(initialData.foto || initialData.foto_url || '');
+      setHapusFoto(false);
       setIsSubmitting(false);
     }
   }, [isOpen, initialData]);
@@ -37,6 +39,7 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     if (!file) return;
     setFoto(file);
     setFotoPreview(URL.createObjectURL(file));
+    setHapusFoto(false);
   };
 
   const handleSubmit = async (e) => {
@@ -53,6 +56,8 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         vaJajan,
         status,
         foto,
+        fotoPreview,
+        hapusFoto,
       });
     } finally {
       setIsSubmitting(false);
@@ -126,11 +131,11 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
           </div>
         </div>
 
-        {/* FOTO SANTRI — Opsional */}
-        <div className="form-group-section flex flex-col gap-1.5">
+        {/* FOTO SANTRI (OPSIONAL) */}
+        <div className="form-group-section flex flex-col gap-2">
           <label className={labelClass}>FOTO SANTRI <span className="normal-case font-medium text-slate-400 dark:text-slate-500">(Opsional — bisa diunggah nanti)</span></label>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 min-w-[64px] min-h-[64px] rounded-full bg-slate-100 dark:bg-slate-800 border-2 border-emerald-500/30 dark:border-emerald-600/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm aspect-square">
+          <div className="flex items-center gap-5">
+            <div className="w-22 h-22 sm:w-26 sm:h-26 min-w-[88px] min-h-[88px] sm:min-w-[104px] sm:min-h-[104px] rounded-full bg-slate-100 dark:bg-slate-800 border-2 sm:border-3 border-emerald-500/40 dark:border-emerald-600/40 ring-4 ring-emerald-50 dark:ring-emerald-950/40 flex items-center justify-center overflow-hidden shrink-0 shadow-md aspect-square">
               {fotoPreview ? (
                 <img
                   src={fotoPreview}
@@ -138,16 +143,16 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
                   className="w-full h-full object-cover rounded-full aspect-square block"
                 />
               ) : (
-                <span className="text-2xl font-black text-slate-400">
+                <span className="text-3xl sm:text-4xl font-black text-slate-400">
                   {(nama || 'S').charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 rounded-lg text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-950 transition-all cursor-pointer w-fit"
+                className="px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 rounded-xl text-xs sm:text-sm font-bold hover:bg-emerald-100 dark:hover:bg-emerald-950 transition-all cursor-pointer w-fit shadow-xs"
               >
                 {fotoPreview ? 'Ganti Foto' : 'Upload Foto'}
               </button>
@@ -157,9 +162,10 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
                   onClick={() => {
                     setFoto(null);
                     setFotoPreview('');
+                    setHapusFoto(true);
                     if (fileInputRef.current) fileInputRef.current.value = '';
                   }}
-                  className="px-3 py-1 text-rose-600 dark:text-rose-400 text-[11px] font-semibold hover:underline cursor-pointer w-fit"
+                  className="px-3 py-1 text-rose-600 dark:text-rose-400 text-xs font-semibold hover:underline cursor-pointer w-fit text-left"
                 >
                   Hapus Foto
                 </button>

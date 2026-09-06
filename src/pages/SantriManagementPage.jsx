@@ -168,7 +168,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
     };
 
     try {
-      await Promise.allSettled(selectedIds.map((id) => santriApi.destroy(id)));
+      await santriApi.bulkDestroy(selectedIds);
     } catch {
       // ignore
     } finally {
@@ -242,6 +242,10 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       alamat: formData.alamat || null,
     };
 
+    if (formData.hapusFoto) {
+      payload.hapus_foto = 1;
+    }
+
     try {
       if (editSantri && editSantri.id) {
         // Edit existing
@@ -257,7 +261,11 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           await santriApi.update(editSantri.id, payload);
         }
 
-        const updated = { ...editSantri, ...formData };
+        const updated = {
+          ...editSantri,
+          ...formData,
+          foto: formData.hapusFoto ? null : (formData.foto instanceof File ? URL.createObjectURL(formData.foto) : (formData.fotoPreview || editSantri.foto)),
+        };
         setEditedSantriData(updated);
         setIsSuccessEditedSantriOpen(true);
       } else {
@@ -584,47 +592,68 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           onClick={() => setIsSuccessSantriCreatedOpen(false)}
         >
           <div
-            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-            style={{ padding: '36px 28px 28px 28px' }}
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px', maxWidth: '460px' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Green Checkmark Badge Icon */}
-            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+            <div
+              className="modal-badge-bounce rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto shadow-md ring-8 ring-emerald-50/80 dark:ring-emerald-900/20 shrink-0"
+              style={{ width: '74px', height: '74px', marginBottom: '20px' }}
+            >
               ✓
             </div>
 
             {/* Title & Subtitle */}
-            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
               Data Santri Berhasil Ditambahkan!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
-              Data santri atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{createdSantriData.nama}</strong> telah berhasil didaftarkan dan disimpan.
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed px-1"
+              style={{ fontSize: '13.5px', marginBottom: '24px', maxWidth: '360px' }}
+            >
+              Data santri atas nama <strong className="font-extrabold text-slate-800 dark:text-slate-200">{createdSantriData.nama}</strong> telah berhasil didaftarkan dan disimpan.
             </p>
 
-            {/* Detail Breakdown Card dengan Spacing Teratur */}
-            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Santri:</span>
-                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+            {/* Detail Breakdown Card dengan Spacing Teratur & Lapang */}
+            <div
+              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl text-left flex flex-col shadow-2xs"
+              style={{ padding: '18px 22px', marginBottom: '24px', gap: '12px' }}
+            >
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Nama Santri:</span>
+                <strong className="font-extrabold text-slate-900 dark:text-slate-100 text-right truncate">
                   {createdSantriData.nama}
                 </strong>
               </div>
 
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
-                <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">NIS:</span>
+                <strong className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 tracking-wide">
                   {createdSantriData.nis}
                 </strong>
               </div>
 
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Kelas:</span>
+                <strong className="font-extrabold text-slate-800 dark:text-slate-200">
+                  {createdSantriData.kelas || '-'}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Status:</span>
+                <span className="inline-flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                   Tersimpan di Database
                 </span>
               </div>
@@ -634,7 +663,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             <button
               type="button"
               onClick={() => setIsSuccessSantriCreatedOpen(false)}
-              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center"
+              style={{ height: '48px' }}
             >
               Selesai &amp; Lihat Data Santri
             </button>
@@ -649,47 +679,68 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           onClick={() => setIsSuccessEditedSantriOpen(false)}
         >
           <div
-            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-            style={{ padding: '36px 28px 28px 28px' }}
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px', maxWidth: '460px' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Green Checkmark Badge Icon */}
-            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+            <div
+              className="modal-badge-bounce rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto shadow-md ring-8 ring-emerald-50/80 dark:ring-emerald-900/20 shrink-0"
+              style={{ width: '74px', height: '74px', marginBottom: '20px' }}
+            >
               ✓
             </div>
 
             {/* Title & Subtitle */}
-            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
               Data Santri Berhasil Diubah!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
-              Perubahan data santri atas nama <strong className="font-bold text-slate-800 dark:text-slate-200">{editedSantriData.nama}</strong> telah berhasil diperbarui ke dalam sistem.
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed px-1"
+              style={{ fontSize: '13.5px', marginBottom: '24px', maxWidth: '360px' }}
+            >
+              Perubahan data santri atas nama <strong className="font-extrabold text-slate-800 dark:text-slate-200">{editedSantriData.nama}</strong> telah berhasil diperbarui ke dalam sistem.
             </p>
 
             {/* Detail Breakdown Card */}
-            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Nama Santri:</span>
-                <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+            <div
+              className="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl text-left flex flex-col shadow-2xs"
+              style={{ padding: '18px 22px', marginBottom: '24px', gap: '12px' }}
+            >
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Nama Santri:</span>
+                <strong className="font-extrabold text-slate-900 dark:text-slate-100 text-right truncate">
                   {editedSantriData.nama}
                 </strong>
               </div>
 
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
-                <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">NIS:</span>
+                <strong className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400 tracking-wide">
                   {editedSantriData.nis}
                 </strong>
               </div>
 
-              <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
-                <span className="text-slate-500 dark:text-slate-400 font-semibold">Status Perubahan:</span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Kelas:</span>
+                <strong className="font-extrabold text-slate-800 dark:text-slate-200">
+                  {editedSantriData.kelas || '-'}
+                </strong>
+              </div>
+
+              <div className="w-full h-px bg-slate-200/80 dark:bg-slate-700/70"></div>
+
+              <div className="flex justify-between items-center text-sm gap-3">
+                <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">Status Perubahan:</span>
+                <span className="inline-flex items-center gap-2 font-bold text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                   Perubahan Tersimpan
                 </span>
               </div>
@@ -699,7 +750,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             <button
               type="button"
               onClick={() => setIsSuccessEditedSantriOpen(false)}
-              className="w-full h-12 py-3 bg-[#0e5d26] hover:bg-[#0b471d] active:scale-[0.99] text-white font-extrabold rounded-xl text-sm shadow-lg shadow-emerald-950/20 transition-all cursor-pointer flex items-center justify-center"
+              className="w-full bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center"
+              style={{ height: '48px' }}
             >
               Selesai &amp; Lihat Data Santri
             </button>
@@ -714,20 +766,29 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
           onClick={() => setIsSuccessDeletedSantriOpen(false)}
         >
           <div
-            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-            style={{ padding: '36px 28px 28px 28px' }}
+            className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
+            style={{ padding: '40px 32px 32px 32px', maxWidth: '460px' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Green Checkmark Badge Icon */}
-            <div className="modal-badge-bounce w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+            <div
+              className="modal-badge-bounce rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto shadow-md ring-8 ring-emerald-50/80 dark:ring-emerald-900/20 shrink-0"
+              style={{ width: '74px', height: '74px', marginBottom: '20px' }}
+            >
               ✓
             </div>
 
             {/* Title & Subtitle */}
-            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+            <h3
+              className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug"
+              style={{ fontSize: '22px', marginBottom: '8px' }}
+            >
               Data Santri Berhasil Dihapus!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+            <p
+              className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed px-1"
+              style={{ fontSize: '13.5px', marginBottom: '24px', maxWidth: '360px' }}
+            >
               {deletedSantriPayload.count > 1 ? (
                 <>Sebanyak <strong className="font-bold text-slate-800 dark:text-slate-200">{deletedSantriPayload.count} data santri</strong> telah berhasil dihapus dari sistem.</>
               ) : (
@@ -736,8 +797,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
             </p>
 
             {/* Detail Breakdown Card */}
-            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-3 mb-6">
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+            <div className="w-full bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-5 text-left flex flex-col gap-4 mb-8">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-2">
                 <span className="text-slate-500 dark:text-slate-400 font-semibold">Keterangan:</span>
                 <strong className="font-bold text-slate-900 dark:text-slate-100 text-sm">
                   {deletedSantriPayload.count > 1 ? `${deletedSantriPayload.count} Santri Terpilih` : deletedSantriPayload.nama}
@@ -747,7 +808,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
               {deletedSantriPayload.nis && (
                 <>
                   <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
-                  <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+                  <div className="flex justify-between items-center text-xs sm:text-sm py-2">
                     <span className="text-slate-500 dark:text-slate-400 font-semibold">NIS:</span>
                     <strong className="font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs">
                       {deletedSantriPayload.nis}
@@ -758,7 +819,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
               <div className="w-full h-px bg-slate-200/70 dark:bg-slate-700/70"></div>
 
-              <div className="flex justify-between items-center text-xs sm:text-sm py-0.5">
+              <div className="flex justify-between items-center text-xs sm:text-sm py-2">
                 <span className="text-slate-500 dark:text-slate-400 font-semibold">Status:</span>
                 <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>

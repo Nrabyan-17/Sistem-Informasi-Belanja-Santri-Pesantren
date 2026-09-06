@@ -356,11 +356,11 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                       const isEditing = editingRowId === row.id;
                       const isAlreadyExist = existingSantriList.some(s => String(s.nis).trim() === String(row.nis).trim());
 
-                      if (isEditing) {
+                       if (isEditing) {
                         return (
                           <tr key={row.id} className="bg-emerald-50/70 dark:bg-emerald-950/40">
-                            <td className="import-batch-col-no font-bold text-slate-500">{idx + 1}</td>
-                            <td className="import-batch-col-nis">
+                            <td className="import-batch-col-no font-bold text-slate-500 py-3">{idx + 1}</td>
+                            <td className="import-batch-col-nis py-3 px-2">
                               <input
                                 type="text"
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-mono font-bold"
@@ -368,7 +368,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 onChange={(e) => setEditFormData({ ...editFormData, nis: e.target.value })}
                               />
                             </td>
-                            <td className="import-batch-col-nama">
+                            <td className="import-batch-col-nama py-3 px-2">
                               <input
                                 type="text"
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
@@ -376,7 +376,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 onChange={(e) => setEditFormData({ ...editFormData, nama: e.target.value })}
                               />
                             </td>
-                            <td className="import-batch-col-alamat">
+                            <td className="import-batch-col-alamat py-3 px-2">
                               <input
                                 type="text"
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
@@ -384,7 +384,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 onChange={(e) => setEditFormData({ ...editFormData, alamat: e.target.value })}
                               />
                             </td>
-                            <td className="import-batch-col-tgl">
+                            <td className="import-batch-col-tgl py-3 px-2">
                               <input
                                 type="date"
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
@@ -392,7 +392,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 onChange={(e) => setEditFormData({ ...editFormData, tglLahir: e.target.value, tanggal_lahir: e.target.value })}
                               />
                             </td>
-                            <td className="import-batch-col-jk">
+                            <td className="import-batch-col-jk py-3 px-2">
                               <select
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
                                 value={editFormData.jenisKelamin || editFormData.jenis_kelamin || 'L'}
@@ -402,7 +402,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 <option value="P">P</option>
                               </select>
                             </td>
-                            <td className="import-batch-col-action">
+                            <td className="import-batch-col-action py-3 px-2">
                               <div className="flex items-center justify-center gap-1.5">
                                 <button
                                   type="button"
@@ -521,58 +521,72 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
         title="Deteksi Data Santri Ganda"
         subtitle="Ditemukan data dengan NIS yang sudah terdaftar di database. Tentukan tindakan untuk data ganda ini."
         maxWidth=""
-        style={{ width: '90vw', maxWidth: '1000px' }}
+        style={{ width: '92vw', maxWidth: '1040px' }}
       >
-        <div className="flex flex-col gap-5 pt-1">
-          {/* Warning Banner */}
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 flex items-start gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white font-black text-lg flex items-center justify-center shrink-0">
+        <div className="flex flex-col gap-6 py-2 px-1 sm:px-2">
+          {/* Warning Banner dengan Ruang Nafas yang Proporsional */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 flex items-start gap-4 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white font-black text-lg flex items-center justify-center shrink-0 shadow-xs">
               ⚠️
             </div>
-            <div className="flex flex-col gap-0.5">
-              <h4 className="text-sm font-extrabold text-amber-950 dark:text-amber-200">
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <h4 className="text-sm sm:text-base font-extrabold text-amber-950 dark:text-amber-200 leading-snug">
                 Terdeteksi {duplicateItems.length} Data Ganda (NIS Sudah Ada di Database)
               </h4>
-              <p className="text-xs text-amber-800 dark:text-amber-300">
-                Terdapat <strong>{cleanNewItems.length} data baru</strong> yang siap disimpan, dan <strong>{duplicateItems.length} data yang bentrok</strong>. Silakan pilih opsi penanganan di bawah ini:
+              <p className="text-xs sm:text-sm text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
+                Terdapat <strong className="font-bold text-amber-950 dark:text-amber-100">{cleanNewItems.length} data baru</strong> yang siap disimpan, dan <strong className="font-bold text-amber-950 dark:text-amber-100">{duplicateItems.length} data yang bentrok</strong>. Silakan pilih opsi penanganan di bawah ini:
               </p>
             </div>
           </div>
 
-          {/* Opsi Tindakan Cepat (Global Options) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {/* Opsi Tindakan Cepat (Global Options) dengan Padding Presisi & Jarak Dekat Proporsional */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <button
               type="button"
               onClick={() => handleApplyGlobalResolution('skip')}
-              className={`p-3.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+              style={{ padding: '16px 20px', gap: '8px' }}
+              className={`rounded-2xl border text-left flex flex-col transition-all cursor-pointer ${
                 globalResolution === 'skip'
-                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 shadow-2xs'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                  ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 shadow-sm ring-2 ring-emerald-500/20'
+                  : 'border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-2xs'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black">⏭️ Lewati Duplikat</span>
-                {globalResolution === 'skip' && <span className="text-emerald-600 text-xs font-bold">● Aktif</span>}
+              <div className="flex items-center justify-between gap-2 w-full">
+                <span className="text-xs sm:text-sm font-black flex items-center gap-1.5">
+                  <span>⏭️</span> Lewati Duplikat
+                </span>
+                {globalResolution === 'skip' && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                    ● Aktif
+                  </span>
+                )}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                Hanya simpan {cleanNewItems.length} data baru. Abaikan {duplicateItems.length} data lama.
+              <span className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                Hanya simpan <strong className="text-slate-700 dark:text-slate-200">{cleanNewItems.length} data baru</strong>. Abaikan {duplicateItems.length} data lama.
               </span>
             </button>
 
             <button
               type="button"
               onClick={() => handleApplyGlobalResolution('update')}
-              className={`p-3.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+              style={{ padding: '16px 20px', gap: '8px' }}
+              className={`rounded-2xl border text-left flex flex-col transition-all cursor-pointer ${
                 globalResolution === 'update'
-                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 shadow-2xs'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                  ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 shadow-sm ring-2 ring-emerald-500/20'
+                  : 'border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-2xs'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black">🔄 Perbarui / Timpa</span>
-                {globalResolution === 'update' && <span className="text-emerald-600 text-xs font-bold">● Aktif</span>}
+              <div className="flex items-center justify-between gap-2 w-full">
+                <span className="text-xs sm:text-sm font-black flex items-center gap-1.5">
+                  <span>🔄</span> Perbarui / Timpa
+                </span>
+                {globalResolution === 'update' && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                    ● Aktif
+                  </span>
+                )}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+              <span className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
                 Timpa data lama di database dengan data baru dari file ini.
               </span>
             </button>
@@ -580,59 +594,80 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
             <button
               type="button"
               onClick={() => setGlobalResolution('custom')}
-              className={`p-3.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+              style={{ padding: '16px 20px', gap: '8px' }}
+              className={`rounded-2xl border text-left flex flex-col transition-all cursor-pointer ${
                 globalResolution === 'custom'
-                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 shadow-2xs'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                  ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 shadow-sm ring-2 ring-emerald-500/20'
+                  : 'border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-2xs'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black">🔍 Pilih Per Baris</span>
-                {globalResolution === 'custom' && <span className="text-emerald-600 text-xs font-bold">● Aktif</span>}
+              <div className="flex items-center justify-between gap-2 w-full">
+                <span className="text-xs sm:text-sm font-black flex items-center gap-1.5">
+                  <span>🔍</span> Pilih Per Baris
+                </span>
+                {globalResolution === 'custom' && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                    ● Aktif
+                  </span>
+                )}
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                Atur secara manual per baris santri di tabel berikut.
+              <span className="text-xs text-slate-500 dark:text-slate-400 leading-normal">
+                Atur tindakan secara manual per baris santri pada tabel di bawah.
               </span>
             </button>
           </div>
 
-          {/* Tabel Perbandingan Data Lama vs Data Baru */}
-          <div className="max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-2xl">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-100 dark:bg-slate-800 sticky top-0 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+          {/* Tabel Perbandingan Data Ganda dengan Layout & Styling Sama Persis Seperti Gambar 2 */}
+          <div className="import-batch-table-container overflow-x-auto overflow-y-auto max-h-[350px] w-full border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs">
+            <table className="import-batch-table w-full min-w-[750px]">
+              <thead className="sticky top-0 z-10">
                 <tr>
-                  <th className="py-3 px-3.5">NIS</th>
-                  <th className="py-3 px-3.5">Data Lama di Database</th>
-                  <th className="py-3 px-3.5">Data Baru di File</th>
-                  <th className="py-3 px-3.5 text-center">Tindakan</th>
+                  <th className="import-batch-col-no">NO</th>
+                  <th className="import-batch-col-nis">NIS</th>
+                  <th className="import-batch-col-nama">DATA LAMA DI DATABASE</th>
+                  <th className="import-batch-col-nama">DATA BARU DI FILE</th>
+                  <th className="import-batch-col-action">TINDAKAN</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody>
                 {duplicateItems.map((dup, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-3 px-3.5 font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      {dup.newItem.nis}
+                  <tr key={idx}>
+                    <td className="import-batch-col-no font-bold text-slate-500 dark:text-slate-400">
+                      {idx + 1}
                     </td>
-                    <td className="py-3 px-3.5">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-700 dark:text-slate-300">{dup.existingItem.nama}</span>
-                        <span className="text-[11px] text-slate-400">Tgl: {dup.existingItem.tglLahirFormatted || dup.existingItem.tglLahir || '—'}</span>
+                    <td className="import-batch-col-nis">
+                      <span className="font-mono font-extrabold text-emerald-700 dark:text-emerald-400">
+                        {dup.newItem.nis}
+                      </span>
+                    </td>
+                    <td className="import-batch-col-nama">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-tight block">
+                          {dup.existingItem.nama}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          {dup.existingItem.tglLahirFormatted || dup.existingItem.tglLahir || '—'}
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-3.5">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 dark:text-slate-100">{dup.newItem.nama}</span>
-                        <span className="text-[11px] text-slate-500">Tgl: {dup.newItem.tglLahirFormatted || dup.newItem.tanggal_lahir || dup.newItem.tgl_lahir || '—'}</span>
+                    <td className="import-batch-col-nama">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-tight block">
+                          {dup.newItem.nama}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          {dup.newItem.tglLahirFormatted || dup.newItem.tanggal_lahir || dup.newItem.tgl_lahir || '—'}
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 px-3.5 text-center">
+                    <td className="import-batch-col-action text-center">
                       <select
                         value={dup.action}
                         onChange={(e) => handleRowResolutionChange(idx, e.target.value)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border cursor-pointer transition-all shadow-2xs ${
                           dup.action === 'update'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-400 dark:bg-emerald-950 dark:text-emerald-300'
-                            : 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300'
+                            : 'bg-white text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300'
                         }`}
                       >
                         <option value="skip">⏭️ Lewati</option>
@@ -645,12 +680,12 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
             </table>
           </div>
 
-          {/* Modal Footer Actions */}
-          <div className="flex items-center justify-between pt-5 border-t border-slate-100 dark:border-slate-800">
+          {/* Modal Footer Actions dengan Jarak / Padding Bawah yang Lega */}
+          <div className="flex items-center justify-between pt-6 pb-2 border-t border-slate-100 dark:border-slate-800 mt-1">
             <button
               type="button"
               onClick={() => setIsDuplicateModalOpen(false)}
-              className="h-11 sm:h-12 px-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center min-w-[150px]"
+              className="h-11 sm:h-12 px-7 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center min-w-[150px] active:scale-95"
             >
               Kembali ke Preview
             </button>
@@ -658,7 +693,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
             <button
               type="button"
               onClick={handleConfirmDuplicateResolution}
-              className="h-11 sm:h-12 px-8 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-extrabold rounded-xl text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2.5 min-w-[210px]"
+              className="h-11 sm:h-12 px-8 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-extrabold rounded-xl text-xs shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2.5 min-w-[210px]"
             >
               <span>Konfirmasi &amp; Simpan</span>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -757,7 +792,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
             )}
 
             {/* Checkbox Crosscheck */}
-            <label className="flex items-start gap-2.5 text-left mb-6 cursor-pointer group">
+            <label className="flex items-start gap-2.5 text-left mb-8 cursor-pointer group">
               <input
                 type="checkbox"
                 checked={isConfirmedCheck}

@@ -134,7 +134,7 @@ const SaldoDetailModal = ({
         <div className="saldo-identity-card bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl sm:rounded-3xl p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 min-h-[135px] shadow-xs">
           <div className="saldo-identity-left flex items-center gap-5 sm:gap-6">
             {/* Circular Avatar */}
-            <div className="santri-avatar-circle w-16 h-16 sm:w-18 sm:h-18 min-w-[64px] min-h-[64px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-2xl sm:text-3xl flex items-center justify-center shrink-0 overflow-hidden shadow-md aspect-square border-2 border-emerald-600/30">
+            <div className="santri-avatar-circle w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-3xl sm:text-4xl flex items-center justify-center shrink-0 overflow-hidden shadow-lg aspect-square border-2 sm:border-3 border-emerald-500/40 ring-4 ring-emerald-50 dark:ring-emerald-950/40">
               {(santri.foto || santri.foto_url) ? (
                 <img
                   src={santri.foto || santri.foto_url}
@@ -156,6 +156,11 @@ const SaldoDetailModal = ({
               <p className="identity-nis text-xs sm:text-sm font-mono font-bold text-slate-500 dark:text-slate-400 mt-1">
                 NIS: <span className="text-slate-800 dark:text-slate-200 font-extrabold">{santri.nis || '2024003'}</span>
               </p>
+              {santri.kelas && (
+                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                  Kelas: <span className="text-slate-800 dark:text-slate-200 font-extrabold">{santri.kelas}</span>
+                </p>
+              )}
             </div>
           </div>
 

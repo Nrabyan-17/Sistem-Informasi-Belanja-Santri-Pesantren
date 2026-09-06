@@ -19,8 +19,8 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
       <div className="flex flex-col gap-6 pt-1 pb-2">
 
         {/* ── Avatar & Identitas ─────────────────────────── */}
-        <div className="flex items-center gap-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-          <div className="w-16 h-16 min-w-[64px] min-h-[64px] rounded-full bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-2xl font-black text-white shrink-0 overflow-hidden shadow-md aspect-square border-2 border-amber-400/40">
+        <div className="flex items-center gap-5 sm:gap-6 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-3xl sm:text-4xl font-black text-white shrink-0 overflow-hidden shadow-lg aspect-square border-2 sm:border-3 border-amber-400/50 ring-4 ring-amber-100/80 dark:ring-amber-950/40">
             {santri.foto ? (
               <img
                 src={santri.foto}
@@ -32,7 +32,7 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
             )}
           </div>
           <div className="flex flex-col gap-1.5 flex-1">
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
+            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight leading-snug">
               {santri.nama}
             </h3>
             <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 font-mono">

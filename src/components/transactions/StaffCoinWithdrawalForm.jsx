@@ -188,7 +188,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
   return (
     <div className="staff-withdrawal-card bg-white dark:bg-slate-900 mt-7">
-      <div className="card-header border-b border-slate-100 dark:border-slate-800 pb-5 mb-8 flex items-center justify-between flex-wrap gap-3">
+      <div className="card-header border-b border-slate-100 dark:border-slate-800 pb-5 mb-12 mr-8 ml-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             Form Penarikan Koin / Saldo Santri
@@ -202,7 +202,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         </span>
       </div>
 
-      <form onSubmit={handleInitiateWithdrawal} className="flex flex-col pt-1 gap-6">
+      <form onSubmit={handleInitiateWithdrawal} className="flex flex-col pt-6 gap-6">
         {/* Row 1: Search Bar & Input Nominal Side-by-Side */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Column: Input Search Bar Santri */}
@@ -345,10 +345,10 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           {/* Info Card Santri Terpilih (lg:col-span-6, persis selebar Input Search Bar) */}
           <div className="lg:col-span-6">
             <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-4 sm:gap-5 my-0 w-full">
-              <div className="flex items-center gap-4 min-w-0">
+              <div className="flex items-center gap-4 sm:gap-5 min-w-0">
                 {/* Foto / Inisial Profil Santri (Ukuran Diperbesar Lebih Nyata & Jelas) */}
                 <div className="relative shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 min-w-[64px] min-h-[64px] sm:min-w-[80px] sm:min-h-[80px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-xl sm:text-2xl flex items-center justify-center border-2 border-emerald-600/40 dark:border-emerald-400/40 shadow-sm ring-4 ring-emerald-50 dark:ring-emerald-950/40 overflow-hidden aspect-square">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center border-2 sm:border-3 border-emerald-600/40 dark:border-emerald-400/40 shadow-sm ring-4 ring-emerald-50 dark:ring-emerald-950/40 overflow-hidden aspect-square">
                     {activeSantri.foto ? (
                       <img
                         src={activeSantri.foto}
@@ -360,7 +360,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     )}
                   </div>
                   <span
-                    className="absolute bottom-0 right-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-800 shadow-xs"
+                    className="absolute bottom-1 right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 border-2 sm:border-[2.5px] border-white dark:border-slate-800 shadow-xs"
                     title="Santri Aktif"
                   />
                 </div>
@@ -412,23 +412,25 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             style={{ padding: '36px 32px 32px 32px', maxWidth: '480px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Amber Shield / Question Icon Box */}
-            <div
-              className="modal-badge-bounce w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-900/50 flex items-center justify-center shrink-0 mx-auto mb-4 shadow-sm"
-            >
-              <svg
-                className="text-amber-600 dark:text-amber-400 w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Top Foto Profil Santri (Ukuran Besar & Jelas untuk Verifikasi) */}
+            <div className="relative mx-auto mb-5 shrink-0 flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-3xl sm:text-4xl flex items-center justify-center overflow-hidden shadow-lg border-3 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-950/40 aspect-square">
+                {activeSantri.foto ? (
+                  <img
+                    src={activeSantri.foto}
+                    alt={activeSantri.nama}
+                    className="w-full h-full object-cover rounded-full aspect-square block"
+                  />
+                ) : (
+                  getInitials(activeSantri.nama)
+                )}
+              </div>
+              <span
+                className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-500 border-2 border-white dark:border-slate-800 flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xs"
+                title="Konfirmasi Penarikan"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
+                ?
+              </span>
             </div>
 
             {/* Title */}
@@ -452,22 +454,9 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             >
               <div className="success-modal-row items-center py-0.5">
                 <span className="success-modal-label text-xs">Santri:</span>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600/30 shadow-xs">
-                    {activeSantri.foto ? (
-                      <img
-                        src={activeSantri.foto}
-                        alt={activeSantri.nama}
-                        className="w-full h-full object-cover rounded-full aspect-square block"
-                      />
-                    ) : (
-                      getInitials(activeSantri.nama)
-                    )}
-                  </div>
-                  <strong className="success-modal-value text-xs sm:text-sm">
-                    {activeSantri.nama} ({activeSantri.nis}{activeSantri.kelas ? ` • Kelas ${activeSantri.kelas}` : ''})
-                  </strong>
-                </div>
+                <strong className="success-modal-value text-xs sm:text-sm">
+                  {activeSantri.nama} ({activeSantri.nis}{activeSantri.kelas ? ` • Kelas ${activeSantri.kelas}` : ''})
+                </strong>
               </div>
 
               <div className="success-modal-divider"></div>
@@ -538,9 +527,25 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         <div className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
           <div className="success-modal-card modal-animate-pop">
 
-            {/* Green Checkmark Badge Icon */}
-            <div className="modal-badge-bounce w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
-              ✓
+            {/* Top Foto Profil Santri (Ukuran Besar & Jelas) dengan Badge Centang Sukses */}
+            <div className="relative mx-auto mb-5 shrink-0 flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-3xl sm:text-4xl flex items-center justify-center overflow-hidden shadow-lg border-3 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-900/20 aspect-square">
+                {(lastTxData.foto || activeSantri.foto) ? (
+                  <img
+                    src={lastTxData.foto || activeSantri.foto}
+                    alt={lastTxData.namaSantri}
+                    className="w-full h-full object-cover rounded-full aspect-square block"
+                  />
+                ) : (
+                  getInitials(lastTxData.namaSantri)
+                )}
+              </div>
+              <span
+                className="absolute bottom-0 right-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 border-2 border-white dark:border-slate-800 flex items-center justify-center text-white text-xs sm:text-sm font-black shadow-xs"
+                title="Penarikan Berhasil"
+              >
+                ✓
+              </span>
             </div>
 
             {/* Title & Subtitle */}
@@ -551,24 +556,11 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
               Koin sebesar <strong className="font-bold text-emerald-700 dark:text-emerald-400">Rp {formatRupiah(lastTxData.nominal)}</strong> telah diserahkan kepada <span className="font-bold text-slate-800 dark:text-slate-200">{lastTxData.namaSantri}</span>.
             </p>
 
-            {/* Detail Summary Card dengan Ikon Foto Santri */}
+            {/* Detail Summary Card dengan Ikon Centang di Baris Santri */}
             <div className="success-modal-details">
               <div className="success-modal-row items-center">
                 <span className="success-modal-label">Santri:</span>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-emerald-700 dark:bg-emerald-800 text-white text-xs font-extrabold flex items-center justify-center shrink-0 overflow-hidden border border-emerald-600/30 shadow-xs">
-                    {(lastTxData.foto || activeSantri.foto) ? (
-                      <img
-                        src={lastTxData.foto || activeSantri.foto}
-                        alt={lastTxData.namaSantri}
-                        className="w-full h-full object-cover rounded-full aspect-square block"
-                      />
-                    ) : (
-                      getInitials(lastTxData.namaSantri)
-                    )}
-                  </div>
-                  <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis}{lastTxData.kelas ? ` • Kelas ${lastTxData.kelas}` : ''})</strong>
-                </div>
+                <strong className="success-modal-value">{lastTxData.namaSantri} ({lastTxData.nis}{lastTxData.kelas ? ` • Kelas ${lastTxData.kelas}` : ''})</strong>
               </div>
               <div className="success-modal-divider"></div>
               <div className="success-modal-row">

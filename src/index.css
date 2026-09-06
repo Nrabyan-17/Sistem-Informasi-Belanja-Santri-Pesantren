@@ -4769,18 +4769,30 @@ html.dark .data-table tbody tr:hover,
 }
 
 .santri-avatar-circle {
-  width: 68px !important;
-  height: 68px !important;
+  width: 96px !important;
+  height: 96px !important;
+  min-width: 96px !important;
+  min-height: 96px !important;
   border-radius: 9999px !important;
   background-color: #0e5d26 !important;
   color: #ffffff !important;
   font-weight: 900 !important;
-  font-size: 1.75rem !important;
+  font-size: 2.25rem !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 4px 14px rgba(14, 93, 38, 0.25) !important;
+  box-shadow: 0 6px 18px rgba(14, 93, 38, 0.25) !important;
   flex-shrink: 0 !important;
+}
+
+@media (min-width: 640px) {
+  .santri-avatar-circle {
+    width: 112px !important;
+    height: 112px !important;
+    min-width: 112px !important;
+    min-height: 112px !important;
+    font-size: 2.5rem !important;
+  }
 }
 
 .identity-tag,
