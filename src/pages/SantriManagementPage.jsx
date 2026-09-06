@@ -79,19 +79,19 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
-  const loadSantriData = () => {
+  const loadSantriData = async () => {
     setLoading(true);
-    santriApi.list({ per_page: 500 })
-      .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : []);
-        if (Array.isArray(rawData)) {
-          setSantriList(rawData.map(mapSantriFromApi));
-        }
-      })
-      .catch((err) => {
-        console.warn('Gagal memuat data santri:', err.message);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const res = await santriApi.list({ per_page: 1500 });
+      const rawData = res.data || (Array.isArray(res) ? res : []);
+      if (Array.isArray(rawData)) {
+        setSantriList(rawData.map(mapSantriFromApi));
+      }
+    } catch (err) {
+      console.warn('Gagal memuat data santri:', err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -297,19 +297,13 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
       if (Array.isArray(payload)) {
         const itemsToUpload = payload.map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
         await santriApi.importConfirm(itemsToUpload);
-        setSantriList((prev) => [...payload.map(mapSantriFromApi), ...prev]);
       } else if (payload && typeof payload === 'object') {
         const { newSantri = [], updatedSantri = [] } = payload;
         const itemsToUpload = [...newSantri, ...updatedSantri].map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
         await santriApi.importConfirm(itemsToUpload);
-        setSantriList((prev) => {
-          const updatedList = prev.map((item) => {
-            const matchedUpdate = updatedSantri.find((u) => String(u.nis) === String(item.nis));
-            return matchedUpdate ? { ...item, ...mapSantriFromApi(matchedUpdate) } : item;
-          });
-          return [...newSantri.map(mapSantriFromApi), ...updatedList];
-        });
       }
+      // Muat ulang seluruh data santri secara otomatis & real-time dari database
+      await loadSantriData();
       return true;
     } catch (err) {
       console.error("Gagal import data batch:", err);
