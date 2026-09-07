@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Modal from '../common/Modal';
 
 // Modal Form Tambah / Edit Data Santri
-const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
+const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {}, kelasOptions = [] }) => {
   const isEdit = Boolean(initialData?.id);
   const fileInputRef = useRef(null);
 
@@ -189,9 +189,15 @@ const SantriModalForm = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
               type="text"
               className={inputClass}
               placeholder="Contoh: VII A"
+              list="kelas-options"
               value={kelas}
               onChange={(e) => setKelas(e.target.value)}
             />
+            <datalist id="kelas-options">
+              {kelasOptions.map((k) => (
+                <option key={k} value={k} />
+              ))}
+            </datalist>
           </div>
           <div className="form-group-section flex flex-col gap-1">
             <div className="flex items-center justify-between">

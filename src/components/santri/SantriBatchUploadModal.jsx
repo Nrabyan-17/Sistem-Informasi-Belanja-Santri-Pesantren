@@ -16,10 +16,10 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
 
   const handleDownloadTemplate = (e) => {
     e.stopPropagation();
-    const headers = ['NIS', 'Nama', 'Alamat', 'Tanggal Lahir', 'Jenis Kelamin'];
+    const headers = ['NIS', 'Nama', 'Kelas', 'Unit', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin', 'Alamat', 'VA Jajan'];
     const rows = [
-      ['2024001', 'Ahmad Santri', 'Jl. Contoh 1', '17-08-2005', 'L'],
-      ['2024002', 'Siti Santriwati', 'Jl. Contoh 2', '01-12-2006', 'P']
+      ['2024001', 'Ahmad Santri', 'VII A', 'MTS', 'Surabaya', '17-08-2005', 'L', 'Jl. Contoh 1', '8808099001'],
+      ['2024002', 'Siti Santriwati', 'VII B', 'MTS', 'Sidoarjo', '01-12-2006', 'P', 'Jl. Contoh 2', '8808099002']
     ];
     
     // Create CSV string
@@ -195,6 +195,8 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       nis: s.nis,
       nama: s.nama || s.name || '',
       alamat: s.alamat || '',
+      kelas: s.kelas || '',
+      unit: s.unit || '',
       jenis_kelamin: s.jenisKelamin || s.jenis_kelamin || 'L',
       tanggal_lahir: s.tglLahir || '',
       va_jajan: s.va_jajan || s.vaJajan || '',
@@ -288,7 +290,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                   Tarik &amp; lepas file CSV / Excel di sini, atau <span className="text-emerald-700 dark:text-emerald-400 underline">klik untuk memilih file</span>
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Alamat, Tanggal Lahir, Jenis Kelamin)
+                  Format yang didukung: .csv, .xlsx (Kolom: NIS, Nama, Kelas, Unit, Tempat Lahir, Tanggal Lahir, Jenis Kelamin, Alamat, VA Jajan)
                 </p>
               </div>
 
@@ -345,6 +347,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                       <th className="import-batch-col-no">No</th>
                       <th className="import-batch-col-nis">NIS</th>
                       <th className="import-batch-col-nama">Nama Santri</th>
+                      <th className="import-batch-col-kelas">Kelas</th>
                       <th className="import-batch-col-alamat">Alamat</th>
                       <th className="import-batch-col-tgl">Tanggal Lahir</th>
                       <th className="import-batch-col-jk">L/P</th>
@@ -374,6 +377,14 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                                 className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
                                 value={editFormData.nama || ''}
                                 onChange={(e) => setEditFormData({ ...editFormData, nama: e.target.value })}
+                              />
+                            </td>
+                            <td className="import-batch-col-kelas py-3 px-2">
+                              <input
+                                type="text"
+                                className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-emerald-500 rounded-lg text-xs font-bold"
+                                value={editFormData.kelas || ''}
+                                onChange={(e) => setEditFormData({ ...editFormData, kelas: e.target.value })}
                               />
                             </td>
                             <td className="import-batch-col-alamat py-3 px-2">
@@ -442,6 +453,11 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
                           <td className="import-batch-col-nama">
                             <span className="font-extrabold text-slate-800 dark:text-slate-100 block">
                               {row.nama}
+                            </span>
+                          </td>
+                          <td className="import-batch-col-kelas">
+                            <span className="import-batch-cell-text font-bold">
+                              {row.kelas || '—'}
                             </span>
                           </td>
                           <td className="import-batch-col-alamat">

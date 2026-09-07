@@ -378,6 +378,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmitForm}
         initialData={editSantri || {}}
+        kelasOptions={[...new Set(santriList.map((s) => s.kelas).filter(Boolean))].sort()}
       />
 
       {/* Modal Detail Santri */}
