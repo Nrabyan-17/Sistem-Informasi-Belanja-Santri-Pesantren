@@ -198,7 +198,7 @@ const SantriBatchUploadModal = ({ isOpen, onClose, onImportSuccess, existingSant
       kelas: s.kelas || '',
       unit: s.unit || '',
       jenis_kelamin: s.jenisKelamin || s.jenis_kelamin || 'L',
-      tanggal_lahir: s.tglLahir || '',
+      tanggal_lahir: s.tanggal_lahir || s.tglLahir || '',
       va_jajan: s.va_jajan || s.vaJajan || '',
       va_tagihan: s.va_tagihan || s.vaTagihan || '',
       status: s.status || 'aktif',

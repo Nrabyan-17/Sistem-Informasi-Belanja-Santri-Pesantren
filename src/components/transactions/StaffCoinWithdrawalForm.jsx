@@ -344,11 +344,11 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center pt-4 border-t border-slate-100 dark:border-slate-800">
           {/* Info Card Santri Terpilih (lg:col-span-6, persis selebar Input Search Bar) */}
           <div className="lg:col-span-6">
-            <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-4 sm:gap-5 my-0 w-full">
-              <div className="flex items-center gap-4 sm:gap-5 min-w-0">
-                {/* Foto / Inisial Profil Santri (Ukuran Diperbesar Lebih Nyata & Jelas) */}
+            <div className="santri-preview-box flex-wrap sm:flex-nowrap gap-5 sm:gap-6 my-0 w-full">
+              <div className="flex items-center gap-5 sm:gap-6 min-w-0">
+                {/* Foto / Inisial Profil Santri (Ukuran Ekstra Besar & Jelas untuk Verifikasi Wajah) */}
                 <div className="relative shrink-0">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-2xl sm:text-3xl flex items-center justify-center border-2 sm:border-3 border-emerald-600/40 dark:border-emerald-400/40 shadow-sm ring-4 ring-emerald-50 dark:ring-emerald-950/40 overflow-hidden aspect-square">
+                  <div className="w-36 h-36 sm:w-44 sm:h-44 min-w-[144px] min-h-[144px] sm:min-w-[176px] sm:min-h-[176px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-extrabold text-4xl sm:text-5xl flex items-center justify-center border-3 sm:border-4 border-emerald-600/40 dark:border-emerald-400/40 shadow-lg ring-6 sm:ring-8 ring-emerald-50 dark:ring-emerald-950/40 overflow-hidden aspect-square">
                     {activeSantri.foto ? (
                       <img
                         src={activeSantri.foto}
@@ -360,7 +360,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
                     )}
                   </div>
                   <span
-                    className="absolute bottom-1 right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 border-2 sm:border-[2.5px] border-white dark:border-slate-800 shadow-xs"
+                    className="absolute bottom-2 right-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 border-2 sm:border-[3.5px] border-white dark:border-slate-800 shadow-sm"
                     title="Santri Aktif"
                   />
                 </div>
@@ -414,7 +414,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           >
             {/* Top Foto Profil Santri (Ukuran Besar & Jelas untuk Verifikasi) */}
             <div className="relative mx-auto mb-5 shrink-0 flex items-center justify-center">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-3xl sm:text-4xl flex items-center justify-center overflow-hidden shadow-lg border-3 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-950/40 aspect-square">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 min-w-[128px] min-h-[128px] sm:min-w-[144px] sm:min-h-[144px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-4xl sm:text-5xl flex items-center justify-center overflow-hidden shadow-xl border-3 sm:border-4 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-950/40 aspect-square">
                 {activeSantri.foto ? (
                   <img
                     src={activeSantri.foto}
@@ -529,7 +529,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
 
             {/* Top Foto Profil Santri (Ukuran Besar & Jelas) dengan Badge Centang Sukses */}
             <div className="relative mx-auto mb-5 shrink-0 flex items-center justify-center">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-3xl sm:text-4xl flex items-center justify-center overflow-hidden shadow-lg border-3 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-900/20 aspect-square">
+              <div className="w-32 h-32 sm:w-36 sm:h-36 min-w-[128px] min-h-[128px] sm:min-w-[144px] sm:min-h-[144px] rounded-full bg-emerald-700 dark:bg-emerald-800 text-white font-black text-4xl sm:text-5xl flex items-center justify-center overflow-hidden shadow-xl border-3 sm:border-4 border-emerald-500/40 ring-8 ring-emerald-50 dark:ring-emerald-900/20 aspect-square">
                 {(lastTxData.foto || activeSantri.foto) ? (
                   <img
                     src={lastTxData.foto || activeSantri.foto}

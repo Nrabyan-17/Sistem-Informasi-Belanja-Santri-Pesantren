@@ -294,14 +294,18 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   // Batch Upload Success Handler (Push data dari pop-up preview ke database/state)
   const handleBatchUploadSuccess = async (payload) => {
     try {
+      let itemsToUpload = [];
       if (Array.isArray(payload)) {
-        const itemsToUpload = payload.map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
-        await santriApi.importConfirm(itemsToUpload);
+        itemsToUpload = payload.map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
       } else if (payload && typeof payload === 'object') {
         const { newSantri = [], updatedSantri = [] } = payload;
-        const itemsToUpload = [...newSantri, ...updatedSantri].map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
+        itemsToUpload = [...newSantri, ...updatedSantri].map(item => ({ ...item, nis: String(item.nis || ''), nama: String(item.nama || '') }));
+      }
+
+      if (itemsToUpload.length > 0) {
         await santriApi.importConfirm(itemsToUpload);
       }
+
       // Muat ulang seluruh data santri secara otomatis & real-time dari database
       await loadSantriData();
       return true;

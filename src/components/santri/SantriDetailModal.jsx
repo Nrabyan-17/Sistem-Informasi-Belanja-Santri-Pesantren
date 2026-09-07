@@ -19,8 +19,8 @@ const SantriDetailModal = ({ isOpen, onClose, santri = {}, onEdit }) => {
       <div className="flex flex-col gap-6 pt-1 pb-2">
 
         {/* ── Avatar & Identitas ─────────────────────────── */}
-        <div className="flex items-center gap-5 sm:gap-6 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 min-w-[96px] min-h-[96px] sm:min-w-[112px] sm:min-h-[112px] rounded-full bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-3xl sm:text-4xl font-black text-white shrink-0 overflow-hidden shadow-lg aspect-square border-2 sm:border-3 border-amber-400/50 ring-4 ring-amber-100/80 dark:ring-amber-950/40">
+        <div className="flex items-center gap-5 sm:gap-7 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+          <div className="w-32 h-32 sm:w-40 sm:h-40 min-w-[128px] min-h-[128px] sm:min-w-[160px] sm:min-h-[160px] rounded-full bg-amber-600 dark:bg-amber-700 flex items-center justify-center text-4xl sm:text-5xl font-black text-white shrink-0 overflow-hidden shadow-xl aspect-square border-3 sm:border-4 border-amber-400/50 ring-6 sm:ring-8 ring-amber-100/80 dark:ring-amber-950/40">
             {santri.foto ? (
               <img
                 src={santri.foto}
