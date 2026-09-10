@@ -23,22 +23,27 @@ const TopUpPage = ({ Layout = MainLayout }) => {
   const [selectedSantri, setSelectedSantri] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchSantriList = () => {
+  const fetchSantriList = async () => {
     setLoading(true);
-    santriApi.list({ per_page: 500 })
-      .then((res) => {
-        const rawData = res.data || (Array.isArray(res) ? res : []);
-        if (Array.isArray(rawData)) {
-          setSantriList(rawData.map(mapSantriForSaldo));
-        } else {
-          setSantriList([]);
-        }
-      })
-      .catch((err) => {
-        console.warn('Gagal memuat data saldo santri:', err.message);
-        setSantriList([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const firstResponse = await santriApi.list({ per_page: 500, page: 1 });
+      const firstPageData = firstResponse.data || (Array.isArray(firstResponse) ? firstResponse : []);
+      const allData = Array.isArray(firstPageData) ? [...firstPageData] : [];
+      const lastPage = Number(firstResponse.meta?.last_page || 1);
+
+      for (let page = 2; page <= lastPage; page += 1) {
+        const response = await santriApi.list({ per_page: 500, page });
+        const pageData = response.data || [];
+        if (Array.isArray(pageData)) allData.push(...pageData);
+      }
+
+      setSantriList(allData.map(mapSantriForSaldo));
+    } catch (err) {
+      console.warn('Gagal memuat data saldo santri:', err.message);
+      setSantriList([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

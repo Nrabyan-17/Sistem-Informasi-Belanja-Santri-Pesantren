@@ -41,7 +41,7 @@ const DashboardPage = ({ Layout = MainLayout }) => {
         console.error('Gagal mengambil data dashboard:', err);
         return null;
       }),
-      santriApi.list({ per_page: 500 }).catch((err) => {
+      santriApi.list({ per_page: 2000 }).catch((err) => {
         console.warn('Gagal mengambil data santri:', err);
         return null;
       }),

@@ -27,7 +27,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
   const [popupConfig, setPopupConfig] = useState({ isOpen: false, type: 'error', title: '', message: '' });
 
   useEffect(() => {
-    santriApi.list({ per_page: 500 })
+    santriApi.list({ per_page: 2000 })
       .then((res) => {
         const rawData = res.data || (Array.isArray(res) ? res : []);
         if (Array.isArray(rawData) && rawData.length > 0) {
@@ -161,7 +161,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       setNominal('');
 
       // Refresh daftar santri dari API agar saldo santri selalu sinkron
-      santriApi.list({ per_page: 500 })
+      santriApi.list({ per_page: 2000 })
         .then((res) => {
           const rawData = res.data || (Array.isArray(res) ? res : []);
           if (Array.isArray(rawData) && rawData.length > 0) {

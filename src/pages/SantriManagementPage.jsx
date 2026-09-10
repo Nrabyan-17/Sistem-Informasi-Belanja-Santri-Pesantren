@@ -82,7 +82,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
   const loadSantriData = async () => {
     setLoading(true);
     try {
-      const res = await santriApi.list({ per_page: 1500 });
+      const res = await santriApi.list({ per_page: 2000 });
       const rawData = res.data || (Array.isArray(res) ? res : []);
       if (Array.isArray(rawData)) {
         setSantriList(rawData.map(mapSantriFromApi));
@@ -145,7 +145,7 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
 
   const handleBatchStatusChange = (newStatus) => {
     selectedIds.forEach((id) => {
-      santriApi.update(id, { status: newStatus }).catch(() => {});
+      santriApi.update(id, { status: newStatus }).catch(() => { });
     });
     setSantriList((prev) =>
       prev.map((s) =>
@@ -467,9 +467,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                   setIsDeleteOpen(false);
                   setDeleteTarget(null);
                 }}
-                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
-                  isDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
-                }`}
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${isDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                  }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
@@ -553,9 +552,8 @@ const SantriManagementPage = ({ Layout = MainLayout }) => {
                 type="button"
                 disabled={isBatchDeleting}
                 onClick={() => setIsBatchDeleteOpen(false)}
-                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${
-                  isBatchDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
-                }`}
+                className={`flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition-all duration-150 shadow-2xs flex items-center justify-center ${isBatchDeleting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 hover:scale-[1.02] cursor-pointer'
+                  }`}
                 style={{ height: '50px', fontSize: '15px' }}
               >
                 Batal
