@@ -87,13 +87,13 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
     e.preventDefault();
     const amount = parseInt(nominal || '0', 10);
 
-    if (isNaN(amount) || amount <= 0) {
-      setPopupConfig({ isOpen: true, type: 'warning', title: 'Nominal Tidak Valid', message: 'Silakan masukkan nominal penarikan koin yang valid (lebih dari 0).' });
+    if (isNaN(amount) || amount < 1000) {
+      setPopupConfig({ isOpen: true, type: 'warning', title: 'Nominal Tidak Valid', message: 'Minimal penarikan koin adalah Rp 1.000.' });
       return;
     }
 
     if (amount > 30000) {
-      setPopupConfig({ isOpen: true, type: 'error', title: 'Batas Penarikan Koin', message: 'Batas maksimal penarikan koin santri adalah Rp 30.000 per 2 hari.' });
+      setPopupConfig({ isOpen: true, type: 'error', title: 'Batas Penarikan Koin', message: 'Batas maksimal penarikan koin santri adalah Rp 30.000 per transaksi.' });
       return;
     }
     if (amount > activeSantri.saldo) {
@@ -321,11 +321,12 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           <div className="lg:col-span-6 flex flex-col gap-2">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
               <span>Nominal Penarikan (RP)</span>
-              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb</span>
+              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb/transaksi</span>
             </label>
             <input
               type="number"
-              placeholder="Contoh: 30000"
+              placeholder="Min. 1000, maks. 30000"
+              min="1000"
               max="30000"
               value={nominal}
               onChange={(e) => setNominal(e.target.value)}
@@ -335,7 +336,7 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
             />
             {/* Pengingat Batas Penarikan Santri */}
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              <strong className="text-slate-700 dark:text-slate-300 font-bold">Batas penarikan santri:</strong> Maks. Rp 30.000 per 2 hari.
+              <strong className="text-slate-700 dark:text-slate-300 font-bold">Batas penarikan santri:</strong> Rp 1.000 sampai Rp 30.000 per transaksi.
             </p>
           </div>
         </div>
