@@ -92,10 +92,6 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
       return;
     }
 
-    if (amount > 30000) {
-      setPopupConfig({ isOpen: true, type: 'error', title: 'Batas Penarikan Koin', message: 'Batas maksimal penarikan koin santri adalah Rp 30.000 per transaksi.' });
-      return;
-    }
     if (amount > activeSantri.saldo) {
       setInsufficientData({
         namaSantri: activeSantri.nama,
@@ -321,23 +317,17 @@ const StaffCoinWithdrawalForm = ({ onWithdrawalSuccess }) => {
           <div className="lg:col-span-6 flex flex-col gap-2">
             <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
               <span>Nominal Penarikan (RP)</span>
-              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">Maks. 30rb/transaksi</span>
             </label>
             <input
               type="number"
-              placeholder="Min. 1000, maks. 30000"
+              placeholder="Min. 1000"
               min="1000"
-              max="30000"
               value={nominal}
               onChange={(e) => setNominal(e.target.value)}
               style={{ paddingLeft: '16px', paddingRight: '16px' }}
               className="w-full h-11 px-4 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition-all"
               required
             />
-            {/* Pengingat Batas Penarikan Santri */}
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              <strong className="text-slate-700 dark:text-slate-300 font-bold">Batas penarikan santri:</strong> Rp 1.000 sampai Rp 30.000 per transaksi.
-            </p>
           </div>
         </div>
 

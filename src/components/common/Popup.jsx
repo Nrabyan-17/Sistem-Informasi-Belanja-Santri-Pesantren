@@ -15,20 +15,20 @@ const Popup = ({ isOpen, type = 'info', title, message, onClose }) => {
     switch (type) {
       case 'success':
         return (
-          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20">
+          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-900/10 ring-8 ring-emerald-50 dark:ring-emerald-900/20 shrink-0">
             ✓
           </div>
         );
       case 'error':
         return (
-          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-5 shadow-lg shadow-rose-900/10 ring-8 ring-rose-50 dark:ring-rose-900/20">
+          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 text-3xl font-extrabold flex items-center justify-center mx-auto mb-6 shadow-lg shadow-rose-900/10 ring-8 ring-rose-50 dark:ring-rose-900/20 shrink-0">
             ✕
           </div>
         );
       case 'info':
       default:
         return (
-          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-sky-900/10 ring-8 ring-sky-50 dark:ring-sky-900/20">
+          <div className="modal-badge-bounce w-20 h-20 min-w-[80px] min-h-[80px] rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-600 dark:text-sky-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-sky-900/10 ring-8 ring-sky-50 dark:ring-sky-900/20 shrink-0">
             <svg className="w-9 h-9 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -56,23 +56,26 @@ const Popup = ({ isOpen, type = 'info', title, message, onClose }) => {
     >
       <div 
         className="modal-animate-pop bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl relative text-center flex flex-col items-center transition-colors"
-        style={{ padding: '36px 28px 28px 28px' }}
+        style={{ padding: '40px 32px 32px 32px' }}
         onClick={(e) => e.stopPropagation()}
       >
         {getIcon()}
         
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-2">
+        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-3">
           {title}
         </h3>
         
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2 mb-6">
+        <p 
+          className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2"
+          style={{ marginTop: '4px', marginBottom: '28px' }}
+        >
           {message}
         </p>
 
         <button
           type="button"
           onClick={onClose}
-          className={`w-full h-12 py-3 font-extrabold rounded-xl text-sm shadow-lg transition-all cursor-pointer flex items-center justify-center active:scale-[0.99] ${getButtonClass()}`}
+          className={`w-full h-12 py-3 font-extrabold rounded-2xl text-sm shadow-lg transition-all cursor-pointer flex items-center justify-center active:scale-[0.99] ${getButtonClass()}`}
         >
           Mengerti &amp; Tutup
         </button>
