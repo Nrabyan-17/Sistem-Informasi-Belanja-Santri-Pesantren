@@ -77,6 +77,38 @@ const parseBNICSV = (text) => {
   return results;
 };
 
+const getItemStatus = (item) => {
+  const status = item.statusCode || item.status;
+  const note = String(item.catatan || '').toLowerCase();
+  if (item.isDuplicate || status === 'duplicate' || status === 'duplikat') return 'duplicate';
+  if (status === 'nominal_invalid' || status === 'nominal-tidak-valid') return 'nominal_invalid';
+  if (status === 'non_jjn' || status === 'bukan_transaksi_jjn') return 'non_jjn';
+  if (status === 'va_mismatch' || status === 'va_tidak_cocok') return 'va_mismatch';
+  if (note.includes('va') && (note.includes('cocok') || note.includes('tidak ditemukan'))) return 'va_mismatch';
+  if (note.includes('nominal')) return 'nominal_invalid';
+  if (note.includes('jjn')) return 'non_jjn';
+  if (item.status_valid === false || item.status === 'invalid') return 'invalid';
+  return 'valid';
+};
+
+const getStatusLabel = (item) => ({
+  valid: 'Valid',
+  duplicate: 'Duplikat',
+  va_mismatch: 'VA Tidak Cocok',
+  nominal_invalid: 'Nominal Tidak Valid',
+  non_jjn: 'Bukan Transaksi JJN',
+  invalid: 'Tidak Valid',
+}[getItemStatus(item)] || 'Tidak Valid');
+
+const getSyncTitle = (result) => {
+  if (!result) return 'Sinkronisasi selesai';
+  if (result.dikreditkan > 0 && (result.duplikat > 0 || result.tidak_valid > 0)) return 'Sinkronisasi selesai sebagian';
+  if (result.dikreditkan > 0) return 'Sinkronisasi berhasil';
+  if (result.tidak_valid > 0) return 'Tidak ada saldo yang ditambahkan';
+  if (result.duplikat > 0) return 'Transaksi sudah pernah diproses';
+  return 'Sinkronisasi selesai';
+};
+
 const UploadBNIPage = ({ Layout = MainLayout }) => {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -86,6 +118,7 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'jajan'
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [applyResult, setApplyResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [editingRowId, setEditingRowId] = useState(null);
   const [editRowData, setEditRowData] = useState({});
@@ -168,6 +201,8 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
             tanggal: item.tanggal_transaksi || item.tanggal || new Date().toISOString().slice(0, 10),
             status: item.status_valid ? 'valid' : 'invalid',
             isDuplicate: item.is_duplicate || false,
+            catatan: item.catatan || '',
+            statusCode: item.status || null,
             isJajan: true,
             santriId: item.santri_id || item.santri?.id || null,
           }));
@@ -273,18 +308,31 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
       // 1. Eksekusi apply via Backend Laravel API jika uploadId tersedia
       if (uploadId) {
         const validItemIds = parsedData
-          .filter((d) => d.status === 'valid')
+          .filter((d) => getItemStatus(d) === 'valid')
           .map((d) => d.id);
-        await bniApi.apply(uploadId, validItemIds);
+        const response = await bniApi.apply(uploadId, validItemIds);
+        const validItems = parsedData.filter((item) => getItemStatus(item) === 'valid');
+        const result = {
+          dikreditkan: Number(response?.dikreditkan || 0),
+          duplikat: Number(response?.duplikat || 0),
+          tidak_valid: Number(response?.tidak_valid || 0),
+          totalDanaMasuk: Number(response?.total_dana_masuk || response?.total_nominal || 0)
+            || (Number(response?.dikreditkan || 0) > 0
+              ? validItems.reduce((total, item) => total + Number(item.nominal || 0), 0)
+              : 0),
+        };
+        setApplyResult(result);
+      } else {
+        setApplyResult(null);
       }
       setIsConfirmed(true);
       setIsValidationModalOpen(false);
       setIsSuccessModalOpen(true);
     } catch (err) {
       console.warn('Gagal apply BNI ke backend:', err.message);
-      setIsConfirmed(true);
+      setApplyResult(null);
       setIsValidationModalOpen(false);
-      setIsSuccessModalOpen(true);
+      setErrorMessage(`Saldo belum dikreditkan. ${err.message || 'Gagal memproses sinkronisasi ke server.'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -295,6 +343,7 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
     setParsedData(null);
     setUploadId(null);
     setIsConfirmed(false);
+    setApplyResult(null);
     setIsSubmitting(false);
     setFilterMode('all');
     setIsDuplicateModalOpen(false);
@@ -429,8 +478,8 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
 
           const totalNominal = displayedData.reduce((acc, curr) => acc + curr.nominal, 0);
           const jajanCount = parsedData.filter((d) => d.isJajan).length;
-          const validCount = parsedData.filter((d) => d.status === 'valid').length;
-          const invalidCount = parsedData.filter((d) => d.status === 'invalid').length;
+          const validCount = parsedData.filter((d) => getItemStatus(d) === 'valid').length;
+          const invalidCount = parsedData.filter((d) => getItemStatus(d) !== 'valid').length;
 
           return (
             <div className="bni-results-card bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col gap-5">
@@ -440,7 +489,7 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                     Hasil Pencocokan Mutasi BNI
                   </h3>
                   <p className="bni-results-subtitle text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Ditemukan {parsedData.length} baris data transaksi &middot; {validCount} valid &middot; {invalidCount} tidak cocok
+                    File berhasil di-upload. Ditemukan {parsedData.length} baris transaksi &middot; {validCount} siap dikreditkan &middot; {invalidCount} perlu diperiksa
                   </p>
                 </div>
 
@@ -454,11 +503,11 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all disabled:opacity-60 cursor-pointer"
+                    className="btn btn-primary px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                     onClick={handleConfirmSave}
-                    disabled={isConfirmed}
+                    disabled={isConfirmed || validCount === 0}
                   >
-                    {isConfirmed ? 'Sudah Disimpan' : 'Konfirmasi & Simpan Saldo'}
+                    {isConfirmed ? 'Sudah Diproses' : `Apply ${validCount} transaksi · Rp ${parsedData.filter((d) => getItemStatus(d) === 'valid').reduce((total, item) => total + Number(item.nominal || 0), 0).toLocaleString('id-ID')}`}
                   </button>
                 </div>
               </div>
@@ -610,13 +659,18 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                               + Rp {item.nominal.toLocaleString('id-ID')}
                             </td>
                             <td className="px-4 py-3">
-                              {item.status === 'valid' ? (
+                              {getItemStatus(item) === 'valid' ? (
                                 <span className="inline-flex items-center bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-1 rounded-full text-xs font-bold">
                                   Valid
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 px-3 py-1 rounded-full text-xs font-bold">
-                                  VA Tidak Cocok
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getItemStatus(item) === 'duplicate' ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'}`}>
+                                  {getStatusLabel(item)}
+                                </span>
+                              )}
+                              {item.catatan && (
+                                <span className="block mt-1 max-w-xs text-[10px] leading-tight text-slate-500 dark:text-slate-400">
+                                  {item.catatan}
                                 </span>
                               )}
                             </td>
@@ -860,21 +914,21 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                 style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
               >
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Transaksi Valid:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Akan dikreditkan:</span>
                   <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
-                    {parsedData.filter((d) => d.status === 'valid').length} data
+                    {parsedData.filter((d) => getItemStatus(d) === 'valid').length} data
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak Valid / Dilewati:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak valid / dilewati:</span>
                   <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
-                    {parsedData.filter((d) => d.status === 'invalid').length} data
+                    {parsedData.filter((d) => getItemStatus(d) !== 'valid').length} data
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total Dana Masuk:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Total saldo masuk:</span>
                   <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
-                    Rp {parsedData.filter((d) => d.status === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}
+                    Rp {parsedData.filter((d) => getItemStatus(d) === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div
@@ -960,11 +1014,11 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
             </div>
 
             {/* Title */}
-            <h3
+              <h3
               className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight"
               style={{ fontSize: '22px', marginBottom: '8px' }}
             >
-              Sinkronisasi Berhasil!
+              {getSyncTitle(applyResult)}
             </h3>
 
             {/* Description */}
@@ -972,7 +1026,9 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
               className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed"
               style={{ fontSize: '14px', maxWidth: '340px', marginBottom: '20px' }}
             >
-              Saldo santri telah berhasil diperbarui otomatis ke dalam sistem dari mutasi BNI eCollection.
+              {applyResult?.dikreditkan > 0
+                ? 'Saldo santri telah diperbarui berdasarkan transaksi yang berhasil dikreditkan.'
+                : 'File berhasil diproses, tetapi tidak ada saldo yang masuk ke santri.'}
             </p>
 
             {/* Ringkasan Box */}
@@ -982,21 +1038,27 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                 style={{ padding: '18px 20px', marginBottom: '28px', gap: '10px' }}
               >
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Transaksi Valid:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Berhasil dikreditkan:</span>
                   <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
-                    {parsedData.filter((d) => d.status === 'valid').length} data
+                    {applyResult?.dikreditkan ?? 0} data
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak Valid / Dilewati:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Duplikat:</span>
                   <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
-                    {parsedData.filter((d) => d.status === 'invalid').length} data
+                    {applyResult?.duplikat ?? 0} data
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Tidak valid:</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400 font-mono text-sm">
+                    {applyResult?.tidak_valid ?? 0} data
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs border-t border-slate-200 dark:border-slate-700/80 pt-2">
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Total Dana Masuk:</span>
                   <span className="font-extrabold text-slate-900 dark:text-slate-100 font-mono text-sm">
-                    Rp {parsedData.filter((d) => d.status === 'valid').reduce((acc, curr) => acc + curr.nominal, 0).toLocaleString('id-ID')}
+                    Rp {(applyResult?.totalDanaMasuk ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div
@@ -1004,9 +1066,9 @@ const UploadBNIPage = ({ Layout = MainLayout }) => {
                   style={{ paddingTop: '10px' }}
                 >
                   <span className="text-slate-500 dark:text-slate-400 font-medium">Status Saldo:</span>
-                  <span className="inline-flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Otomatis Masuk ke Saldo Santri
+                  <span className={`inline-flex items-center gap-1.5 font-bold ${applyResult?.dikreditkan > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                    <span className={`w-2 h-2 rounded-full ${applyResult?.dikreditkan > 0 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                    {applyResult?.dikreditkan > 0 ? 'Otomatis masuk ke saldo santri' : 'Tidak ada saldo yang masuk'}
                   </span>
                 </div>
               </div>
