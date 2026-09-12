@@ -23,7 +23,7 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
           totalKeluar: m.pengeluaran,
           net: m.net,
           jmlTrx: m.jumlah_transaksi ?? 0,
-          staff: (!m.staff || m.staff === 'Staff Rumah Koin' || m.staff === '\u2014' || String(m.staff).toLowerCase().includes('staff')) ? 'Manajer BAK / Rumah Koin' : m.staff,
+          staff: (!m.staff || m.staff === 'Staff Rumah Koin' || m.staff === '—' || String(m.staff).toLowerCase().includes('staff')) ? 'Manajer BAK / Rumah Koin' : m.staff,
           status: m.status || 'Selesai',
         }));
         setRows(list);
@@ -39,15 +39,28 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
     return rows.find((d) => d.periode === selectedMonth) || rows[0];
   }, [rows, selectedMonth]);
 
-  // Export PDF Handler
+  // Export PDF Handler (Browser Print)
   const handleExportPDF = (rowMonth) => {
     if (rowMonth && typeof rowMonth === 'string') {
       setSelectedMonth(rowMonth);
     }
-    // Sedikit delay agar DOM terseleksi sebelum dialog print terbuka
     setTimeout(() => {
       window.print();
     }, 100);
+  };
+
+  // Preview PDF Handler (Buka URL Backend Resmi di Tab Baru)
+  const handlePreviewPDF = (rowMonth) => {
+    let bulan = '';
+    if (rowMonth && typeof rowMonth === 'object' && rowMonth.bulan) {
+      bulan = rowMonth.bulan;
+    } else if (typeof rowMonth === 'string') {
+      bulan = rows.find((r) => r.periode === rowMonth)?.bulan || rowMonth;
+    } else {
+      bulan = activeMonthReport?.bulan || rows[0]?.bulan || '';
+    }
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://127.0.0.1:8000';
+    window.open(`${baseUrl}/reports/financial/preview?bulan=${bulan}`, '_blank');
   };
 
   // Export Excel Handler (via API)
@@ -79,7 +92,7 @@ const FinancialReportPage = ({ Layout = MainLayout }) => {
             </p>
           </div>
 
-          {/* Action Controls: Dropdown Periode + Tombol Unduh PDF + Tombol Unduh Excel */}
+          {/* Action Controls: Dropdown Periode + Tombol Cetak PDF + Tombol Unduh Excel */}
           <ExportButtons
             selectedMonth={selectedMonth}
             onMonthChange={setSelectedMonth}

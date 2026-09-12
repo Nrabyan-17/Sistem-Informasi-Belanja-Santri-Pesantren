@@ -4,12 +4,13 @@ import React from 'react';
 const ExportButtons = ({
   selectedMonth = 'Agustus 2025',
   onMonthChange,
-  months = ['Agustus 2025', 'Juli 2025', 'Juni 2025', 'Mei 2025', 'April 2025', 'Maret 2025'],
+  months = [],
   onExportPDF,
   onExportExcel,
+  onPreviewPDF,
 }) => {
   return (
-    <div className="report-action-controls">
+    <div className="report-action-controls flex items-center gap-2 flex-wrap">
       {/* Dropdown Tanggal / Periode */}
       <select
         value={selectedMonth}
@@ -28,7 +29,7 @@ const ExportButtons = ({
         <svg className="w-4 h-4 mr-1.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        Unduh PDF
+        Cetak PDF
       </button>
 
       {/* Tombol Unduh Excel */}
